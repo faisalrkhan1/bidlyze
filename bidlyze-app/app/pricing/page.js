@@ -13,12 +13,14 @@ const PLANS = [
     price: 0,
     period: "forever",
     analysesLimit: 3,
+    cta: "Start Free",
     features: [
-      "3 analyses per month",
-      "PDF, DOCX, TXT upload",
-      "AI-powered analysis",
-      "PDF export",
-      "Email notifications",
+      "3 tender analyses per month",
+      "Single document upload",
+      "AI summary & bid score",
+      "Basic compliance checklist",
+      "PDF report export",
+      "No signup required",
     ],
   },
   {
@@ -27,13 +29,15 @@ const PLANS = [
     price: 29,
     period: "/month",
     priceId: "price_1TDLd7JbZq5ga8LYLedS8Xsb",
-    analysesLimit: 10,
+    analysesLimit: 15,
+    cta: "Get Started",
     features: [
-      "10 analyses per month",
-      "Everything in Free",
-      "Proposal Writer",
-      "Amendment Intelligence",
-      "Priority processing",
+      "15 analyses per month",
+      "Up to 5 documents per analysis",
+      "Full analysis with risk flags & compliance gaps",
+      "PDF report + Excel compliance matrix export",
+      "Full analysis history",
+      "Email support",
     ],
   },
   {
@@ -42,14 +46,18 @@ const PLANS = [
     price: 99,
     period: "/month",
     priceId: "price_1TDLdkJbZq5ga8LY1wnyYxAC",
-    analysesLimit: 30,
+    analysesLimit: 50,
     popular: true,
+    cta: "Start Free Trial",
     features: [
-      "30 analyses per month",
+      "50 analyses per month",
+      "Up to 20 documents per analysis",
       "Everything in Starter",
-      "Competitor Intelligence",
-      "Pricing Advisor",
-      "Risk Radar",
+      { text: "Multi-document intelligence", comingSoon: true },
+      { text: "Scope decomposition", comingSoon: true },
+      { text: "Proposal structure generator", comingSoon: true },
+      { text: "Word proposal template export", comingSoon: true },
+      { text: "Up to 10 users", comingSoon: true },
       "Priority support",
     ],
   },
@@ -60,13 +68,16 @@ const PLANS = [
     period: "/month",
     priceId: "price_1TDLeWJbZq5ga8LYsAOgqoQ1",
     analysesLimit: null,
+    cta: "Contact Sales",
+    ctaHref: "mailto:hello@bidlyze.com",
     features: [
       "Unlimited analyses",
+      "Unlimited documents per analysis",
       "Everything in Professional",
-      "Custom integrations",
+      { text: "API access", comingSoon: true },
+      { text: "Unlimited users", comingSoon: true },
       "Dedicated account manager",
-      "SLA guarantee",
-      "Team collaboration",
+      { text: "Custom integrations", comingSoon: true },
     ],
   },
 ];
@@ -355,14 +366,28 @@ export default function PricingPage() {
 
                 {/* Features */}
                 <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--text-secondary)" }}>
-                      <svg className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                      {feature}
-                    </li>
-                  ))}
+                  {plan.features.map((feature, i) => {
+                    const text = typeof feature === "string" ? feature : feature.text;
+                    const comingSoon = typeof feature === "object" && feature.comingSoon;
+                    return (
+                      <li key={i} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+                        <svg className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                        </svg>
+                        <span className="flex items-center gap-2 flex-wrap">
+                          {text}
+                          {comingSoon && (
+                            <span
+                              className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium leading-none"
+                              style={{ background: "var(--bg-input)", color: "var(--text-muted)", border: "1px solid var(--border-primary)" }}
+                            >
+                              Coming Soon
+                            </span>
+                          )}
+                        </span>
+                      </li>
+                    );
+                  })}
                 </ul>
 
                 {/* CTA Button */}
@@ -374,6 +399,16 @@ export default function PricingPage() {
                   >
                     Current Plan
                   </button>
+                ) : plan.ctaHref ? (
+                  <a
+                    href={plan.ctaHref}
+                    className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 block text-center"
+                    style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    {plan.cta}
+                  </a>
                 ) : plan.key === "free" ? (
                   <button
                     onClick={() => router.push("/dashboard")}
@@ -382,7 +417,7 @@ export default function PricingPage() {
                     onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
                     onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
                   >
-                    {isDowngrade ? "Downgrade" : "Get Started"}
+                    {plan.cta}
                   </button>
                 ) : (
                   <button
@@ -406,7 +441,7 @@ export default function PricingPage() {
                         Redirecting...
                       </span>
                     ) : (
-                      isDowngrade ? "Downgrade" : "Subscribe"
+                      plan.cta
                     )}
                   </button>
                 )}
