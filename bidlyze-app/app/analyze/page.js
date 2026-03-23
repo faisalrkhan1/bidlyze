@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
-import { useTheme } from "@/lib/theme";
+import UserMenu from "@/app/components/UserMenu";
 import { exportPDF } from "@/app/utils/exportPDF";
 
 function ScoreBadge({ score }) {
@@ -85,28 +85,6 @@ function InfoCard({ label, value }) {
   );
 }
 
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <button
-      onClick={toggleTheme}
-      className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors duration-300"
-      style={{ border: "1px solid var(--border-secondary)", background: "var(--bg-subtle)" }}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {theme === "dark" ? (
-        <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--text-secondary)" }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-        </svg>
-      ) : (
-        <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--text-secondary)" }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
 export default function AnalyzePage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [result, setResult] = useState(null);
@@ -158,64 +136,13 @@ export default function AnalyzePage() {
             <span className="text-xl font-bold tracking-tight"><span className="text-emerald-500">Bid</span>lyze</span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm hidden sm:block" style={{ color: "var(--text-secondary)" }}>{user?.email}</span>
-            <ThemeToggle />
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              Dashboard
-            </button>
             <button
               onClick={() => router.push("/upload")}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
             >
               Analyze Another
             </button>
-            {analysisId && (
-              <button
-                onClick={() => router.push(`/proposal/${analysisId}`)}
-                className="px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 hover:bg-emerald-400 transition-colors text-white flex items-center gap-1.5"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
-                </svg>
-                Generate Proposal
-              </button>
-            )}
-            <button
-              onClick={() => exportPDF(analysis, fileName)}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              Export PDF
-            </button>
-            <button
-              onClick={exportJSON}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              Export JSON
-            </button>
-            <button
-              onClick={logout}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              Log Out
-            </button>
+            <UserMenu user={user} onLogout={logout} />
           </div>
         </div>
       </header>
