@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { compareTenderAmendments, compareTenderPDFs } from "@/lib/gemini";
+import { compareTenderAmendments, compareTenderPDFs } from "@/lib/openrouter";
 
 export const maxDuration = 120;
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { generateProposalSection } from "@/lib/gemini";
+import { generateProposalSection } from "@/lib/openrouter";
 
 export const maxDuration = 60;
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { analyzeTender, analyzeTenderFromPDF } from "@/lib/gemini";
+import { analyzeTender, analyzeTenderFromPDF } from "@/lib/openrouter";
 import {
   sendEmail,
   buildAnalysisSummaryEmail,
