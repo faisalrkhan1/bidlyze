@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getStripe, getPlanByPriceId, PLANS } from "@/lib/stripe";
+import { getStripe, getPlanByPriceId, PLAN_LIMITS } from "@/lib/stripe";
 
 export async function POST(request) {
   const stripe = getStripe();
@@ -80,8 +80,8 @@ export async function POST(request) {
         const subscription =
           await stripe.subscriptions.retrieve(subscriptionId);
 
-        const planConfig = PLANS[plan];
-        const limit = planConfig?.analysesLimit;
+        // PLAN_LIMITS: free=3, starter=10, professional=50, enterprise=null
+        const analysesLimit = PLAN_LIMITS[plan] !== undefined ? PLAN_LIMITS[plan] : 3;
 
         let periodEnd = null;
         if (subscription.current_period_end) {
@@ -94,8 +94,7 @@ export async function POST(request) {
           stripe_customer_id: customerId,
           stripe_subscription_id: subscriptionId,
           plan,
-          analyses_limit:
-            limit === null || limit === Infinity ? null : (limit ?? 3),
+          analyses_limit: analysesLimit,
           status: "active",
           current_period_end: periodEnd,
           updated_at: new Date().toISOString(),
@@ -162,8 +161,7 @@ export async function POST(request) {
           break;
         }
 
-        const planConfig = PLANS[plan];
-        const limit = planConfig?.analysesLimit;
+        const analysesLimit = PLAN_LIMITS[plan] !== undefined ? PLAN_LIMITS[plan] : 3;
 
         let periodEnd = null;
         if (subscription.current_period_end) {
@@ -176,8 +174,7 @@ export async function POST(request) {
           .from("subscriptions")
           .update({
             plan,
-            analyses_limit:
-              limit === null || limit === Infinity ? null : (limit ?? 3),
+            analyses_limit: analysesLimit,
             status:
               subscription.status === "active"
                 ? "active"

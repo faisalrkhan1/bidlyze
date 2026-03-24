@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { getStripe, getPlanByPriceId, PRICE_IDS } from "@/lib/stripe";
+import { getStripe, getPlanByPriceId, PRICE_IDS, PLAN_LIMITS } from "@/lib/stripe";
 
 const validPriceIds = new Set(Object.values(PRICE_IDS));
 
@@ -60,30 +60,69 @@ export async function POST(request) {
     // Derive base URL from the request origin so it works in local dev and production
     const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-    // Check if user already has a Stripe customer ID
+    // Check if user already has a subscription row (use maybeSingle to avoid
+    // throwing when the user has no subscription row yet — e.g. free users)
     const { data: existingSub } = await supabase
       .from("subscriptions")
-      .select("stripe_customer_id")
+      .select("stripe_customer_id, stripe_subscription_id, status")
       .eq("user_id", user.id)
-      .single();
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
+    // ── Upgrade / downgrade: update the existing Stripe subscription in place ──
+    if (existingSub?.stripe_subscription_id && existingSub.status === "active") {
+      const currentSub = await stripe.subscriptions.retrieve(
+        existingSub.stripe_subscription_id
+      );
+
+      if (currentSub.status === "active" || currentSub.status === "trialing") {
+        const updatedSub = await stripe.subscriptions.update(
+          existingSub.stripe_subscription_id,
+          {
+            items: [
+              {
+                id: currentSub.items.data[0].id,
+                price: priceId,
+              },
+            ],
+            metadata: { user_id: user.id, plan: plan || "unknown" },
+            proration_behavior: "create_prorations",
+          }
+        );
+
+        // Write the new plan to the database immediately so the UI
+        // reflects the change without waiting for the webhook.
+        const periodEnd = updatedSub.current_period_end
+          ? new Date(updatedSub.current_period_end * 1000).toISOString()
+          : null;
+
+        await supabase
+          .from("subscriptions")
+          .update({
+            plan,
+            analyses_limit:
+              PLAN_LIMITS[plan] !== undefined ? PLAN_LIMITS[plan] : 3,
+            current_period_end: periodEnd,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
+
+        return NextResponse.json({ success: true, upgraded: true });
+      }
+    }
+
+    // ── New subscription: send the user through Stripe Checkout ──
     let customerOptions = {};
     if (existingSub?.stripe_customer_id) {
       customerOptions = { customer: existingSub.stripe_customer_id };
     } else {
-      customerOptions = {
-        customer_email: user.email,
-      };
+      customerOptions = { customer_email: user.email };
     }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
+      line_items: [{ price: priceId, quantity: 1 }],
       ...customerOptions,
       metadata: {
         user_id: user.id,

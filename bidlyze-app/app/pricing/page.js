@@ -29,10 +29,10 @@ const PLANS = [
     price: 29,
     period: "/month",
     priceId: "price_1TDLd7JbZq5ga8LYLedS8Xsb",
-    analysesLimit: 15,
+    analysesLimit: 10,
     cta: "Get Started",
     features: [
-      "15 analyses per month",
+      "10 analyses per month",
       "5 documents per analysis",
       "Full risk & compliance analysis",
       "PDF + Excel export",
@@ -151,6 +151,9 @@ export default function PricingPage() {
       const data = await res.json();
       if (data.success && data.url) {
         window.location.href = data.url;
+      } else if (data.success && data.upgraded) {
+        // Plan changed via subscription update (no redirect needed)
+        router.push("/dashboard?success=true");
       } else {
         setError(data.error || "Failed to start checkout. Please try again.");
         setLoadingPlan(null);
@@ -359,60 +362,81 @@ export default function PricingPage() {
                 </ul>
 
                 {/* CTA Button */}
-                {isCurrent ? (
-                  <button
-                    disabled
-                    className="w-full py-3 rounded-xl font-semibold text-sm opacity-50 cursor-not-allowed"
-                    style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-                  >
-                    Current Plan
-                  </button>
-                ) : plan.ctaHref ? (
-                  <a
-                    href={plan.ctaHref}
-                    className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 block text-center"
-                    style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                  >
-                    {plan.cta}
-                  </a>
-                ) : plan.key === "free" ? (
-                  <button
-                    onClick={() => router.push("/dashboard")}
-                    className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200"
-                    style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
-                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-                  >
-                    {plan.cta}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleSubscribe(plan.priceId)}
-                    disabled={loadingPlan === plan.priceId}
-                    className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-60 ${
-                      isPopular
-                        ? "bg-emerald-500 hover:bg-emerald-400 text-white"
-                        : ""
-                    }`}
-                    style={!isPopular ? { border: "1px solid var(--border-secondary)", background: "transparent" } : {}}
-                    onMouseEnter={(e) => { if (!isPopular) e.currentTarget.style.background = "var(--bg-input)"; }}
-                    onMouseLeave={(e) => { if (!isPopular) e.currentTarget.style.background = "transparent"; }}
-                  >
-                    {loadingPlan === plan.priceId ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        Redirecting...
-                      </span>
-                    ) : (
-                      plan.cta
-                    )}
-                  </button>
-                )}
+                {(() => {
+                  // Determine contextual label for paid plan buttons
+                  const isUpgrade = !isCurrent && !isDowngrade && plan.key !== "free";
+                  const ctaLabel = isCurrent
+                    ? "Current Plan"
+                    : isPaidPlan && isUpgrade
+                    ? "Upgrade"
+                    : isPaidPlan && isDowngrade && plan.key !== "free"
+                    ? "Downgrade"
+                    : plan.cta;
+
+                  if (isCurrent) {
+                    return (
+                      <button
+                        disabled
+                        className="w-full py-3 rounded-xl font-semibold text-sm opacity-50 cursor-not-allowed"
+                        style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
+                      >
+                        Current Plan
+                      </button>
+                    );
+                  }
+                  if (plan.ctaHref) {
+                    return (
+                      <a
+                        href={plan.ctaHref}
+                        className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 block text-center"
+                        style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                      >
+                        {isPaidPlan ? ctaLabel : plan.cta}
+                      </a>
+                    );
+                  }
+                  if (plan.key === "free") {
+                    return (
+                      <button
+                        onClick={() => router.push("/dashboard")}
+                        className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200"
+                        style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
+                        onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                        onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                      >
+                        {plan.cta}
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      onClick={() => handleSubscribe(plan.priceId)}
+                      disabled={loadingPlan === plan.priceId}
+                      className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-60 ${
+                        isPopular
+                          ? "bg-emerald-500 hover:bg-emerald-400 text-white"
+                          : ""
+                      }`}
+                      style={!isPopular ? { border: "1px solid var(--border-secondary)", background: "transparent" } : {}}
+                      onMouseEnter={(e) => { if (!isPopular) e.currentTarget.style.background = "var(--bg-input)"; }}
+                      onMouseLeave={(e) => { if (!isPopular) e.currentTarget.style.background = "transparent"; }}
+                    >
+                      {loadingPlan === plan.priceId ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          {isPaidPlan ? "Switching..." : "Redirecting..."}
+                        </span>
+                      ) : (
+                        ctaLabel
+                      )}
+                    </button>
+                  );
+                })()}
               </div>
             );
           })}

@@ -14,6 +14,15 @@ export const PRICE_IDS = {
   enterprise: "price_1TDLeWJbZq5ga8LYsAOgqoQ1",
 };
 
+// Canonical analyses limits used by webhook + checkout for DB writes.
+// null = unlimited (enterprise).
+export const PLAN_LIMITS = {
+  free: 3,
+  starter: 10,
+  professional: 50,
+  enterprise: null,
+};
+
 export const PLANS = {
   free: {
     name: "Free",
@@ -32,9 +41,9 @@ export const PLANS = {
     name: "Starter",
     price: 29,
     priceId: PRICE_IDS.starter,
-    analysesLimit: 15,
+    analysesLimit: PLAN_LIMITS.starter,
     features: [
-      "15 analyses per month",
+      "10 analyses per month",
       "5 documents per analysis",
       "Full risk & compliance analysis",
       "PDF + Excel export",
