@@ -23,6 +23,15 @@ export const PLAN_LIMITS = {
   enterprise: null,
 };
 
+// Max documents per upload session by plan.
+// null = unlimited (enterprise), capped at 20 in the UI.
+export const DOC_LIMITS = {
+  free: 1,
+  starter: 5,
+  professional: 20,
+  enterprise: null,
+};
+
 export const PLANS = {
   free: {
     name: "Free",

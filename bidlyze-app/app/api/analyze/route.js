@@ -86,18 +86,7 @@ export async function POST(request) {
 
     const fileName = file.name;
     const fileSize = file.size;
-    const maxSize = 3 * 1024 * 1024; // 3MB
     const fileExtension = fileName.split(".").pop().toLowerCase();
-
-    if (fileSize > maxSize) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "File too large. Please upload a PDF under 3MB.",
-        },
-        { status: 400 }
-      );
-    }
 
     // Read file buffer once so we can reuse for analysis + storage upload
     const fileBuffer = Buffer.from(await file.arrayBuffer());

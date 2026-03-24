@@ -11,8 +11,10 @@ const ACCEPTED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ];
-const MAX_SIZE = 3 * 1024 * 1024; // 3MB
 const DEFAULT_LIMIT = 3;
+
+// Max files per upload session by plan (mirrors DOC_LIMITS in lib/stripe.js)
+const DOC_LIMITS = { free: 1, starter: 5, professional: 20, enterprise: 20 };
 
 const features = [
   {
@@ -59,12 +61,13 @@ const features = [
 
 export default function HomePage() {
   const { user, loading: authLoading, logout } = useAuth();
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [usageCount, setUsageCount] = useState(null);
   const [analysesLimit, setAnalysesLimit] = useState(DEFAULT_LIMIT);
+  const [plan, setPlan] = useState("free");
   const fileInputRef = useRef(null);
   const router = useRouter();
 
@@ -75,7 +78,6 @@ export default function HomePage() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    // Get subscription plan limit — use limit(1) instead of single() for resilience
     supabase
       .from("subscriptions")
       .select("plan, analyses_limit, status")
@@ -90,8 +92,8 @@ export default function HomePage() {
         }
         const sub = data?.[0];
         if (sub) {
-          // analyses_limit is null for unlimited (enterprise) — that's valid, don't filter it out
           setAnalysesLimit(sub.analyses_limit);
+          setPlan(sub.plan || "free");
         }
       });
 
@@ -107,32 +109,68 @@ export default function HomePage() {
 
   const isUnlimited = analysesLimit === null;
   const limitReached = !isUnlimited && usageCount !== null && usageCount >= (analysesLimit ?? DEFAULT_LIMIT);
+  const remainingQuota = isUnlimited ? Infinity : Math.max(0, (analysesLimit ?? DEFAULT_LIMIT) - (usageCount ?? 0));
+  const maxDocs = DOC_LIMITS[plan] || 1;
+  const effectiveMax = remainingQuota === Infinity ? maxDocs : Math.min(maxDocs, remainingQuota);
 
-  function validateFile(f) {
-    if (!f) return "Please select a file.";
-    if (!ACCEPTED_TYPES.includes(f.type) && !f.name.match(/\.(pdf|docx|txt)$/i)) {
-      return "Unsupported file type. Please upload a PDF, DOCX, or TXT file.";
-    }
-    if (f.size > MAX_SIZE) return "File too large. Maximum size is 3MB on the free plan.";
-    return null;
+  const pendingFiles = files.filter((f) => f.status === "pending");
+  const doneFiles = files.filter((f) => f.status === "done");
+  const hasResults = files.some((f) => f.status === "done" || f.status === "error");
+
+  function validateFileType(f) {
+    return ACCEPTED_TYPES.includes(f.type) || /\.(pdf|docx|txt)$/i.test(f.name);
   }
 
-  function handleFile(f) {
+  function handleFiles(newFiles) {
     setError("");
-    const err = validateFile(f);
-    if (err) {
-      setError(err);
-      setFile(null);
+
+    for (const f of newFiles) {
+      if (!validateFileType(f)) {
+        setError(`"${f.name}" is not supported. Upload PDF, DOCX, or TXT files.`);
+        return;
+      }
+    }
+
+    const currentPending = files.filter((f) => f.status === "pending").length;
+    const totalPending = currentPending + newFiles.length;
+
+    if (totalPending > effectiveMax) {
+      if (effectiveMax <= 0) {
+        setError("You\u2019ve reached your monthly analysis limit. Upgrade to continue.");
+      } else {
+        setError(
+          `You can upload up to ${effectiveMax} file${effectiveMax !== 1 ? "s" : ""} at a time.` +
+          (currentPending > 0 ? ` ${currentPending} already selected.` : "")
+        );
+      }
       return;
     }
-    setFile(f);
+
+    const newEntries = newFiles.map((f) => ({
+      id: crypto.randomUUID(),
+      file: f,
+      status: "pending",
+      error: null,
+      analysisId: null,
+    }));
+
+    setFiles((prev) => [...prev.filter((f) => f.status === "pending"), ...newEntries]);
+  }
+
+  function removeFile(id) {
+    setFiles((prev) => prev.filter((f) => f.id !== id));
+  }
+
+  function clearFiles() {
+    setFiles([]);
+    setError("");
   }
 
   function handleDrop(e) {
     e.preventDefault();
     setDragActive(false);
-    const f = e.dataTransfer.files?.[0];
-    if (f) handleFile(f);
+    if (processing) return;
+    handleFiles(Array.from(e.dataTransfer.files));
   }
 
   function handleDrag(e) {
@@ -142,36 +180,72 @@ export default function HomePage() {
   }
 
   async function handleAnalyze() {
-    if (!file || limitReached) return;
-    setLoading(true);
+    if (pendingFiles.length === 0 || processing) return;
+    setProcessing(true);
     setError("");
 
-    try {
-      const { data: { session } } = await getSupabase().auth.getSession();
+    const { data: { session } } = await getSupabase().auth.getSession();
+    if (!session?.access_token) {
+      setError("Session expired. Please log in again.");
+      setProcessing(false);
+      return;
+    }
 
-      const formData = new FormData();
-      formData.append("file", file);
+    let lastSuccessId = null;
+    let successCount = 0;
 
-      const res = await fetch("/api/analyze", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
-      });
-      const data = await res.json();
+    for (const entry of pendingFiles) {
+      setFiles((prev) =>
+        prev.map((f) => (f.id === entry.id ? { ...f, status: "analyzing" } : f))
+      );
 
-      if (!data.success) {
-        setError(data.error || "Analysis failed. Please try again.");
-        setLoading(false);
-        return;
+      try {
+        const formData = new FormData();
+        formData.append("file", entry.file);
+
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          body: formData,
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === entry.id
+                ? { ...f, status: "done", analysisId: data.analysisId }
+                : f
+            )
+          );
+          lastSuccessId = data.analysisId;
+          successCount++;
+          setUsageCount((prev) => (prev ?? 0) + 1);
+        } else {
+          setFiles((prev) =>
+            prev.map((f) =>
+              f.id === entry.id
+                ? { ...f, status: "error", error: data.error || "Analysis failed" }
+                : f
+            )
+          );
+        }
+      } catch {
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === entry.id
+              ? { ...f, status: "error", error: "Network error" }
+              : f
+          )
+        );
       }
+    }
 
-      sessionStorage.setItem("bidlyze-result", JSON.stringify(data));
-      router.push("/analyze");
-    } catch (err) {
-      setError("Network error. Please check your connection and try again.");
-      setLoading(false);
+    setProcessing(false);
+
+    // Single file: auto-redirect to analysis page
+    if (pendingFiles.length === 1 && successCount === 1 && lastSuccessId) {
+      router.push(`/analysis/${lastSuccessId}`);
     }
   }
 
@@ -245,7 +319,7 @@ export default function HomePage() {
             AI-Powered <span className="text-emerald-500">Tender Analysis</span>
           </h1>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Upload your tender document and get instant analysis with compliance checks,
+            Upload your tender documents and get instant analysis with compliance checks,
             risk flags, and bid recommendations.
           </p>
         </div>
@@ -275,77 +349,203 @@ export default function HomePage() {
             </div>
           ) : (
             <>
+              {/* Drop Zone */}
               <div
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
                 onDragOver={handleDrag}
                 onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative border-2 border-dashed rounded-2xl p-12 text-center cursor-pointer transition-all duration-300 ${
+                onClick={() => !processing && fileInputRef.current?.click()}
+                className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
+                  processing ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                } ${
                   dragActive
                     ? "border-emerald-500 bg-emerald-500/5"
-                    : file
+                    : pendingFiles.length > 0
                     ? "border-emerald-500/50 bg-emerald-500/5"
                     : ""
                 }`}
-                style={!dragActive && !file ? { borderColor: "var(--border-secondary)", background: "var(--bg-subtle)" } : {}}
+                style={!dragActive && pendingFiles.length === 0 ? { borderColor: "var(--border-secondary)", background: "var(--bg-subtle)" } : {}}
               >
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept=".pdf,.docx,.txt"
+                  multiple={maxDocs > 1}
                   className="hidden"
-                  onChange={(e) => handleFile(e.target.files?.[0])}
+                  onChange={(e) => {
+                    handleFiles(Array.from(e.target.files || []));
+                    e.target.value = "";
+                  }}
                 />
 
-                {file ? (
-                  <div>
-                    <div className="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                      <svg className="w-7 h-7 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                      </svg>
-                    </div>
-                    <p className="font-medium mb-1">{file.name}</p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>{formatSize(file.size)}</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--icon-muted)" }}>
-                      <svg className="w-7 h-7" style={{ color: "var(--text-secondary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-                      </svg>
-                    </div>
-                    <p className="font-medium mb-1">
-                      Drop your tender document here or click to browse
-                    </p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT — max 3MB</p>
-                  </div>
-                )}
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: pendingFiles.length > 0 ? "rgba(16,185,129,0.1)" : "var(--icon-muted)" }}>
+                  <svg className={`w-7 h-7 ${pendingFiles.length > 0 ? "text-emerald-500" : ""}`} style={pendingFiles.length === 0 ? { color: "var(--text-secondary)" } : {}} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                  </svg>
+                </div>
+                <p className="font-medium mb-1">
+                  {pendingFiles.length > 0
+                    ? "Drop more files or click to add"
+                    : maxDocs > 1
+                    ? "Drop your tender documents here or click to browse"
+                    : "Drop your tender document here or click to browse"
+                  }
+                </p>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  PDF, DOCX, or TXT
+                  {maxDocs > 1 && ` \u2014 up to ${effectiveMax} files`}
+                </p>
               </div>
 
+              {/* File List */}
+              {files.length > 0 && (
+                <div
+                  className="mt-4 rounded-xl overflow-hidden"
+                  style={{ border: "1px solid var(--border-primary)" }}
+                >
+                  {/* List header */}
+                  <div
+                    className="flex items-center justify-between px-4 py-2.5 text-xs font-medium uppercase tracking-wider"
+                    style={{ background: "var(--bg-subtle)", color: "var(--text-muted)", borderBottom: "1px solid var(--border-primary)" }}
+                  >
+                    <span>
+                      {files.length} file{files.length !== 1 ? "s" : ""}
+                      {processing && ` \u2014 processing ${files.filter((f) => f.status === "analyzing").length > 0 ? files.findIndex((f) => f.status === "analyzing") + 1 : "..."} of ${pendingFiles.length + doneFiles.length + files.filter((f) => f.status === "analyzing").length}`}
+                    </span>
+                    {!processing && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); clearFiles(); }}
+                        className="text-xs font-medium transition-colors hover:text-red-400"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        Clear all
+                      </button>
+                    )}
+                  </div>
+
+                  {/* File rows */}
+                  {files.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="flex items-center gap-3 px-4 py-3"
+                      style={{ borderBottom: "1px solid var(--border-primary)" }}
+                    >
+                      {/* Status icon */}
+                      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                        {entry.status === "pending" && (
+                          <div className="w-2 h-2 rounded-full" style={{ background: "var(--text-muted)" }} />
+                        )}
+                        {entry.status === "analyzing" && (
+                          <svg className="animate-spin h-4 w-4 text-emerald-500" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        )}
+                        {entry.status === "done" && (
+                          <svg className="w-4 h-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        )}
+                        {entry.status === "error" && (
+                          <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Name + size */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{entry.file.name}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                            {formatSize(entry.file.size)}
+                          </span>
+                          {entry.status === "error" && (
+                            <span className="text-xs text-red-400 truncate">{entry.error}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action */}
+                      <div className="flex-shrink-0">
+                        {entry.status === "pending" && !processing && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); removeFile(entry.id); }}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            style={{ color: "var(--text-muted)" }}
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                        {entry.status === "done" && entry.analysisId && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); router.push(`/analysis/${entry.analysisId}`); }}
+                            className="px-3 py-1 rounded-lg text-xs font-medium text-emerald-500 transition-colors hover:bg-emerald-500/10"
+                          >
+                            View
+                          </button>
+                        )}
+                        {entry.status === "analyzing" && (
+                          <span className="text-xs text-emerald-500">Analyzing...</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Error */}
               {error && (
                 <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                   {error}
                 </div>
               )}
 
-              <button
-                onClick={handleAnalyze}
-                disabled={!file || loading}
-                className="w-full mt-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-400 text-white"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-3">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Analyzing tender document...
-                  </span>
-                ) : (
-                  "Analyze Tender"
-                )}
-              </button>
+              {/* Action buttons */}
+              {hasResults && !processing ? (
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={clearFiles}
+                    className="flex-1 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200"
+                    style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
+                    onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+                  >
+                    New Upload
+                  </button>
+                  <button
+                    onClick={() => router.push("/dashboard")}
+                    className="flex-1 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 bg-emerald-500 hover:bg-emerald-400 text-white"
+                  >
+                    View Dashboard
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleAnalyze}
+                  disabled={pendingFiles.length === 0 || processing}
+                  className="w-full mt-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-400 text-white"
+                >
+                  {processing ? (
+                    <span className="flex items-center justify-center gap-3">
+                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Analyzing {files.filter((f) => f.status === "analyzing").length > 0 ? `file ${files.findIndex((f) => f.status === "analyzing") + 1} of ${files.length}` : "..."}
+                    </span>
+                  ) : pendingFiles.length === 0 ? (
+                    "Select files to analyze"
+                  ) : pendingFiles.length === 1 ? (
+                    "Analyze Tender"
+                  ) : (
+                    `Analyze ${pendingFiles.length} Files`
+                  )}
+                </button>
+              )}
             </>
           )}
         </div>
