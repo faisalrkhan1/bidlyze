@@ -3,7 +3,24 @@ const MODEL = "anthropic/claude-opus-4";
 
 // ── Helper: call OpenRouter API ──────────────────────────────────────────────
 
-async function callOpenRouter({ messages, jsonMode = false, maxTokens = 16384 }) {
+async function callOpenRouter({ messages, maxTokens = 16384 }) {
+  const payload = {
+    model: MODEL,
+    messages,
+    max_tokens: maxTokens,
+  };
+
+  console.log("[OpenRouter] Request:", {
+    model: payload.model,
+    max_tokens: payload.max_tokens,
+    messageCount: messages.length,
+    contentTypes: messages.map((m) =>
+      Array.isArray(m.content)
+        ? m.content.map((c) => c.type)
+        : typeof m.content
+    ),
+  });
+
   const res = await fetch(OPENROUTER_URL, {
     method: "POST",
     headers: {
@@ -12,22 +29,30 @@ async function callOpenRouter({ messages, jsonMode = false, maxTokens = 16384 })
       "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://app.bidlyze.com",
       "X-Title": "Bidlyze",
     },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      max_tokens: maxTokens,
-      ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(
-      err?.error?.message || `OpenRouter API error: ${res.status}`
-    );
+    const rawBody = await res.text();
+    console.error("[OpenRouter] ERROR response:", {
+      status: res.status,
+      statusText: res.statusText,
+      body: rawBody,
+    });
+    // Try to extract a useful message from the raw body
+    let message = `OpenRouter API error: ${res.status}`;
+    try {
+      const parsed = JSON.parse(rawBody);
+      message = parsed?.error?.message || parsed?.error || message;
+    } catch {}
+    throw new Error(message);
   }
 
   const data = await res.json();
+  console.log("[OpenRouter] Success:", {
+    model: data.model,
+    usage: data.usage,
+  });
   return data.choices[0].message.content;
 }
 
