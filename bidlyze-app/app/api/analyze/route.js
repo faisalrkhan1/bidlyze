@@ -94,19 +94,17 @@ export async function POST(request) {
 
     const MAX_TEXT = 150000; // ~150k chars fits safely in Claude's context
 
-    // Check for client-side pre-extracted text (PDFs are extracted in the browser
-    // because all server-side PDF libraries need DOM which Vercel serverless lacks)
-    const extractedText = formData.get("extractedText");
+    if (fileExtension === "pdf") {
+      const { extractPdfText } = await import("@/lib/pdf");
+      const text = await extractPdfText(fileBuffer);
 
-    if (extractedText) {
-      // PDF text was extracted client-side
-      const text = String(extractedText);
-      if (!text.trim()) {
+      if (!text || text.trim().length === 0) {
         return NextResponse.json(
           { success: false, error: "Could not extract text from the PDF. The file may be scanned/image-only or corrupted." },
           { status: 400 }
         );
       }
+
       result = await analyzeTender(text.substring(0, MAX_TEXT));
     } else if (fileExtension === "docx") {
       const mammoth = await import("mammoth");

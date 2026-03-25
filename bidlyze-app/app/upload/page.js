@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
-import { extractTextFromPdf } from "@/lib/extract-pdf";
 import UserMenu from "@/app/components/UserMenu";
 
 const ACCEPTED_TYPES = [
@@ -203,33 +202,6 @@ export default function HomePage() {
       try {
         const formData = new FormData();
         formData.append("file", entry.file);
-
-        // Extract PDF text client-side (browser has DOM; Vercel serverless doesn't)
-        if (/\.pdf$/i.test(entry.file.name)) {
-          try {
-            const pdfText = await extractTextFromPdf(entry.file);
-            if (!pdfText || pdfText.trim().length === 0) {
-              setFiles((prev) =>
-                prev.map((f) =>
-                  f.id === entry.id
-                    ? { ...f, status: "error", error: "Could not extract text from PDF. It may be scanned/image-only." }
-                    : f
-                )
-              );
-              continue;
-            }
-            formData.append("extractedText", pdfText);
-          } catch (pdfErr) {
-            setFiles((prev) =>
-              prev.map((f) =>
-                f.id === entry.id
-                  ? { ...f, status: "error", error: "Failed to read PDF: " + (pdfErr.message || "unknown error") }
-                  : f
-              )
-            );
-            continue;
-          }
-        }
 
         const res = await fetch("/api/analyze", {
           method: "POST",

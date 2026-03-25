@@ -4,7 +4,6 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
-import { extractTextFromPdf } from "@/lib/extract-pdf";
 import UserMenu from "@/app/components/UserMenu";
 
 const ACCEPTED_TYPES = [
@@ -144,16 +143,6 @@ export default function ComparePage() {
       const formData = new FormData();
       formData.append("original", originalFile);
       formData.append("amended", amendedFile);
-
-      // Extract PDF text client-side (browser has DOM; Vercel serverless doesn't)
-      if (/\.pdf$/i.test(originalFile.name)) {
-        const text = await extractTextFromPdf(originalFile);
-        formData.append("originalText", text);
-      }
-      if (/\.pdf$/i.test(amendedFile.name)) {
-        const text = await extractTextFromPdf(amendedFile);
-        formData.append("amendedText", text);
-      }
 
       const res = await fetch("/api/compare", {
         method: "POST",

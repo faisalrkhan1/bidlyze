@@ -6,20 +6,18 @@ export const maxDuration = 120;
 
 const MAX_TEXT = 150000;
 
-// Extract text from non-PDF files server-side. PDFs are extracted client-side
-// (browser has DOM; Vercel serverless doesn't) and arrive as pre-extracted text.
-async function extractText(file, preExtractedText) {
-  if (preExtractedText) {
-    const text = String(preExtractedText);
-    if (!text.trim()) {
+async function extractText(file) {
+  const fileExtension = file.name.split(".").pop().toLowerCase();
+
+  if (fileExtension === "pdf") {
+    const { extractPdfText } = await import("@/lib/pdf");
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const text = await extractPdfText(buffer);
+    if (!text || text.trim().length === 0) {
       return { type: "error", error: "Could not extract text from PDF file." };
     }
     return { type: "text", data: text.substring(0, MAX_TEXT) };
-  }
-
-  const fileExtension = file.name.split(".").pop().toLowerCase();
-
-  if (fileExtension === "docx") {
+  } else if (fileExtension === "docx") {
     const mammoth = await import("mammoth");
     const buffer = Buffer.from(await file.arrayBuffer());
     const extracted = await mammoth.extractRawText({ buffer });
@@ -69,8 +67,6 @@ export async function POST(request) {
     const formData = await request.formData();
     const originalFile = formData.get("original");
     const amendedFile = formData.get("amended");
-    const originalPreText = formData.get("originalText");
-    const amendedPreText = formData.get("amendedText");
 
     if (!originalFile || !amendedFile) {
       return NextResponse.json(
@@ -79,8 +75,8 @@ export async function POST(request) {
       );
     }
 
-    const original = await extractText(originalFile, originalPreText);
-    const amended = await extractText(amendedFile, amendedPreText);
+    const original = await extractText(originalFile);
+    const amended = await extractText(amendedFile);
 
     if (original.type === "error") {
       return NextResponse.json(
