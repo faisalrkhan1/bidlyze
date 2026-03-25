@@ -5,7 +5,7 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["pdf2json"],
 };
 
 export default nextConfig;
