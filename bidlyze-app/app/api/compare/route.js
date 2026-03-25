@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { compareTenderAmendments } from "@/lib/openrouter";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 const MAX_TEXT = 150000;
 

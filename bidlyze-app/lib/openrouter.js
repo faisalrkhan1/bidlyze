@@ -1,9 +1,9 @@
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "anthropic/claude-opus-4";
+const MODEL = "anthropic/claude-sonnet-4";
 
 // ── Helper: call OpenRouter API ──────────────────────────────────────────────
 
-async function callOpenRouter({ messages, maxTokens = 16384 }) {
+async function callOpenRouter({ messages, maxTokens = 8000 }) {
   const payload = {
     model: MODEL,
     messages,

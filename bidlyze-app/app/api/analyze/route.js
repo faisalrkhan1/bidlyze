@@ -7,7 +7,7 @@ import {
   buildUsageWarningEmail,
 } from "@/lib/email";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request) {
   try {

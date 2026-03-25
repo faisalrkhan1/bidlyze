@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateProposalSection } from "@/lib/openrouter";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const VALID_SECTIONS = [
   "executive_summary",

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getStripe } from "@/lib/stripe";
 
+export const maxDuration = 300;
+
 export async function POST(request) {
   try {
     // Authenticate user

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getStripe, getPlanByPriceId, PLAN_LIMITS } from "@/lib/stripe";
 
+export const maxDuration = 300;
+
 export async function POST(request) {
   const stripe = getStripe();
   const body = await request.text();
