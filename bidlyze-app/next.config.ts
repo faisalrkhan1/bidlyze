@@ -5,6 +5,7 @@ import { loadEnvConfig } from "@next/env";
 loadEnvConfig(process.cwd());
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["pdf-parse"],
 };
 
 export default nextConfig;

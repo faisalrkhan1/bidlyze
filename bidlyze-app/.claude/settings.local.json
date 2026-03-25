@@ -10,7 +10,8 @@
       "Bash(node -e \"import\\(''pdf-parse''\\).then\\(m => { console.log\\(''exports:'', Object.keys\\(m\\)\\); }\\).catch\\(e => console.error\\(''FAIL:'', e.message\\)\\)\")",
       "Bash(node -e \"import\\(''pdf-parse''\\).then\\(m => { const p = new m.PDFParse\\(\\); console.log\\(''methods:'', Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\).filter\\(k=>k!==''constructor''\\)\\); }\\).catch\\(e => console.error\\(''FAIL:'', e.message\\)\\)\")",
       "Bash(node -e \"import\\(''pdf-parse''\\).then\\(m => { const p = new m.PDFParse\\(\\); console.log\\(''methods:'', Object.getOwnPropertyNames\\(Object.getPrototypeOf\\(p\\)\\).filter\\(k => k !== ''constructor''\\)\\); }\\).catch\\(e => console.error\\(''FAIL:'', e.message\\)\\)\")",
-      "Bash(node --input-type=module -e \":*)"
+      "Bash(node --input-type=module -e \":*)",
+      "Bash(node -e \"const p = require\\(''pdf-parse/lib/pdf-parse.js''\\); console.log\\(''OK, type:'', typeof p\\)\")"
     ]
   }
 }
