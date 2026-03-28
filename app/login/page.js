@@ -51,8 +51,12 @@ export default function LoginPage() {
       return;
     }
 
-    const nextPath = searchParams.get("next");
-    router.push(nextPath || "/dashboard");
+    const requestedPath = searchParams.get("next");
+    const nextPath = requestedPath && requestedPath.startsWith("/") && !requestedPath.startsWith("//")
+      ? requestedPath
+      : "/dashboard";
+
+    router.push(nextPath);
   }
 
   async function handleSignUp(e) {
