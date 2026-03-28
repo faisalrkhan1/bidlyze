@@ -144,19 +144,21 @@ function ChangeCard({ change, expanded, onToggle }) {
 
 export default function CompareResultsPage() {
   const { user, loading: authLoading, logout } = useAuth();
-  const [data, setData] = useState(null);
+  const [data] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const stored = sessionStorage.getItem("bidlyze-comparison");
+    if (!stored) return null;
+    try { return JSON.parse(stored); } catch { return null; }
+  });
   const [filter, setFilter] = useState("all");
   const [expandedCards, setExpandedCards] = useState({});
   const router = useRouter();
 
   useEffect(() => {
-    const stored = sessionStorage.getItem("bidlyze-comparison");
-    if (stored) {
-      setData(JSON.parse(stored));
-    } else {
+    if (!data) {
       router.push("/compare");
     }
-  }, [router]);
+  }, [router, data]);
 
   if (authLoading || !data) {
     return (

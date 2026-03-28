@@ -109,24 +109,20 @@ function ThemeToggle() {
 
 export default function AnalyzePage() {
   const { user, loading: authLoading, logout } = useAuth();
-  const [result, setResult] = useState(null);
+  const [result] = useState(() => {
+    if (typeof window === "undefined") return null;
+    const stored = sessionStorage.getItem("bidlyze-result");
+    if (!stored) return null;
+    try { return JSON.parse(stored); } catch { return null; }
+  });
   const router = useRouter();
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) return;
-
-    const stored = sessionStorage.getItem("bidlyze-result");
-    if (!stored) {
-      router.push("/dashboard");
-      return;
-    }
-    try {
-      setResult(JSON.parse(stored));
-    } catch {
+    if (authLoading || !user) return;
+    if (!result) {
       router.push("/dashboard");
     }
-  }, [router, user, authLoading]);
+  }, [router, user, authLoading, result]);
 
   if (authLoading || !result) {
     return (
