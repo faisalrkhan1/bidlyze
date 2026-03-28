@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { useTheme } from "@/lib/theme";
 
@@ -27,7 +27,7 @@ function ThemeToggle() {
   );
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [tab, setTab] = useState("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,6 +36,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   async function handleSignIn(e) {
     e.preventDefault();
@@ -50,7 +51,12 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/dashboard");
+    const requestedPath = searchParams.get("next");
+    const nextPath = requestedPath && requestedPath.startsWith("/") && !requestedPath.startsWith("//")
+      ? requestedPath
+      : "/dashboard";
+
+    router.push(nextPath);
   }
 
   async function handleSignUp(e) {
@@ -246,5 +252,13 @@ export default function LoginPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" style={{ background: "var(--bg-primary)" }} />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
