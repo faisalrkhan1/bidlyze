@@ -62,15 +62,20 @@ export default function LoginPageClient() {
     setError("");
     setLoading(true);
 
-    const { error } = await getSupabase().auth.signInWithPassword({ email, password });
+    try {
+      const { error } = await getSupabase().auth.signInWithPassword({ email, password });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      router.push(nextTarget);
+    } catch (err) {
+      setError(err.message || "Sign in failed. Please try again.");
       setLoading(false);
-      return;
     }
-
-    router.push(nextTarget);
   }
 
   async function handleSignUp(e) {
@@ -90,16 +95,21 @@ export default function LoginPageClient() {
 
     setLoading(true);
 
-    const { error } = await getSupabase().auth.signUp({ email, password });
+    try {
+      const { error } = await getSupabase().auth.signUp({ email, password });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        setLoading(false);
+        return;
+      }
+
+      setMessage("Check your email for a confirmation link, then sign in.");
       setLoading(false);
-      return;
+    } catch (err) {
+      setError(err.message || "Sign up failed. Please try again.");
+      setLoading(false);
     }
-
-    setMessage("Check your email for a confirmation link, then sign in.");
-    setLoading(false);
   }
 
   return (
