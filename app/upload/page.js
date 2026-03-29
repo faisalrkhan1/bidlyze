@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
-import { useTheme } from "@/lib/theme";
+import AppShell from "@/app/components/AppShell";
 
 const ACCEPTED_TYPES = [
   "application/pdf",
@@ -14,72 +14,15 @@ const ACCEPTED_TYPES = [
 const MAX_SIZE = 3 * 1024 * 1024; // 3MB
 const FREE_LIMIT = 3;
 
-const features = [
-  {
-    title: "Tender Summary",
-    description:
-      "Get a complete overview of project details, issuing authority, deadlines, and estimated values.",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Compliance Checklist",
-    description:
-      "Auto-generated checklist of all compliance requirements with critical item flags.",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.745 3.745 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Risk Flags",
-    description:
-      "Identify potential risks with severity ratings and actionable mitigation recommendations.",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Bid/No-Bid Score",
-    description:
-      "AI-powered scoring from 0-100 with a clear BID or NO-BID recommendation and reasoning.",
-    icon: (
-      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-      </svg>
-    ),
-  },
+const ANALYSIS_STAGES = [
+  { label: "Uploading document", delay: 0 },
+  { label: "Parsing content", delay: 2000 },
+  { label: "Analyzing requirements", delay: 5000 },
+  { label: "Scoring opportunity", delay: 8000 },
+  { label: "Generating insights", delay: 12000 },
 ];
 
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <button
-      onClick={toggleTheme}
-      className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors duration-300"
-      style={{ border: "1px solid var(--border-secondary)", background: "var(--bg-subtle)" }}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {theme === "dark" ? (
-        <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--text-secondary)" }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-        </svg>
-      ) : (
-        <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--text-secondary)" }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
-export default function HomePage() {
+export default function UploadPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [file, setFile] = useState(null);
   const [error, setError] = useState("");
@@ -87,9 +30,11 @@ export default function HomePage() {
   const [dragActive, setDragActive] = useState(false);
   const [usageCount, setUsageCount] = useState(null);
   const [analysesLimit, setAnalysesLimit] = useState(FREE_LIMIT);
+  const [currentStage, setCurrentStage] = useState(0);
   const fileInputRef = useRef(null);
   const router = useRouter();
 
+  // Fetch usage count and subscription limit
   useEffect(() => {
     if (!user) return;
 
@@ -97,7 +42,6 @@ export default function HomePage() {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    // Get subscription plan limit
     supabase
       .from("subscriptions")
       .select("analyses_limit, status")
@@ -118,6 +62,22 @@ export default function HomePage() {
         setUsageCount(count ?? 0);
       });
   }, [user]);
+
+  // Analysis stage progression
+  useEffect(() => {
+    if (!loading) return;
+
+    const timers = ANALYSIS_STAGES.map((stage, index) => {
+      if (index === 0) return null; // First stage is immediate
+      return setTimeout(() => {
+        setCurrentStage(index);
+      }, stage.delay);
+    });
+
+    return () => {
+      timers.forEach((t) => t && clearTimeout(t));
+    };
+  }, [loading]);
 
   const limitReached = usageCount !== null && usageCount >= analysesLimit;
 
@@ -158,6 +118,7 @@ export default function HomePage() {
     if (!file || limitReached) return;
     setLoading(true);
     setError("");
+    setCurrentStage(0);
 
     try {
       const { data: { session } } = await getSupabase().auth.getSession();
@@ -180,8 +141,7 @@ export default function HomePage() {
         return;
       }
 
-      sessionStorage.setItem("bidlyze-result", JSON.stringify(data));
-      router.push("/analyze");
+      router.push("/analysis/" + data.analysisId);
     } catch {
       setError("Network error. Please check your connection and try again.");
       setLoading(false);
@@ -194,6 +154,13 @@ export default function HomePage() {
     return (bytes / (1024 * 1024)).toFixed(1) + " MB";
   }
 
+  function removeFile(e) {
+    e.stopPropagation();
+    setFile(null);
+    setError("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
@@ -202,37 +169,17 @@ export default function HomePage() {
     );
   }
 
-  return (
-    <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
-      {/* Header */}
-      <header className="transition-colors duration-300" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-base text-white">
-              B
-            </div>
-            <span className="text-lg font-semibold tracking-tight">Bidlyze</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm hidden sm:block" style={{ color: "var(--text-secondary)" }}>{user?.email}</span>
-            <ThemeToggle />
-            <button
-              onClick={logout}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              Log Out
-            </button>
-          </div>
-        </div>
-      </header>
+  const breadcrumbs = [
+    { label: "Dashboard", href: "/dashboard" },
+    { label: "New Analysis" },
+  ];
 
-      <main className="max-w-5xl mx-auto px-6 py-16">
+  return (
+    <AppShell user={user} onLogout={logout} breadcrumbs={breadcrumbs}>
+      <div className="max-w-3xl mx-auto px-6 py-10 animate-fade-in">
         {/* Usage Counter */}
         {usageCount !== null && (
-          <div className="max-w-2xl mx-auto mb-8">
+          <div className="mb-8 animate-slide-up">
             <div
               className="flex items-center justify-between p-4 rounded-xl transition-colors duration-300"
               style={{
@@ -248,9 +195,19 @@ export default function HomePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                   </svg>
                 </div>
-                <span className={`text-sm font-medium ${limitReached ? "text-red-400" : ""}`} style={!limitReached ? { color: "var(--text-secondary)" } : {}}>
-                  {usageCount} / {analysesLimit} analyses this month
-                </span>
+                <div>
+                  <span className={`text-sm font-medium ${limitReached ? "text-red-400" : ""}`} style={!limitReached ? { color: "var(--text-secondary)" } : {}}>
+                    {usageCount} / {analysesLimit} analyses this month
+                  </span>
+                  {!limitReached && (
+                    <div className="mt-1.5 w-48 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border-primary)" }}>
+                      <div
+                        className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                        style={{ width: `${Math.min((usageCount / analysesLimit) * 100, 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
               {limitReached && (
                 <button
@@ -264,19 +221,18 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Hero */}
-        <div className="text-center mb-14">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4">
-            AI-Powered <span className="text-emerald-500">Tender Analysis</span>
+        {/* Page Header */}
+        <div className="text-center mb-10 animate-slide-up">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
+            Analyze a Tender
           </h1>
-          <p className="text-lg max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Upload your tender document and get instant analysis with compliance checks,
-            risk flags, and bid recommendations.
+          <p className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
+            Upload your tender document for AI-powered analysis, compliance checks, and bid recommendations.
           </p>
         </div>
 
         {/* Upload Area */}
-        <div className="max-w-2xl mx-auto mb-16">
+        <div className="animate-slide-up">
           {limitReached ? (
             <div
               className="border-2 border-dashed rounded-2xl p-12 text-center opacity-50 transition-colors duration-300"
@@ -297,6 +253,99 @@ export default function HomePage() {
               >
                 View Pricing
               </button>
+            </div>
+          ) : loading ? (
+            /* Analysis Progress Stages */
+            <div
+              className="rounded-2xl p-8 sm:p-10 transition-colors duration-300"
+              style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
+            >
+              <div className="text-center mb-8">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                  <svg className="animate-spin h-6 w-6 text-emerald-500" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-semibold mb-1">Analyzing your document</h2>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  {file?.name}
+                </p>
+              </div>
+
+              <div className="space-y-3 max-w-sm mx-auto">
+                {ANALYSIS_STAGES.map((stage, index) => {
+                  const isCompleted = index < currentStage;
+                  const isCurrent = index === currentStage;
+                  const isPending = index > currentStage;
+
+                  return (
+                    <div
+                      key={stage.label}
+                      className={`flex items-center gap-3 py-2 px-3 rounded-lg transition-all duration-500 ${
+                        isCurrent ? "animate-fade-in" : ""
+                      }`}
+                      style={{
+                        opacity: isPending ? 0.35 : 1,
+                        background: isCurrent ? "var(--bg-input)" : "transparent",
+                      }}
+                    >
+                      {/* Status Icon */}
+                      <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
+                        {isCompleted ? (
+                          <svg className="w-5 h-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                          </svg>
+                        ) : isCurrent ? (
+                          <svg className="animate-spin h-4 w-4 text-emerald-500" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                        ) : (
+                          <div
+                            className="w-2 h-2 rounded-full"
+                            style={{ background: "var(--text-muted)" }}
+                          />
+                        )}
+                      </div>
+
+                      {/* Label */}
+                      <span
+                        className={`text-sm font-medium transition-colors duration-300 ${
+                          isCompleted ? "text-emerald-500" : ""
+                        }`}
+                        style={
+                          isCurrent
+                            ? { color: "var(--text-primary)" }
+                            : isPending
+                            ? { color: "var(--text-muted)" }
+                            : {}
+                        }
+                      >
+                        {stage.label}
+                        {isCompleted && (
+                          <span className="ml-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                            Done
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Progress bar */}
+              <div className="mt-8 mx-auto max-w-sm">
+                <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: "var(--border-primary)" }}>
+                  <div
+                    className="h-full rounded-full bg-emerald-500 transition-all duration-1000 ease-out"
+                    style={{ width: `${((currentStage + 1) / ANALYSIS_STAGES.length) * 100}%` }}
+                  />
+                </div>
+                <p className="text-xs text-center mt-2" style={{ color: "var(--text-muted)" }}>
+                  Step {currentStage + 1} of {ANALYSIS_STAGES.length}
+                </p>
+              </div>
             </div>
           ) : (
             <>
@@ -331,7 +380,16 @@ export default function HomePage() {
                       </svg>
                     </div>
                     <p className="font-medium mb-1">{file.name}</p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>{formatSize(file.size)}</p>
+                    <p className="text-sm mb-3" style={{ color: "var(--text-muted)" }}>{formatSize(file.size)}</p>
+                    <button
+                      onClick={removeFile}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors duration-200"
+                      style={{ color: "var(--text-secondary)", border: "1px solid var(--border-secondary)" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--bg-input)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                    >
+                      Remove file
+                    </button>
                   </div>
                 ) : (
                   <div>
@@ -343,14 +401,17 @@ export default function HomePage() {
                     <p className="font-medium mb-1">
                       Drop your tender document here or click to browse
                     </p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT — max 3MB</p>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max 3MB</p>
                   </div>
                 )}
               </div>
 
               {error && (
-                <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                  {error}
+                <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-3">
+                  <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+                  </svg>
+                  <span>{error}</span>
                 </div>
               )}
 
@@ -359,41 +420,34 @@ export default function HomePage() {
                 disabled={!file || loading}
                 className="w-full mt-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-400 text-white"
               >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-3">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                    </svg>
-                    Analyzing tender document...
-                  </span>
-                ) : (
-                  "Analyze Tender"
-                )}
+                Analyze Tender
               </button>
+
+              {/* File type hints */}
+              <div className="mt-6 flex items-center justify-center gap-4 text-xs" style={{ color: "var(--text-muted)" }}>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  PDF
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  DOCX
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                  </svg>
+                  TXT
+                </span>
+              </div>
             </>
           )}
         </div>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {features.map((f) => (
-            <div
-              key={f.title}
-              className="p-6 rounded-2xl transition-colors duration-300"
-              style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
-              onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--border-secondary)"}
-              onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-primary)"}
-            >
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4">
-                {f.icon}
-              </div>
-              <h3 className="font-semibold mb-1">{f.title}</h3>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{f.description}</p>
-            </div>
-          ))}
-        </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
-import { useTheme } from "@/lib/theme";
+import AppShell from "@/app/components/AppShell";
 
 const SEVERITY_COLORS = {
   critical: { bg: "bg-red-500/10", text: "text-red-400", border: "border-red-500/20", dot: "bg-red-500" },
@@ -21,28 +21,6 @@ const CATEGORY_LABELS = {
   evaluation: "Evaluation",
   administrative: "Administrative",
 };
-
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme();
-  return (
-    <button
-      onClick={toggleTheme}
-      className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors duration-300"
-      style={{ border: "1px solid var(--border-secondary)", background: "var(--bg-subtle)" }}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-    >
-      {theme === "dark" ? (
-        <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--text-secondary)" }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-        </svg>
-      ) : (
-        <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "var(--text-secondary)" }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-        </svg>
-      )}
-    </button>
-  );
-}
 
 function SeverityBadge({ severity }) {
   const colors = SEVERITY_COLORS[severity] || SEVERITY_COLORS.minor;
@@ -143,7 +121,7 @@ function ChangeCard({ change, expanded, onToggle }) {
 }
 
 export default function CompareResultsPage() {
-  const { loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [data] = useState(() => {
     if (typeof window === "undefined") return null;
     const stored = sessionStorage.getItem("bidlyze-comparison");
@@ -189,46 +167,8 @@ export default function CompareResultsPage() {
   const impactStyle = impactColors[summary?.overallImpact] || impactColors.moderate;
 
   return (
-    <div className="min-h-screen transition-colors duration-300" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
-      {/* Header */}
-      <header className="transition-colors duration-300" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-        <div className="max-w-5xl mx-auto px-6 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push("/dashboard")}>
-            <div className="w-9 h-9 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-base text-white">
-              B
-            </div>
-            <span className="text-lg font-semibold tracking-tight">Bidlyze</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <button
-              onClick={logout}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              Log Out
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-5xl mx-auto px-6 py-10">
-        {/* Back + Title */}
-        <button
-          onClick={() => router.push("/compare")}
-          className="flex items-center gap-2 text-sm font-medium mb-6 transition-colors"
-          style={{ color: "var(--text-secondary)" }}
-          onMouseEnter={(e) => e.currentTarget.style.color = "var(--text-primary)"}
-          onMouseLeave={(e) => e.currentTarget.style.color = "var(--text-secondary)"}
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
-          </svg>
-          New Comparison
-        </button>
-
+    <AppShell user={user} onLogout={logout} breadcrumbs={[{label: "Dashboard", href: "/dashboard"}, {label: "Compare", href: "/compare"}, {label: "Results"}]}>
+      <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
@@ -514,7 +454,7 @@ export default function CompareResultsPage() {
             ))
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }
