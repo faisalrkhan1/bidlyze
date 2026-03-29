@@ -253,14 +253,12 @@ export default function HomePage() {
                 </span>
               </div>
               {limitReached && (
-                <a
-                  href="https://bidlyze.com/#pricing"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => router.push("/pricing")}
                   className="px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
                 >
                   Upgrade
-                </a>
+                </button>
               )}
             </div>
           </div>
@@ -293,14 +291,12 @@ export default function HomePage() {
               <p className="text-sm mb-4" style={{ color: "var(--text-muted)" }}>
                 You&apos;ve reached your free limit. Upgrade to continue.
               </p>
-              <a
-                href="https://bidlyze.com/#pricing"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={() => router.push("/pricing")}
                 className="inline-block px-6 py-3 rounded-xl font-semibold text-sm bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
               >
                 View Pricing
-              </a>
+              </button>
             </div>
           ) : (
             <>

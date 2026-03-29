@@ -10,6 +10,8 @@ export default function RootPage() {
   useEffect(() => {
     getSupabase().auth.getUser().then(({ data: { user } }) => {
       router.replace(user ? "/dashboard" : "/login");
+    }).catch(() => {
+      router.replace("/login");
     });
   }, [router]);
 

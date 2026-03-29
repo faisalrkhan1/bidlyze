@@ -50,6 +50,8 @@ export default function LoginPageClient() {
       if (mounted && user) {
         router.replace(nextTarget);
       }
+    }).catch(() => {
+      // Auth check failed — stay on login page
     });
 
     return () => {
