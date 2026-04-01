@@ -82,6 +82,7 @@ export async function POST(request) {
 
     const formData = await request.formData();
     const file = formData.get("file");
+    const rfxType = formData.get("rfxType") || "rfp";
 
     if (!file) {
       return NextResponse.json(
@@ -115,7 +116,7 @@ export async function POST(request) {
 
     if (fileExtension === "pdf") {
       const base64PDF = fileBuffer.toString("base64");
-      result = await analyzeTenderFromPDF(base64PDF);
+      result = await analyzeTenderFromPDF(base64PDF, rfxType);
     } else if (fileExtension === "docx") {
       const mammoth = await import("mammoth");
       const extracted = await mammoth.extractRawText({ buffer: fileBuffer });
@@ -131,7 +132,7 @@ export async function POST(request) {
         );
       }
 
-      result = await analyzeTender(text.substring(0, 500000));
+      result = await analyzeTender(text.substring(0, 100000), rfxType);
     } else if (fileExtension === "txt") {
       const text = fileBuffer.toString("utf-8");
 
@@ -145,7 +146,7 @@ export async function POST(request) {
         );
       }
 
-      result = await analyzeTender(text.substring(0, 500000));
+      result = await analyzeTender(text.substring(0, 100000), rfxType);
     } else {
       return NextResponse.json(
         {

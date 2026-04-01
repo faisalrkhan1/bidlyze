@@ -196,11 +196,11 @@ export default function LoginPageClient() {
 
           {/* Headline */}
           <h1 className="text-3xl xl:text-4xl font-bold tracking-tight leading-tight mb-4">
-            From tender document<br />to bid decision in<br />
-            <span className="text-emerald-500">60 seconds</span>
+            From raw RFx documents<br />to structured bid<br />
+            <span className="text-emerald-500">intelligence</span>
           </h1>
           <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: "var(--text-secondary)" }}>
-            Upload any tender document and get instant AI-powered analysis with compliance checks, risk assessment, and bid recommendations.
+            Upload RFI, RFQ, RFP, or tender packages and get AI-powered compliance mapping, requirement extraction, and response planning.
           </p>
 
           {/* Feature list */}
@@ -239,7 +239,7 @@ export default function LoginPageClient() {
           <div className="flex flex-col items-center mb-10 lg:hidden">
             <div className="mb-4"><LogoMark size={52} /></div>
             <span className="text-2xl font-semibold tracking-tight">Bidlyze</span>
-            <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>AI-Powered Tender Analysis Platform</p>
+            <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>AI RFx & Tender Intelligence</p>
             <div className="flex items-center gap-4 mt-4 flex-wrap justify-center">
               {["No credit card required", "3 free analyses", "Results in 60s"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>

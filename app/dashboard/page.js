@@ -182,7 +182,7 @@ export default function DashboardPage() {
             Welcome back, <span className="text-emerald-500">{displayName}</span>
           </h1>
           <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-            Here is an overview of your bid analysis activity.
+            Here is an overview of your RFx analysis activity.
           </p>
         </section>
 
@@ -301,7 +301,7 @@ export default function DashboardPage() {
             </div>
             <h3 className="font-semibold mb-1">New Analysis</h3>
             <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-              Upload a tender document for AI-powered bid analysis and scoring.
+              Upload an RFI, RFQ, RFP, or tender document for AI-powered analysis.
             </p>
             <button
               onClick={() => router.push("/upload")}
@@ -323,7 +323,7 @@ export default function DashboardPage() {
             </div>
             <h3 className="font-semibold mb-1">Compare Documents</h3>
             <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-              Compare tender versions to detect changes and assess impact.
+              Compare RFx amendments to detect changes and assess impact.
             </p>
             <button
               onClick={() => router.push("/compare")}
@@ -418,7 +418,7 @@ export default function DashboardPage() {
                 </div>
                 <p className="font-semibold mb-1">No analyses yet</p>
                 <p className="text-sm mb-5" style={{ color: "var(--text-muted)" }}>
-                  Upload a tender document (PDF, DOCX, or TXT) and get a full bid analysis — compliance gaps, risk assessment, bid score, and a BID/NO-BID recommendation — in under 60 seconds.
+                  Upload an RFI, RFQ, RFP, or tender document (PDF, DOCX, or TXT) and get structured intelligence — compliance mapping, requirement extraction, risk assessment, and bid qualification — in minutes.
                 </p>
                 <button
                   onClick={() => router.push("/upload")}

@@ -14,17 +14,45 @@ const ACCEPTED_TYPES = [
 const MAX_SIZE = 3 * 1024 * 1024; // 3MB
 const FREE_LIMIT = 3;
 
+const RFX_TYPES = [
+  {
+    id: "rfp",
+    label: "RFP",
+    name: "Request for Proposal",
+    description: "Scope, compliance, technical requirements, risks, bid/no-bid",
+  },
+  {
+    id: "rfq",
+    label: "RFQ",
+    name: "Request for Quotation",
+    description: "Commercial extraction, BOQ analysis, pricing risks, submission requirements",
+  },
+  {
+    id: "rfi",
+    label: "RFI",
+    name: "Request for Information",
+    description: "Capability fit, qualification summary, clarification questions",
+  },
+  {
+    id: "other",
+    label: "Other",
+    name: "Tender / Notice / EOI",
+    description: "Document classification, obligations, deadlines, next steps",
+  },
+];
+
 const ANALYSIS_STAGES = [
   { label: "Uploading document", delay: 0 },
-  { label: "Parsing content", delay: 2000 },
+  { label: "Extracting content", delay: 2000 },
   { label: "Analyzing requirements", delay: 5000 },
-  { label: "Scoring opportunity", delay: 8000 },
-  { label: "Generating insights", delay: 12000 },
+  { label: "Scoring opportunity", delay: 10000 },
+  { label: "Generating intelligence", delay: 18000 },
 ];
 
 export default function UploadPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [file, setFile] = useState(null);
+  const [rfxType, setRfxType] = useState("rfp");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -125,6 +153,7 @@ export default function UploadPage() {
 
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("rfxType", rfxType);
 
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -222,14 +251,43 @@ export default function UploadPage() {
         )}
 
         {/* Page Header */}
-        <div className="text-center mb-10 animate-slide-up">
+        <div className="text-center mb-8 animate-slide-up">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
-            Analyze a Tender
+            New Analysis
           </h1>
           <p className="text-sm sm:text-base" style={{ color: "var(--text-secondary)" }}>
-            Upload your tender document for AI-powered analysis, compliance checks, and bid recommendations.
+            Select your document type, upload the file, and get structured intelligence in seconds.
           </p>
         </div>
+
+        {/* RFx Type Selector */}
+        {!loading && !limitReached && (
+          <div className="mb-6 animate-slide-up">
+            <p className="text-xs font-medium uppercase tracking-wider mb-3" style={{ color: "var(--text-muted)" }}>Document Type</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {RFX_TYPES.map((type) => {
+                const isSelected = rfxType === type.id;
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => setRfxType(type.id)}
+                    className={`relative p-3 rounded-xl text-left transition-all duration-200 ${isSelected ? "ring-2 ring-emerald-500" : ""}`}
+                    style={{
+                      background: isSelected ? "var(--accent-muted)" : "var(--bg-subtle)",
+                      border: isSelected ? "1px solid rgba(16,185,129,0.3)" : "1px solid var(--border-primary)",
+                    }}
+                  >
+                    <span className={`text-sm font-bold ${isSelected ? "text-emerald-500" : ""}`}>{type.label}</span>
+                    <p className="text-[11px] mt-0.5 leading-snug" style={{ color: "var(--text-muted)" }}>{type.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] mt-2" style={{ color: "var(--text-muted)" }}>
+              {RFX_TYPES.find((t) => t.id === rfxType)?.description}
+            </p>
+          </div>
+        )}
 
         {/* Upload Area */}
         <div className="animate-slide-up">
@@ -399,7 +457,7 @@ export default function UploadPage() {
                       </svg>
                     </div>
                     <p className="font-medium mb-1">
-                      Drop your tender document here or click to browse
+                      Drop your document here or click to browse
                     </p>
                     <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max 3MB</p>
                   </div>
@@ -420,7 +478,7 @@ export default function UploadPage() {
                 disabled={!file || loading}
                 className="w-full mt-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed bg-emerald-500 hover:bg-emerald-400 text-white"
               >
-                Analyze Tender
+                Analyze Document
               </button>
 
               {/* File type hints */}

@@ -2,65 +2,65 @@ import Link from "next/link";
 import { LogoMark } from "@/app/components/Logo";
 
 export const metadata = {
-  title: "Bidlyze — AI-Powered Tender Analysis & Bid Intelligence Platform",
+  title: "Bidlyze — AI RFx & Tender Intelligence Platform",
   description:
-    "Analyze tender documents in 60 seconds with AI. Get compliance checks, risk assessment, bid scoring, win probability, and proposal generation. The smartest way to decide which tenders to pursue.",
-  keywords: "tender analysis, bid management, procurement intelligence, tender compliance, bid scoring, proposal automation, tender risk assessment, bid intelligence, go no-go decision, tender management software",
+    "Analyze RFI, RFQ, RFP, and tender packages with AI. Get compliance mapping, requirement extraction, risk assessment, pricing analysis, and response planning — in minutes, not days.",
+  keywords: "RFx analysis, RFP analysis, RFQ analysis, RFI analysis, tender intelligence, bid management, procurement intelligence, tender compliance, bid scoring, proposal automation, tender risk assessment, go no-go decision",
   openGraph: {
-    title: "Bidlyze — AI-Powered Tender Analysis & Bid Intelligence",
-    description: "From tender document to bid decision in 60 seconds. AI-powered compliance checks, risk radar, bid scoring, and proposal generation.",
+    title: "Bidlyze — AI RFx & Tender Intelligence Platform",
+    description: "From raw RFx documents to structured bid intelligence. Compliance, requirements, risks, and response planning in one platform.",
     type: "website",
     locale: "en_US",
     siteName: "Bidlyze",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bidlyze — AI-Powered Tender Analysis",
-    description: "From tender document to bid decision in 60 seconds.",
+    title: "Bidlyze — AI RFx & Tender Intelligence",
+    description: "From raw RFx documents to structured bid intelligence in minutes.",
   },
 };
 
 const FEATURES = [
   {
-    title: "Bid/No-Bid Scoring",
-    description: "AI evaluates every tender on a 0–100 scale with a clear BID or NO-BID recommendation, backed by weighted scoring across 10+ assessment dimensions.",
-    icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z",
+    title: "RFx Type Analysis",
+    description: "Upload RFI, RFQ, RFP, or tender documents and get analysis tailored to each document type — from qualification fit to full bid evaluation.",
+    icon: "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
   },
   {
-    title: "Compliance Mapping",
-    description: "Automatically extract every compliance requirement and map gaps, missing documents, and certification needs — with an actionable remediation checklist.",
+    title: "Compliance & Requirement Extraction",
+    description: "Automatically extract every requirement, map compliance gaps, identify missing documents, and generate an actionable remediation checklist.",
     icon: "M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.745 3.745 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z",
   },
   {
-    title: "Risk Assessment",
-    description: "Identify timeline, financial, technical, and legal risks with severity ratings, likelihood analysis, and concrete mitigation strategies for each.",
-    icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z",
-  },
-  {
-    title: "Win Probability",
-    description: "AI-estimated win probability across 6 assessment factors — with strengths, weaknesses, and competitive positioning to sharpen your bid strategy.",
-    icon: "M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0 1 16.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.04 6.04 0 0 1-2.02 1.118M14.27 9.728a6.04 6.04 0 0 1-2.02 1.118m0 0a5.97 5.97 0 0 1-.518.087M12.25 10.846a5.97 5.97 0 0 1-.518-.087",
-  },
-  {
-    title: "Pricing Advisor",
-    description: "AI-recommended pricing strategies — aggressive, balanced, or premium — with estimated ranges calibrated to tender scope and competitive landscape.",
+    title: "Commercial & BOQ Understanding",
+    description: "Extract pricing structures, BOQ line items, financial requirements, and commercial risk flags — structured for quoting and cost analysis.",
     icon: "M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
   },
   {
-    title: "Proposal Writer",
-    description: "Generate tailored proposal sections — executive summary, technical response, compliance matrix, methodology — directly from your tender analysis.",
+    title: "Risk & Assumption Mapping",
+    description: "Identify timeline, financial, technical, and legal risks with severity ratings, likelihood analysis, and concrete mitigation strategies.",
+    icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z",
+  },
+  {
+    title: "Bid / No-Bid Decision Support",
+    description: "Scored qualification assessment with win probability, competitive positioning, strengths, and weaknesses — backed by data, not gut feel.",
+    icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z",
+  },
+  {
+    title: "Response Planning & Proposal Writer",
+    description: "Generate tailored proposal sections — executive summary, technical response, compliance matrix, methodology — directly from your analysis.",
     icon: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
   },
 ];
 
 const STEPS = [
-  { step: "01", title: "Upload Your Tender", description: "Drop a PDF, DOCX, or TXT file — RFP, ITB, or tender notice. Our AI reads the entire document in seconds." },
-  { step: "02", title: "Get Instant Analysis", description: "Receive a comprehensive breakdown: compliance gaps, risks, bid scoring, competitor insights, and a clear BID or NO-BID recommendation." },
-  { step: "03", title: "Decide & Respond", description: "Make informed go/no-go decisions and generate tailored proposal sections to accelerate your response timeline." },
+  { step: "01", title: "Select & Upload", description: "Choose your document type — RFI, RFQ, RFP, or other tender — and upload a PDF, DOCX, or TXT file." },
+  { step: "02", title: "Get Structured Intelligence", description: "Receive tailored analysis: requirements extraction, compliance mapping, risk assessment, pricing insights, and qualification scoring." },
+  { step: "03", title: "Decide & Respond", description: "Make data-backed go/no-go decisions and generate proposal sections to accelerate your response timeline." },
 ];
 
 const METRICS = [
-  { value: "60s", label: "Average analysis time" },
+  { value: "4", label: "RFx types supported" },
   { value: "10+", label: "Assessment dimensions" },
   { value: "6", label: "Proposal sections generated" },
   { value: "PDF", label: "Export-ready reports" },
@@ -102,18 +102,18 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6 pt-20 pb-24 text-center relative">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8" style={{ background: "var(--accent-muted)", color: "var(--accent-text)", border: "1px solid var(--accent-border)" }}>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Trusted by procurement teams and bid managers
+            AI RFx & Tender Intelligence Platform
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-            Analyze any tender.<br />
-            Get a BID/NO-BID decision<br />
-            <span className="text-emerald-500">in 60 seconds.</span>
+            From raw RFx documents<br />
+            to structured bid intelligence<br />
+            <span className="text-emerald-500">in minutes.</span>
           </h1>
 
           <p className="text-lg max-w-2xl mx-auto mb-10 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            Upload a tender document and get AI-powered compliance checks, risk assessment,
-            bid scoring, pricing strategy, and ready-to-submit proposal sections — before your competitors even finish reading page one.
+            Upload any RFI, RFQ, RFP, or tender package and get AI-powered compliance mapping,
+            requirement extraction, risk assessment, pricing analysis, and response planning — all in one platform.
           </p>
 
           <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -143,13 +143,13 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-                Most bid teams still review tenders <span style={{ color: "var(--text-muted)" }}>manually</span>
+                RFx review is still <span style={{ color: "var(--text-muted)" }}>manual, slow, and inconsistent</span>
               </h2>
               <p className="text-sm leading-relaxed mb-6" style={{ color: "var(--text-secondary)" }}>
-                Hours spent reading dense documents. Requirements tracked in spreadsheets. Go/no-go decisions based on gut feel. Compliance gaps caught too late. Proposals written from scratch every time.
+                Bid teams spend days reading dense RFP packages, manually extracting requirements into spreadsheets, and making pursuit decisions without structured data. Compliance gaps surface too late. Pricing is guesswork. Proposals start from scratch.
               </p>
               <div className="space-y-3">
-                {["3–5 days to review a single tender document", "No structured framework for bid/no-bid decisions", "Compliance gaps discovered after submission deadline", "Proposal writing restarts from zero every time"].map((item) => (
+                {["3–5 days to review a single RFP or tender package", "Requirements scattered across 50+ page documents", "No structured go/no-go qualification framework", "Response planning restarts from zero every time"].map((item) => (
                   <div key={item} className="flex items-center gap-3 text-sm" style={{ color: "var(--text-secondary)" }}>
                     <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -160,13 +160,13 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="p-8 rounded-2xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
-              <h3 className="text-lg font-bold mb-4 text-emerald-500">Bidlyze handles all of this in under a minute</h3>
+              <h3 className="text-lg font-bold mb-4 text-emerald-500">Bidlyze turns raw documents into structured intelligence</h3>
               <div className="space-y-4">
                 {[
-                  { label: "60-Second Analysis", detail: "Upload to actionable intelligence in under a minute" },
-                  { label: "10+ Analysis Dimensions", detail: "Compliance, risk, pricing, competitors, win probability, and more" },
-                  { label: "AI Proposal Writer", detail: "Generate bid sections directly from your tender data" },
-                  { label: "Amendment Intelligence", detail: "Compare tender versions to detect every material change" },
+                  { label: "RFI / RFQ / RFP / Tender", detail: "One platform for every RFx document type in your pipeline" },
+                  { label: "Requirement Extraction", detail: "Structured table with status tracking, categories, and remediation steps" },
+                  { label: "Qualification & Scoring", detail: "Data-backed bid/no-bid decisions with win probability and risk mapping" },
+                  { label: "Response Planning", detail: "Generate proposal sections and compliance matrices from your analysis" },
                 ].map((d) => (
                   <div key={d.label} className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -191,10 +191,10 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-              Everything you need to <span className="text-emerald-500">win more tenders</span>
+              One platform for the <span className="text-emerald-500">entire RFx workflow</span>
             </h2>
             <p className="text-sm max-w-xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-              From initial analysis to final proposal — Bidlyze covers the entire bid decision workflow with AI built for procurement.
+              From document intake to response planning — Bidlyze covers qualification, compliance, commercial analysis, and proposal generation in one place.
             </p>
           </div>
 
@@ -219,7 +219,7 @@ export default function LandingPage() {
         <div className="max-w-4xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3">
-              Three steps to a smarter bid decision
+              Three steps from document to decision
             </h2>
             <p className="text-sm max-w-lg mx-auto" style={{ color: "var(--text-secondary)" }}>
               No training required. No configuration. Upload a document and get results in under 60 seconds.
@@ -368,10 +368,10 @@ export default function LandingPage() {
       <section className="py-20" style={{ borderTop: "1px solid var(--border-primary)" }}>
         <div className="max-w-3xl mx-auto px-6 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight mb-4">
-            Ready to make faster, smarter bid decisions?
+            Ready to turn RFx documents into structured intelligence?
           </h2>
           <p className="text-sm mb-8 max-w-lg mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Join procurement teams, consultants, and contractors who use Bidlyze to analyze tenders in seconds — not days.
+            Join bid teams, consultants, and contractors who use Bidlyze to qualify, analyze, and respond to tenders faster.
           </p>
           <Link href="/login?tab=signup" className="inline-flex px-8 py-4 rounded-xl text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-white transition-all shadow-lg shadow-emerald-500/20">
             Create Free Account
@@ -401,7 +401,7 @@ export default function LandingPage() {
               &copy; {new Date().getFullYear()} Bidlyze. All rights reserved.
             </p>
             <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-              Built for procurement professionals who need to move fast.
+              AI RFx & Tender Intelligence for teams that win.
             </p>
           </div>
         </div>
