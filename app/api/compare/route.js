@@ -104,7 +104,7 @@ export async function POST(request) {
       result = await compareTenderPDFs(original.data, amended.data);
     } else {
       // If one is PDF, we can't mix — fall back to text comparison
-      // For PDF that needs text extraction, use Gemini inline for both
+      // Both files are PDFs — send to AI for comparison
       if (original.type === "pdf" || amended.type === "pdf") {
         // Send both as PDFs if both are PDFs, otherwise use text
         // For mixed types, we need text from both
