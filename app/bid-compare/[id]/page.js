@@ -8,6 +8,9 @@ import AppShell from "@/app/components/AppShell";
 import { AIDisclaimer, ConfidenceBadge } from "@/app/components/AIConfidence";
 import AnalysisNotes from "@/app/components/AnalysisNotes";
 import { exportMultiSheetExcel, formatComparisonForExcel } from "@/app/utils/exportExcel";
+import ActionTracker from "@/app/components/ActionTracker";
+import DecisionPanel from "@/app/components/DecisionPanel";
+import CommentThread from "@/app/components/CommentThread";
 
 const RATING_COLORS = {
   best: "bg-emerald-500/10 text-emerald-400",
@@ -314,6 +317,25 @@ export default function BidCompareResultPage({ params }) {
             )}
           </div>
         )}
+
+        {/* Notes */}
+        {/* Action Items — seeded from follow-up actions */}
+        <ActionTracker
+          analysisId={record.id}
+          userId={user.id}
+          seedItems={(rec.followUpActions || []).map((a) => ({ title: a, priority: "medium" }))}
+          title="Follow-Up Actions"
+        />
+
+        {/* Decision */}
+        <DecisionPanel
+          analysisId={record.id}
+          userId={user.id}
+          aiRecommendation={rec}
+        />
+
+        {/* Internal Review */}
+        <CommentThread analysisId={record.id} userId={user.id} userEmail={user.email} />
 
         {/* Notes */}
         <AnalysisNotes analysisId={record.id} userId={user.id} />

@@ -61,6 +61,63 @@ function StatCard({ label, value, icon, accentColor }) {
   );
 }
 
+function WorkItemsSummary({ analyses, router }) {
+  // Aggregate workflow data from recent analyses
+  let openActions = 0;
+  let overdueActions = 0;
+  let pendingDecisions = 0;
+  let highRiskItems = 0;
+  const now = new Date();
+
+  analyses.forEach((a) => {
+    const d = a.analysis_data || {};
+    // Count risk flags from analysis
+    if (d.riskFlags) highRiskItems += d.riskFlags.filter((r) => r.severity === "HIGH").length;
+    if (d.riskRadar?.categories) {
+      d.riskRadar.categories.forEach((c) => {
+        highRiskItems += (c.risks || []).filter((r) => r.severity === "critical" || r.severity === "high").length;
+      });
+    }
+    // Check for pending decisions (no workflow_decision or decision is 'review')
+    if (!a.workflow_decision?.decision || a.workflow_decision?.decision === "review") pendingDecisions++;
+    // Count open actions
+    if (a.workflow_actions?.length > 0) {
+      a.workflow_actions.forEach((act) => {
+        if (act.status === "open" || act.status === "in_progress") {
+          openActions++;
+          if (act.dueDate && new Date(act.dueDate) < now) overdueActions++;
+        }
+      });
+    }
+  });
+
+  const items = [
+    { label: "Open Actions", value: openActions, color: "text-blue-400", bg: "bg-blue-500/10", show: openActions > 0 },
+    { label: "Overdue", value: overdueActions, color: "text-red-400", bg: "bg-red-500/10", show: overdueActions > 0 },
+    { label: "High-Severity Risks", value: highRiskItems, color: "text-amber-400", bg: "bg-amber-500/10", show: highRiskItems > 0 },
+    { label: "Pending Decisions", value: pendingDecisions, color: "text-purple-400", bg: "bg-purple-500/10", show: pendingDecisions > 0 },
+  ].filter((i) => i.show);
+
+  if (items.length === 0) {
+    return (
+      <div className="p-5 rounded-xl text-center text-sm" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)", color: "var(--text-muted)" }}>
+        No outstanding work items. All clear.
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {items.map((item) => (
+        <div key={item.label} className="p-4 rounded-xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
+          <div className={`text-2xl font-bold ${item.color}`}>{item.value}</div>
+          <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{item.label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [usageCount, setUsageCount] = useState(null);
@@ -117,7 +174,7 @@ export default function DashboardPage() {
     // Recent analyses
     supabase
       .from("analyses")
-      .select("id, project_name, file_name, bid_score, created_at, file_path")
+      .select("id, project_name, file_name, bid_score, created_at, file_path, analysis_data, workflow_actions, workflow_decision")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(10)
@@ -319,6 +376,14 @@ export default function DashboardPage() {
             <button onClick={() => router.push("/bid-compare")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-input)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Compare Submissions</button>
           </div>
         </section>
+
+        {/* Work Items Summary */}
+        {analyses && analyses.length > 0 && (
+          <section className="mb-8 animate-fade-in" style={{ animationDelay: "175ms" }}>
+            <h2 className="text-lg font-semibold mb-4">Work Items</h2>
+            <WorkItemsSummary analyses={analyses} router={router} />
+          </section>
+        )}
 
         {/* Recent Analyses */}
         <section className="animate-fade-in" style={{ animationDelay: "200ms" }}>

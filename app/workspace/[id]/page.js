@@ -8,6 +8,9 @@ import AppShell from "@/app/components/AppShell";
 import { AIDisclaimer, ConfidenceBadge } from "@/app/components/AIConfidence";
 import AnalysisNotes from "@/app/components/AnalysisNotes";
 import ComplianceMatrix from "@/app/components/ComplianceMatrix";
+import ActionTracker from "@/app/components/ActionTracker";
+import DecisionPanel from "@/app/components/DecisionPanel";
+import CommentThread from "@/app/components/CommentThread";
 import { exportMultiSheetExcel, formatPackageSummaryForExcel } from "@/app/utils/exportExcel";
 
 const CAT_COLORS = {
@@ -319,6 +322,29 @@ export default function WorkspaceDetailPage({ params }) {
             )}
           </div>
         )}
+
+        {/* Notes */}
+        {/* Action Items — seeded from risk flags and clarification points */}
+        <ActionTracker
+          analysisId={record.id}
+          userId={user.id}
+          seedItems={[
+            ...(a.riskFlags || []).map((r) => ({ title: r.risk, priority: r.severity, source: r.source, notes: r.mitigation })),
+            ...(a.clarificationPoints || []).map((q) => ({ title: q.question, priority: "medium", source: q.source, notes: q.reason })),
+            ...(a.submissionRequirements || []).filter((r) => r.mandatory).map((r) => ({ title: r.requirement, priority: "high", source: r.source, notes: r.format })),
+          ]}
+          title="Action Items"
+        />
+
+        {/* Decision */}
+        <DecisionPanel
+          analysisId={record.id}
+          userId={user.id}
+          aiRecommendation={a.recommendation}
+        />
+
+        {/* Internal Review */}
+        <CommentThread analysisId={record.id} userId={user.id} userEmail={user.email} />
 
         {/* Notes */}
         <AnalysisNotes analysisId={record.id} userId={user.id} />
