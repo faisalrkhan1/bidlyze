@@ -7,6 +7,8 @@ import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
 import { AIDisclaimer, ConfidenceBadge } from "@/app/components/AIConfidence";
 import AnalysisNotes from "@/app/components/AnalysisNotes";
+import ComplianceMatrix from "@/app/components/ComplianceMatrix";
+import { exportMultiSheetExcel, formatPackageSummaryForExcel } from "@/app/utils/exportExcel";
 
 const CAT_COLORS = {
   main_rfx: "bg-emerald-500/10 text-emerald-400",
@@ -107,6 +109,20 @@ export default function WorkspaceDetailPage({ params }) {
               {a.recommendation.decision}
             </span>
           )}
+        </div>
+
+        {/* Export Buttons */}
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => {
+              const sheets = formatPackageSummaryForExcel(a);
+              if (sheets.length > 0) exportMultiSheetExcel(sheets, `${record.project_name || "package"}-export.xlsx`);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            Export Excel
+          </button>
         </div>
 
         {/* Quick Info */}
@@ -245,28 +261,14 @@ export default function WorkspaceDetailPage({ params }) {
           </Section>
         )}
 
-        {/* Compliance Matrix */}
+        {/* Editable Compliance Matrix */}
         {a.complianceMatrix?.length > 0 && (
-          <Section title={`Compliance Matrix (${a.complianceMatrix.length})`} badge={<ConfidenceBadge level="medium" />}>
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid var(--border-primary)" }}>
-              <div className="grid grid-cols-12 gap-2 px-4 py-2.5 text-xs font-medium uppercase tracking-wider" style={{ background: "var(--bg-subtle)", color: "var(--text-muted)", borderBottom: "1px solid var(--border-primary)" }}>
-                <div className="col-span-4">Requirement</div>
-                <div className="col-span-2">Source</div>
-                <div className="col-span-2">Category</div>
-                <div className="col-span-1 text-center">Severity</div>
-                <div className="col-span-3">Action Needed</div>
-              </div>
-              {a.complianceMatrix.map((item, i) => (
-                <div key={i} className="grid grid-cols-12 gap-2 px-4 py-3 items-start text-sm" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-                  <div className="col-span-4 font-medium leading-snug">{item.requirement}</div>
-                  <div className="col-span-2 text-xs" style={{ color: "var(--text-muted)" }}>{item.source}</div>
-                  <div className="col-span-2"><span className="px-2 py-0.5 rounded text-[10px] font-medium bg-gray-500/10" style={{ color: "var(--text-secondary)" }}>{item.category}</span></div>
-                  <div className="col-span-1 text-center"><PriorityBadge level={item.severity} /></div>
-                  <div className="col-span-3 text-xs leading-snug" style={{ color: "var(--text-muted)" }}>{item.notes}</div>
-                </div>
-              ))}
-            </div>
-          </Section>
+          <ComplianceMatrix
+            analysisId={record.id}
+            userId={user.id}
+            items={a.complianceMatrix}
+            title="Compliance Matrix"
+          />
         )}
 
         {/* Risk Flags */}

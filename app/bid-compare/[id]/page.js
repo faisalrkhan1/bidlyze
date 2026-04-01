@@ -7,6 +7,7 @@ import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
 import { AIDisclaimer, ConfidenceBadge } from "@/app/components/AIConfidence";
 import AnalysisNotes from "@/app/components/AnalysisNotes";
+import { exportMultiSheetExcel, formatComparisonForExcel } from "@/app/utils/exportExcel";
 
 const RATING_COLORS = {
   best: "bg-emerald-500/10 text-emerald-400",
@@ -83,6 +84,22 @@ export default function BidCompareResultPage({ params }) {
               <p className="text-sm font-bold text-emerald-500">{rec.bestOverall.name}</p>
             </div>
           )}
+        </div>
+
+        {/* Export */}
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => {
+              const sheets = [];
+              if (matrix.length > 0) sheets.push({ name: "Comparison Matrix", data: formatComparisonForExcel(matrix, subs) });
+              if (subs.length > 0) sheets.push({ name: "Submissions", data: subs.map((s) => ({ Name: s.name, Compliance: s.complianceLevel, Scope: s.scopeCoverage, Price: s.commercialSummary?.totalPrice || "—", Timeline: s.timeline || "—", Strengths: s.strengths?.join("; "), Weaknesses: s.weaknesses?.join("; "), Risks: s.risks?.join("; "), Exclusions: s.exclusions?.join("; ") })) });
+              if (sheets.length > 0) exportMultiSheetExcel(sheets, `${record.project_name || "comparison"}-export.xlsx`);
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+            Export Excel
+          </button>
         </div>
 
         {ctx.opportunity && (
