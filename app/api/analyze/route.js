@@ -7,10 +7,15 @@ import {
   buildUsageWarningEmail,
 } from "@/lib/email";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function POST(request) {
+  const t0 = Date.now();
+  const log = (stage) => console.log(`[analyze] ${stage} — ${Date.now() - t0}ms`);
+
   try {
+    log("request received");
+
     // Authenticate user
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -100,9 +105,13 @@ export async function POST(request) {
       );
     }
 
+    log("auth + usage check done");
+
     // Read file buffer once so we can reuse for analysis + storage upload
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     let result;
+
+    log(`file parsed: ${fileName} (${fileSize} bytes, .${fileExtension})`);
 
     if (fileExtension === "pdf") {
       const base64PDF = fileBuffer.toString("base64");
@@ -146,6 +155,8 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    log("AI analysis complete");
 
     if (!result.success) {
       return NextResponse.json(
@@ -210,6 +221,8 @@ export async function POST(request) {
       sendEmail({ to: user.email, subject: warningEmail.subject, html: warningEmail.html })
         .catch((err) => console.error("Failed to send usage warning email:", err));
     }
+
+    log("DB + storage done, responding");
 
     return NextResponse.json({
       success: true,
