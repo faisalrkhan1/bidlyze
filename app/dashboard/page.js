@@ -288,58 +288,35 @@ export default function DashboardPage() {
         </section>
 
         {/* Quick Actions */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10 animate-fade-in" style={{ animationDelay: "150ms" }}>
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 animate-fade-in" style={{ animationDelay: "150ms" }}>
           {/* New Analysis */}
-          <div
-            className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg"
-            style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
-          >
+          <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
             <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
             </div>
             <h3 className="font-semibold mb-1">New Analysis</h3>
-            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-              Upload an RFI, RFQ, RFP, or tender document for AI-powered analysis.
-            </p>
-            <button
-              onClick={() => router.push("/upload")}
-              className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200 bg-emerald-500 hover:bg-emerald-400 text-white"
-            >
-              Start Analysis
-            </button>
+            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Upload a single RFI, RFQ, RFP, or tender document.</p>
+            <button onClick={() => router.push("/upload")} className="w-full py-3 rounded-xl font-semibold text-sm bg-emerald-500 hover:bg-emerald-400 text-white transition-colors">Single Document</button>
+          </div>
+
+          {/* Tender Package */}
+          <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
+            <div className="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" /></svg>
+            </div>
+            <h3 className="font-semibold mb-1">Tender Package</h3>
+            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Upload multiple files for combined package intelligence.</p>
+            <button onClick={() => router.push("/workspace/new")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--accent-border)", color: "var(--accent-text)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-muted)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Multi-Document</button>
           </div>
 
           {/* Compare Documents */}
-          <div
-            className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg"
-            style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
-          >
+          <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
             <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-              </svg>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
             </div>
             <h3 className="font-semibold mb-1">Compare Documents</h3>
-            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>
-              Compare RFx amendments to detect changes and assess impact.
-            </p>
-            <button
-              onClick={() => router.push("/compare")}
-              className="w-full py-3 rounded-xl font-semibold text-sm transition-all duration-200"
-              style={{ border: "1px solid var(--border-secondary)", background: "transparent" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "var(--bg-input)";
-                e.currentTarget.style.borderColor = "var(--border-primary)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.borderColor = "var(--border-secondary)";
-              }}
-            >
-              Compare Documents
-            </button>
+            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Compare RFx amendments to detect changes and impact.</p>
+            <button onClick={() => router.push("/compare")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-input)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Compare Versions</button>
           </div>
         </section>
 
