@@ -286,11 +286,12 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-5 max-w-3xl mx-auto">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
             {[
-              { name: "Starter", price: "$29", period: "/ month", features: ["10 analyses per month", "RFI / RFQ / RFP / Other", "Summary & requirement extraction", "Basic compliance mapping", "PDF export"], cta: "Start Free Trial" },
-              { name: "Professional", price: "$99", period: "/ month", features: ["40 analyses per month", "Full compliance matrix", "Risk & bid/no-bid scoring", "Proposal Writer", "Branded exports"], cta: "Start Free Trial", popular: true },
-              { name: "Enterprise", price: "Custom", period: "", features: ["Custom volume", "Team collaboration", "Admin controls", "Priority support", "Custom onboarding"], cta: "Contact Sales" },
+              { name: "Free", price: "$0", period: "forever", features: ["3 analyses / month", "Basic summary & requirements", "Requirement tracking", "30-day history"], cta: "Get Started" },
+              { name: "Professional", price: "$49", period: "/ month", features: ["25 analyses / month", "Full compliance & risk", "Proposal Writer", "Tender Packages", "Deadline Tracker", "Excel export"], cta: "Upgrade", popular: true },
+              { name: "Team", price: "$149", period: "/ month", features: ["80 analyses / month", "Comments & audit trail", "Branded exports", "Team features (roadmap)"], cta: "Upgrade" },
+              { name: "Enterprise", price: "Custom", period: "", features: ["Unlimited volume", "Admin controls", "Priority support", "Custom onboarding"], cta: "Contact Sales" },
             ].map((plan) => (
               <div
                 key={plan.name}
