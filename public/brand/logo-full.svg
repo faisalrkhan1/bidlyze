@@ -1,0 +1,12 @@
+<svg width="280" height="60" viewBox="0 0 280 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Logo Mark (scaled to 60x60) -->
+  <g transform="translate(0,0) scale(0.6)">
+    <rect x="8" y="10" width="52" height="18" rx="9" fill="#10b981"/>
+    <rect x="66" y="10" width="26" height="18" rx="9" fill="#10b981"/>
+    <rect x="8" y="41" width="44" height="18" rx="9" fill="#10b981"/>
+    <circle cx="75" cy="50" r="9" fill="#10b981"/>
+    <rect x="8" y="72" width="84" height="18" rx="9" fill="#10b981"/>
+  </g>
+  <!-- Wordmark -->
+  <text x="68" y="40" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="600" letter-spacing="-0.5" fill="currentColor">Bidlyze</text>
+</svg>

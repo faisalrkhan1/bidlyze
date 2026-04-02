@@ -1,24 +1,34 @@
 "use client";
 
+/**
+ * Bidlyze Logo System
+ *
+ * Mark: geometric stacked bars — abstract document/analysis symbol
+ * Based on reference logo with three rows:
+ *   Top: long bar + small pill
+ *   Middle: medium bar + circle
+ *   Bottom: full-width bar
+ */
+
 export function LogoMark({ size = 32, className = "" }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
+      viewBox="0 0 100 100"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect width="32" height="32" rx="8" fill="#10b981" />
-      {/* Stylized "B" with analysis bars */}
-      <path
-        d="M10 8h6.5c2.5 0 4 1.2 4 3.2 0 1.5-.9 2.5-2.2 2.9v.1c1.7.3 2.8 1.5 2.8 3.2 0 2.3-1.7 3.6-4.4 3.6H10V8zm3.2 5.2h2.8c1.1 0 1.7-.5 1.7-1.4 0-.9-.6-1.3-1.7-1.3h-2.8v2.7zm0 5.6h3.1c1.2 0 1.9-.6 1.9-1.5s-.7-1.4-1.9-1.4h-3.1v2.9z"
-        fill="white"
-      />
-      {/* Small accent bar - suggests data/analysis */}
-      <rect x="22" y="21" width="2" height="3" rx="0.5" fill="white" opacity="0.6" />
-      <rect x="22" y="17" width="2" height="3" rx="0.5" fill="white" opacity="0.4" />
+      <rect width="100" height="100" rx="22" fill="#10b981" />
+      {/* Top row: long bar + small pill */}
+      <rect x="14" y="16" width="42" height="16" rx="8" fill="white" />
+      <rect x="62" y="16" width="24" height="16" rx="8" fill="white" opacity="0.8" />
+      {/* Middle row: medium bar + circle */}
+      <rect x="14" y="42" width="36" height="16" rx="8" fill="white" />
+      <circle cx="72" cy="50" r="8" fill="white" opacity="0.8" />
+      {/* Bottom row: full-width bar */}
+      <rect x="14" y="68" width="72" height="16" rx="8" fill="white" />
     </svg>
   );
 }

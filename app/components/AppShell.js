@@ -206,7 +206,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
 
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-2 ml-auto mr-auto">
-            <div className="w-7 h-7 rounded-lg bg-emerald-500 flex items-center justify-center font-bold text-xs text-white">B</div>
+            <LogoMark size={28} />
             <span className="text-sm font-semibold">Bidlyze</span>
           </div>
 
