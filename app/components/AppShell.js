@@ -43,6 +43,15 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "History",
+    href: "/history",
+    icon: (
+      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    ),
+  },
+  {
     label: "Pricing",
     href: "/pricing",
     icon: (
