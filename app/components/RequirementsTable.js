@@ -72,6 +72,7 @@ export default function RequirementsTable({ analysisId, userId, requirements = [
   const [notes, setNotes] = useState({});
   const [filter, setFilter] = useState("all");
   const [loaded, setLoaded] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const [expandedRow, setExpandedRow] = useState(null);
 
   // Build unified row list from requirements + compliance items
@@ -110,19 +111,18 @@ export default function RequirementsTable({ analysisId, userId, requirements = [
   );
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || !dirty) return;
     const t = setTimeout(() => persist(statuses, notes), 800);
     return () => clearTimeout(t);
-  }, [statuses, notes, loaded, persist]);
+  }, [statuses, notes, loaded, dirty, persist]);
 
   function updateStatus(rowId, newStatus) {
-    setStatuses((prev) => {
-      const next = { ...prev, [rowId]: newStatus };
-      return next;
-    });
+    setDirty(true);
+    setStatuses((prev) => ({ ...prev, [rowId]: newStatus }));
   }
 
   function updateNote(rowId, text) {
+    setDirty(true);
     setNotes((prev) => ({ ...prev, [rowId]: text }));
   }
 
@@ -187,6 +187,9 @@ export default function RequirementsTable({ analysisId, userId, requirements = [
         </span>
       </div>
 
+      {/* Table — scrollable on mobile */}
+      <div className="overflow-x-auto">
+      <div className="min-w-[700px]">
       {/* Table Header */}
       <div
         className="grid grid-cols-12 gap-2 px-5 py-3 text-xs font-medium uppercase tracking-wider"
@@ -291,6 +294,8 @@ export default function RequirementsTable({ analysisId, userId, requirements = [
           </div>
         );
       })}
+      </div>
+      </div>
     </div>
   );
 }

@@ -12,8 +12,10 @@ export default function AnalysisNotes({ analysisId, userId }) {
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [saveError, setSaveError] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [initialNote, setInitialNote] = useState("");
 
   // Load existing note on mount
   useEffect(() => {
@@ -25,10 +27,10 @@ export default function AnalysisNotes({ analysisId, userId }) {
       .eq("user_id", userId)
       .single()
       .then(({ data }) => {
-        if (data?.notes) {
-          setNote(data.notes);
-          if (data.notes.trim()) setExpanded(true);
-        }
+        const loaded = data?.notes || "";
+        setNote(loaded);
+        setInitialNote(loaded);
+        if (loaded.trim()) setExpanded(true);
         setLoaded(true);
       });
   }, [analysisId, userId]);
@@ -38,13 +40,17 @@ export default function AnalysisNotes({ analysisId, userId }) {
     async (text) => {
       if (!analysisId || !userId) return;
       setSaving(true);
+      setSaveError(false);
       const { error } = await getSupabase()
         .from("analyses")
         .update({ notes: text })
         .eq("id", analysisId)
         .eq("user_id", userId);
       setSaving(false);
-      if (!error) {
+      if (error) {
+        setSaveError(true);
+        console.error("Notes save error:", error.message);
+      } else {
         setLastSaved(new Date());
       }
     },
@@ -53,11 +59,13 @@ export default function AnalysisNotes({ analysisId, userId }) {
 
   useEffect(() => {
     if (!loaded) return;
+    // Skip save if note hasn't changed from what was loaded
+    if (note === initialNote) return;
     const timeout = setTimeout(() => {
       saveNote(note);
     }, 1000);
     return () => clearTimeout(timeout);
-  }, [note, loaded, saveNote]);
+  }, [note, loaded, saveNote, initialNote]);
 
   if (!loaded) return null;
 
@@ -90,9 +98,14 @@ export default function AnalysisNotes({ analysisId, userId }) {
               Saving
             </span>
           )}
-          {!saving && lastSaved && (
+          {!saving && lastSaved && !saveError && (
             <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
               Saved
+            </span>
+          )}
+          {saveError && (
+            <span className="text-[11px] text-red-400">
+              Not saved
             </span>
           )}
           <svg
