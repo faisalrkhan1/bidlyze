@@ -62,25 +62,39 @@ function StatCard({ label, value, icon, accentColor }) {
 }
 
 function WorkItemsSummary({ analyses, router }) {
-  // Aggregate workflow data from recent analyses
   let openActions = 0;
   let overdueActions = 0;
   let pendingDecisions = 0;
   let highRiskItems = 0;
+  let overdueDeadlines = 0;
+  let urgentDeadlines = 0;
   const now = new Date();
+  now.setHours(0, 0, 0, 0);
 
   analyses.forEach((a) => {
     const d = a.analysis_data || {};
-    // Count risk flags from analysis
+    const status = a.tender_status || "analyzed";
+    if (["dropped", "archived", "won", "lost"].includes(status)) return;
+
+    // Deadline urgency
+    const dlStr = (d.summary || d.packageSummary || {}).submissionDeadline;
+    if (dlStr && dlStr !== "Not specified") {
+      const dl = new Date(dlStr.replace(/(\d+)(st|nd|rd|th)/gi, "$1").trim());
+      if (!isNaN(dl.getTime()) && dl.getFullYear() > 2000) {
+        dl.setHours(0, 0, 0, 0);
+        const days = Math.ceil((dl - now) / 86400000);
+        if (days < 0) overdueDeadlines++;
+        else if (days <= 7) urgentDeadlines++;
+      }
+    }
+
     if (d.riskFlags) highRiskItems += d.riskFlags.filter((r) => r.severity === "HIGH").length;
     if (d.riskRadar?.categories) {
       d.riskRadar.categories.forEach((c) => {
         highRiskItems += (c.risks || []).filter((r) => r.severity === "critical" || r.severity === "high").length;
       });
     }
-    // Check for pending decisions (no workflow_decision or decision is 'review')
     if (!a.workflow_decision?.decision || a.workflow_decision?.decision === "review") pendingDecisions++;
-    // Count open actions
     if (a.workflow_actions?.length > 0) {
       a.workflow_actions.forEach((act) => {
         if (act.status === "open" || act.status === "in_progress") {
@@ -92,9 +106,10 @@ function WorkItemsSummary({ analyses, router }) {
   });
 
   const items = [
+    { label: "Overdue Deadlines", value: overdueDeadlines, color: "text-red-400", bg: "bg-red-500/10", show: overdueDeadlines > 0, link: "/deadlines" },
+    { label: "Due This Week", value: urgentDeadlines, color: "text-amber-400", bg: "bg-amber-500/10", show: urgentDeadlines > 0, link: "/deadlines" },
     { label: "Open Actions", value: openActions, color: "text-blue-400", bg: "bg-blue-500/10", show: openActions > 0 },
-    { label: "Overdue", value: overdueActions, color: "text-red-400", bg: "bg-red-500/10", show: overdueActions > 0 },
-    { label: "High-Severity Risks", value: highRiskItems, color: "text-amber-400", bg: "bg-amber-500/10", show: highRiskItems > 0 },
+    { label: "Overdue Tasks", value: overdueActions, color: "text-red-400", bg: "bg-red-500/10", show: overdueActions > 0 },
     { label: "Pending Decisions", value: pendingDecisions, color: "text-purple-400", bg: "bg-purple-500/10", show: pendingDecisions > 0 },
   ].filter((i) => i.show);
 
@@ -107,9 +122,14 @@ function WorkItemsSummary({ analyses, router }) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
       {items.map((item) => (
-        <div key={item.label} className="p-4 rounded-xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
+        <div
+          key={item.label}
+          className={`p-4 rounded-xl ${item.link ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+          style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
+          onClick={() => item.link && router.push(item.link)}
+        >
           <div className={`text-2xl font-bold ${item.color}`}>{item.value}</div>
           <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>{item.label}</p>
         </div>
