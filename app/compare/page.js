@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import UpgradeGate from "@/app/components/UpgradeGate";
 
 const ACCEPTED_TYPES = [
   "application/pdf",
@@ -84,6 +85,7 @@ function UploadZone({ label, sublabel, file, onFile, dragActive, onDrag, onDrop,
 
 export default function ComparePage() {
   const { user, loading: authLoading, logout } = useAuth();
+  const [userPlan, setUserPlan] = useState("free");
   const [originalFile, setOriginalFile] = useState(null);
   const [amendedFile, setAmendedFile] = useState(null);
   const [error, setError] = useState("");
@@ -93,6 +95,18 @@ export default function ComparePage() {
   const originalRef = useRef(null);
   const amendedRef = useRef(null);
   const router = useRouter();
+
+  useEffect(() => {
+    if (!user) return;
+    getSupabase()
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.status === "active" && data?.plan) setUserPlan(data.plan);
+      });
+  }, [user]);
 
   function handleOriginalFile(f) {
     setError("");
@@ -179,6 +193,7 @@ export default function ComparePage() {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={[{label: "Dashboard", href: "/dashboard"}, {label: "Compare Documents"}]}>
+      <UpgradeGate plan={userPlan} feature="amendmentIntelligence" label="Amendment Intelligence">
       <div className="max-w-5xl mx-auto px-6 py-10 animate-fade-in">
         {/* Title */}
         <div className="text-center mb-10">
@@ -255,6 +270,7 @@ export default function ComparePage() {
           </button>
         </div>
       </div>
+      </UpgradeGate>
     </AppShell>
   );
 }

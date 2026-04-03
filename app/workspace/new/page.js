@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import UpgradeGate from "@/app/components/UpgradeGate";
 
 const ACCEPTED = [".pdf", ".docx", ".txt"];
 const MAX_FILE_SIZE = 3 * 1024 * 1024;
@@ -48,6 +49,7 @@ const STAGES = [
 
 export default function WorkspaceNewPage() {
   const { user, loading: authLoading, logout } = useAuth();
+  const [userPlan, setUserPlan] = useState("free");
   const [files, setFiles] = useState([]);
   const [packageName, setPackageName] = useState("");
   const [error, setError] = useState("");
@@ -63,6 +65,18 @@ export default function WorkspaceNewPage() {
     );
     return () => timers.forEach((t) => t && clearTimeout(t));
   }, [loading]);
+
+  useEffect(() => {
+    if (!user) return;
+    getSupabase()
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.status === "active" && data?.plan) setUserPlan(data.plan);
+      });
+  }, [user]);
 
   function addFiles(incoming) {
     setError("");
@@ -131,6 +145,7 @@ export default function WorkspaceNewPage() {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Tender Package" }]}>
+      <UpgradeGate plan={userPlan} feature="tenderPackage" label="Tender Package">
       <div className="max-w-4xl mx-auto px-6 py-10 animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Tender Package Workspace</h1>
@@ -248,6 +263,7 @@ export default function WorkspaceNewPage() {
           </>
         )}
       </div>
+      </UpgradeGate>
     </AppShell>
   );
 }

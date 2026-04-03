@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import UpgradeGate from "@/app/components/UpgradeGate";
 
 const MAX_FILES = 6;
 const MAX_SIZE = 3 * 1024 * 1024;
@@ -32,6 +33,7 @@ function formatSize(b) {
 
 export default function BidComparePage() {
   const { user, loading: authLoading, logout } = useAuth();
+  const [userPlan, setUserPlan] = useState("free");
   const [files, setFiles] = useState([]);
   const [compareType, setCompareType] = useState("quotation");
   const [compareName, setCompareName] = useState("");
@@ -46,6 +48,18 @@ export default function BidComparePage() {
     const t = STAGES.map((s, i) => i === 0 ? null : setTimeout(() => setStage(i), s.delay));
     return () => t.forEach((x) => x && clearTimeout(x));
   }, [loading]);
+
+  useEffect(() => {
+    if (!user) return;
+    getSupabase()
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.status === "active" && data?.plan) setUserPlan(data.plan);
+      });
+  }, [user]);
 
   function addFiles(incoming) {
     setError("");
@@ -102,6 +116,7 @@ export default function BidComparePage() {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Bid Comparison" }]}>
+      <UpgradeGate plan={userPlan} feature="bidComparison" label="Bid Comparison">
       <div className="max-w-4xl mx-auto px-6 py-10 animate-fade-in">
         <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">Bid Comparison</h1>
@@ -215,6 +230,7 @@ export default function BidComparePage() {
           </>
         )}
       </div>
+      </UpgradeGate>
     </AppShell>
   );
 }

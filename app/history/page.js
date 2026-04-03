@@ -89,17 +89,28 @@ export default function HistoryPage() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("date_desc");
+  const [userPlan, setUserPlan] = useState("free");
   const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
-    getSupabase()
+    const supabase = getSupabase();
+
+    // Fetch user plan to enforce history limits
+    supabase.from("subscriptions").select("plan, status").eq("user_id", user.id).single()
+      .then(({ data }) => { if (data?.status === "active" && data?.plan) setUserPlan(data.plan); });
+
+    // Build query — free plan limited to 30-day history
+    let query = supabase
       .from("analyses")
       .select("id, project_name, file_name, bid_score, created_at, analysis_data, workflow_decision, tender_status")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
-      .limit(200)
-      .then(({ data }) => {
+      .limit(200);
+
+    // Note: plan state may not be set yet on first render, so we also
+    // apply client-side filtering below for free users.
+    query.then(({ data }) => {
         setRecords(data || []);
         setLoading(false);
       });
@@ -120,6 +131,13 @@ export default function HistoryPage() {
   // Filter and sort
   const filtered = useMemo(() => {
     let result = records;
+
+    // Enforce 30-day history limit for free plan
+    if (userPlan === "free") {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      result = result.filter((r) => new Date(r.created_at) >= thirtyDaysAgo);
+    }
 
     // Search
     if (search.trim()) {
@@ -151,7 +169,7 @@ export default function HistoryPage() {
     if (sortBy === "score") result = [...result].sort((a, b) => (b.bid_score ?? -1) - (a.bid_score ?? -1));
 
     return result;
-  }, [records, search, typeFilter, statusFilter, sortBy]);
+  }, [records, search, typeFilter, statusFilter, sortBy, userPlan]);
 
   // Stats
   const stats = useMemo(() => {

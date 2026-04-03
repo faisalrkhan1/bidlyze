@@ -9,6 +9,11 @@ import AppShell from "@/app/components/AppShell";
 import { ConfidenceBadge, AIDisclaimer, getSectionConfidence } from "@/app/components/AIConfidence";
 import AnalysisNotes from "@/app/components/AnalysisNotes";
 import RequirementsTable from "@/app/components/RequirementsTable";
+import ActionTracker from "@/app/components/ActionTracker";
+import DecisionPanel from "@/app/components/DecisionPanel";
+import CommentThread from "@/app/components/CommentThread";
+import AuditTrail from "@/app/components/AuditTrail";
+import UpgradeGate from "@/app/components/UpgradeGate";
 import { RFIResults, RFQResults, OtherResults } from "@/app/components/RFxResults";
 
 function ScoreBadge({ score }) {
@@ -95,6 +100,7 @@ export default function AnalysisDetailPage({ params }) {
   const { user, loading: authLoading, logout } = useAuth();
   const [record, setRecord] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [userPlan, setUserPlan] = useState("free");
   const router = useRouter();
 
   useEffect(() => {
@@ -112,6 +118,15 @@ export default function AnalysisDetailPage({ params }) {
         } else {
           setRecord(data);
         }
+      });
+
+    getSupabase()
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.status === "active" && data?.plan) setUserPlan(data.plan);
       });
   }, [id, user, authLoading]);
 
@@ -245,18 +260,20 @@ export default function AnalysisDetailPage({ params }) {
               Original File
             </button>
           )}
-          <button
-            onClick={() => router.push(`/proposal/${record.id}`)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            style={{ border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "var(--accent-muted)"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-            </svg>
-            Generate Proposal
-          </button>
+          {userPlan !== "free" && (
+            <button
+              onClick={() => router.push(`/proposal/${record.id}`)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{ border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}
+              onMouseEnter={(e) => e.currentTarget.style.background = "var(--accent-muted)"}
+              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+              </svg>
+              Generate Proposal
+            </button>
+          )}
         </div>
 
         {/* Quick Info Grid */}
@@ -337,6 +354,7 @@ export default function AnalysisDetailPage({ params }) {
             />
 
         {/* Win Probability */}
+        <UpgradeGate plan={userPlan} feature="winProbability" label="Win Probability & Competitor Intelligence">
         {winProbability && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-6">
@@ -472,7 +490,7 @@ export default function AnalysisDetailPage({ params }) {
 
         {/* Competitor Intelligence */}
         {competitorIntelligence && (
-          <Section title={<span className="flex items-center gap-2.5">Competitor Intelligence <ConfidenceBadge level={getSectionConfidence("competitorIntelligence")} /></span>} defaultOpen>
+          <Section title={<span className="flex items-center gap-2.5">Competitor Intelligence <ConfidenceBadge level={getSectionConfidence("competitorIntelligence")} /></span>} defaultOpen={false}>
             <div className="space-y-6">
               {/* Market Dynamics */}
               {competitorIntelligence.marketDynamics && (
@@ -738,7 +756,10 @@ export default function AnalysisDetailPage({ params }) {
           </Section>
         )}
 
+        </UpgradeGate>
+
         {/* Collapsible Sections */}
+        <UpgradeGate plan={userPlan} feature="complianceMatrix" label="Compliance, Risk & Pricing Analysis">
         <div className="space-y-3">
           {/* Compliance Gap Detector */}
           {complianceAnalysis && (
@@ -1165,6 +1186,27 @@ export default function AnalysisDetailPage({ params }) {
             </Section>
           )}
         </div>
+        </UpgradeGate>
+
+            {/* Action Tracker */}
+            <UpgradeGate plan={userPlan} feature="actionTracker" label="Action Tracker">
+              <ActionTracker analysisId={record.id} userId={user.id} analysisData={analysis} />
+            </UpgradeGate>
+
+            {/* Decision Panel */}
+            <UpgradeGate plan={userPlan} feature="decisionPanel" label="Decision Panel">
+              <DecisionPanel analysisId={record.id} userId={user.id} />
+            </UpgradeGate>
+
+            {/* Comments — Team+ */}
+            <UpgradeGate plan={userPlan} feature="comments" label="Internal Comments">
+              <CommentThread analysisId={record.id} userId={user.id} />
+            </UpgradeGate>
+
+            {/* Audit Trail — Team+ */}
+            <UpgradeGate plan={userPlan} feature="auditTrail" label="Audit Trail">
+              <AuditTrail analysisId={record.id} />
+            </UpgradeGate>
           </>
         )}
       </div>

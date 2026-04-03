@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import UpgradeGate from "@/app/components/UpgradeGate";
 
 const SECTIONS = [
   {
@@ -68,6 +69,7 @@ export default function ProposalPage({ params }) {
   const { user, loading: authLoading, logout } = useAuth();
   const [record, setRecord] = useState(null);
   const [notFound, setNotFound] = useState(false);
+  const [userPlan, setUserPlan] = useState("free");
   const [activeSection, setActiveSection] = useState("executive_summary");
   const [sections, setSections] = useState({});
   const [generating, setGenerating] = useState(null);
@@ -90,6 +92,9 @@ export default function ProposalPage({ params }) {
           setNotFound(true);
         } else {
           setRecord(data);
+          // Fetch user plan
+          getSupabase().from("subscriptions").select("plan, status").eq("user_id", user.id).single()
+            .then(({ data: sub }) => { if (sub?.status === "active" && sub?.plan) setUserPlan(sub.plan); });
           // Load any previously saved proposals
           if (data.proposals && typeof data.proposals === "object") {
             const loaded = {};
@@ -223,6 +228,7 @@ export default function ProposalPage({ params }) {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={[{label: "Dashboard", href: "/dashboard"}, {label: "Analysis", href: "/analysis/" + id}, {label: "Proposal Writer"}]}>
+      <UpgradeGate plan={userPlan} feature="proposalWriter" label="Proposal Writer">
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
@@ -437,6 +443,7 @@ export default function ProposalPage({ params }) {
           </div>
         </main>
       </div>
+      </UpgradeGate>
     </AppShell>
   );
 }

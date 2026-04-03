@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import UpgradeGate from "@/app/components/UpgradeGate";
 
 const STATUS_COLORS = {
   analyzed: "bg-blue-500/10 text-blue-400",
@@ -71,10 +72,13 @@ export default function DeadlinesPage() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("all"); // all | overdue | today | week | upcoming
+  const [userPlan, setUserPlan] = useState("free");
   const router = useRouter();
 
   useEffect(() => {
     if (!user) return;
+    getSupabase().from("subscriptions").select("plan, status").eq("user_id", user.id).single()
+      .then(({ data }) => { if (data?.status === "active" && data?.plan) setUserPlan(data.plan); });
     getSupabase()
       .from("analyses")
       .select("id, project_name, created_at, analysis_data, tender_status, requirement_statuses")
@@ -144,6 +148,7 @@ export default function DeadlinesPage() {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Deadlines" }]}>
+      <UpgradeGate plan={userPlan} feature="deadlineTracker" label="Deadline Tracker">
       <div className="max-w-6xl mx-auto px-6 py-10 animate-fade-in">
         {/* Header */}
         <div className="mb-8">
@@ -256,6 +261,7 @@ export default function DeadlinesPage() {
           </div>
         )}
       </div>
+      </UpgradeGate>
     </AppShell>
   );
 }
