@@ -180,18 +180,12 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>11. Governing Law & Disputes</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>11. Governing Law</h2>
             <p>
-              These Terms shall be governed by and construed in accordance with the laws of the State of
-              Delaware, United States, without regard to conflict-of-law principles.
-            </p>
-            <p className="mt-3">
-              Any dispute arising from these Terms or your use of the Service shall first be addressed through
-              good-faith negotiation by contacting us at{" "}
-              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>.
-              If a resolution cannot be reached within thirty (30) days, either party may pursue resolution
-              through the courts of the State of Delaware. Both parties consent to the exclusive jurisdiction
-              and venue of those courts.
+              These Terms are governed by applicable law. Any dispute arising from these Terms or your use of
+              the Service should first be raised with us at{" "}
+              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>{" "}
+              so we can attempt to resolve it directly.
             </p>
           </section>
 
