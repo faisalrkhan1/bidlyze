@@ -46,31 +46,37 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 mt-2 space-y-1">
               <li>Email address</li>
               <li>Name (if provided)</li>
-              <li>Authentication credentials (managed securely via our authentication provider)</li>
+              <li>Authentication credentials (managed by our authentication provider, Supabase — we never see or store your password directly)</li>
             </ul>
 
             <h3 className="text-base font-semibold mt-4 mb-2" style={{ color: "var(--text-primary)" }}>2.2 Documents You Upload</h3>
             <p>
               When you use Bidlyze to analyze RFx and tender documents, you upload files (PDF, DOCX, or TXT).
-              These documents are processed by our AI analysis engine to generate structured intelligence for you.
-              We store your uploaded documents and analysis results in your account so that you can access them later.
+              The text content of these documents is sent to a third-party AI service via API to generate
+              your analysis. We store your analysis results in your account so you can access them later.
             </p>
 
-            <h3 className="text-base font-semibold mt-4 mb-2" style={{ color: "var(--text-primary)" }}>2.3 Usage & Analytics Data</h3>
-            <p>We automatically collect certain technical information when you use the Service, including:</p>
+            <h3 className="text-base font-semibold mt-4 mb-2" style={{ color: "var(--text-primary)" }}>2.3 Usage Data</h3>
+            <p>
+              Our hosting provider (Vercel) automatically collects standard server logs when you use the
+              Service, which may include:
+            </p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
+              <li>IP address</li>
               <li>Browser type and version</li>
-              <li>Device type and operating system</li>
-              <li>Pages visited and features used</li>
-              <li>Time and date of visits</li>
+              <li>Pages requested and response times</li>
+              <li>Time and date of requests</li>
               <li>Referring URL</li>
-              <li>IP address (anonymized where feasible)</li>
             </ul>
+            <p className="mt-3">
+              We do not currently use any third-party analytics or tracking services beyond standard
+              server logs. If we add analytics tools in the future, we will update this policy.
+            </p>
 
             <h3 className="text-base font-semibold mt-4 mb-2" style={{ color: "var(--text-primary)" }}>2.4 Payment Information</h3>
             <p>
-              Payments are processed by our authorized payment processor, Paddle (Paddle.com Market Limited).
-              We do not store your full credit card number, CVV, or bank account details on our servers. Paddle
+              Payments are processed by our authorized merchant of record, Paddle (Paddle.com Market Limited).
+              We do not store your credit card number, CVV, or bank account details on our servers. Paddle
               handles all payment data in accordance with PCI DSS standards. We receive only a transaction
               reference, plan type, and billing status from Paddle.
             </p>
@@ -84,105 +90,127 @@ export default function PrivacyPage() {
               <li>Process your document analyses and deliver results</li>
               <li>Manage your account and subscription</li>
               <li>Process payments through Paddle</li>
-              <li>Send transactional emails (account verification, billing receipts, important service updates)</li>
-              <li>Monitor and analyze usage patterns to improve the Service</li>
-              <li>Detect, prevent, and address technical issues or abuse</li>
+              <li>Send transactional emails (account verification, analysis summaries, usage notifications, and important service updates)</li>
+              <li>Monitor usage to enforce plan limits and detect abuse</li>
               <li>Comply with legal obligations</li>
             </ul>
             <p className="mt-3">
               <strong style={{ color: "var(--text-primary)" }}>We do not use your uploaded documents or analysis data to train AI models.</strong>{" "}
-              Your documents are processed solely to provide analysis results to you.
+              Your document content is sent to our AI provider solely to generate your analysis results, then
+              is not retained by the AI provider beyond what is needed to process the request.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>4. Cookies & Tracking Technologies</h2>
-            <p>Bidlyze uses the following cookies and similar technologies:</p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Essential cookies:</strong> Required for authentication, session management, and core platform functionality. These cannot be disabled.</li>
-              <li><strong>Analytics cookies:</strong> Used to understand how visitors interact with the platform, helping us improve the user experience. These may include third-party analytics services.</li>
-            </ul>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>4. Cookies & Local Storage</h2>
+            <p>
+              Bidlyze uses only <strong>essential cookies</strong> required for authentication and session
+              management. These are set by our authentication provider (Supabase) and are necessary for the
+              platform to function. We do not use advertising cookies, tracking pixels, or third-party
+              analytics cookies.
+            </p>
             <p className="mt-3">
-              You can control cookie preferences through your browser settings. Disabling essential cookies may
-              prevent you from using parts of the Service.
+              We also use browser local storage to save your theme preference (light/dark mode). This data
+              stays on your device and is not transmitted to our servers.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>5. Third-Party Services</h2>
-            <p>We use the following third-party services to operate Bidlyze:</p>
+            <p>We rely on the following third-party services to operate Bidlyze:</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li><strong>Supabase</strong> — Authentication and database hosting</li>
-              <li><strong>Paddle</strong> — Payment processing and subscription management</li>
-              <li><strong>AI providers</strong> — Document analysis and natural language processing (documents are processed via API; they are not used for model training)</li>
-              <li><strong>Vercel</strong> — Application hosting and deployment</li>
+              <li><strong>Supabase</strong> — User authentication and database hosting. Your account data and analysis results are stored in Supabase.</li>
+              <li><strong>OpenRouter</strong> — AI model routing. Document text is sent to OpenRouter&apos;s API, which routes it to a large language model for analysis. OpenRouter processes data under its own privacy policy and data processing terms.</li>
+              <li><strong>Paddle</strong> — Payment processing and subscription management. Paddle acts as our merchant of record and handles all billing and tax compliance.</li>
+              <li><strong>Vercel</strong> — Application hosting and deployment. Vercel serves the Bidlyze application and processes web requests.</li>
+              <li><strong>Resend</strong> — Transactional email delivery. We use Resend to send account and analysis notification emails.</li>
             </ul>
             <p className="mt-3">
-              Each third-party service operates under its own privacy policy. We only share data with these
-              services to the extent necessary to provide the Service.
+              Each third-party service operates under its own privacy policy and terms of service. We share
+              data with these services only to the extent necessary to provide the Service to you.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>6. Data Storage & Security</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>6. International Data Processing</h2>
             <p>
-              We implement commercially reasonable security measures to protect your personal data against
-              unauthorized access, alteration, disclosure, or destruction. These measures include:
+              Bidlyze is operated from and our primary infrastructure is hosted in the United States. The
+              third-party services we use (Supabase, Vercel, OpenRouter, Resend, Paddle) may process data
+              in the United States and other countries. By using the Service, you acknowledge that your data
+              may be transferred to and processed in jurisdictions outside your country of residence, which
+              may have different data protection laws than your jurisdiction.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>7. Data Storage & Security</h2>
+            <p>
+              We take reasonable steps to protect your personal data. The security measures currently in
+              place include:
             </p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Encryption of data in transit (TLS/HTTPS)</li>
-              <li>Encryption of data at rest</li>
-              <li>Secure authentication with password hashing</li>
-              <li>Role-based access controls</li>
-              <li>Regular security reviews</li>
+              <li>All data transmitted between your browser and our servers is encrypted via TLS (HTTPS)</li>
+              <li>Authentication is handled by Supabase, which manages password hashing and session tokens</li>
+              <li>Database access is restricted using Supabase Row-Level Security (RLS) policies, ensuring users can only access their own data</li>
+              <li>API endpoints verify user authentication before processing requests</li>
+              <li>We do not store payment credentials — all payment data is handled by Paddle</li>
             </ul>
             <p className="mt-3">
-              While we strive to protect your data, no method of electronic storage or transmission is 100% secure.
-              We cannot guarantee absolute security but are committed to promptly addressing any incidents.
+              Our infrastructure providers (Supabase and Vercel) maintain their own security certifications
+              and encrypt data at rest on their platforms. While we rely on these providers&apos; security
+              measures and take care in our own application design, no system is 100% secure. We cannot
+              guarantee absolute security and will notify affected users promptly if a data breach occurs.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>7. Data Retention</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>8. Data Retention</h2>
             <p>
-              We retain your account data and analysis history for as long as your account is active or as needed
-              to provide the Service. For Free plan users, analysis history is retained for 30 days. Paid plan
-              users have unlimited history retention while their subscription is active.
+              We retain your account data and analysis results for as long as your account is active.
+              Retention periods vary by plan:
             </p>
+            <ul className="list-disc pl-6 mt-2 space-y-1">
+              <li><strong>Free plan:</strong> Analysis history is accessible for 30 days from creation.</li>
+              <li><strong>Paid plans:</strong> Analysis history is retained for as long as your subscription is active.</li>
+            </ul>
             <p className="mt-3">
-              If you delete your account, we will delete or anonymize your personal data within 30 days, except
-              where we are required to retain it for legal or regulatory purposes.
+              If you wish to delete your account and associated data, please contact us at{" "}
+              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>.
+              We will process deletion requests within 30 days, except where we are required to retain
+              certain data for legal or regulatory purposes (such as billing records).
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>8. Your Rights</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>9. Your Rights</h2>
             <p>Depending on your jurisdiction, you may have the right to:</p>
             <ul className="list-disc pl-6 mt-2 space-y-1">
               <li><strong>Access</strong> the personal data we hold about you</li>
               <li><strong>Correct</strong> inaccurate or incomplete data</li>
               <li><strong>Delete</strong> your personal data (&quot;right to be forgotten&quot;)</li>
-              <li><strong>Export</strong> your data in a portable format</li>
+              <li><strong>Export</strong> your data in a commonly used format</li>
               <li><strong>Withdraw consent</strong> for data processing where consent is the legal basis</li>
               <li><strong>Object</strong> to processing of your personal data</li>
             </ul>
             <p className="mt-3">
-              To exercise any of these rights, please contact us at{" "}
-              <a href="mailto:privacy@bidlyze.com" className="text-emerald-500 hover:underline">privacy@bidlyze.com</a>.
-              We will respond to your request within 30 days.
+              To exercise any of these rights, please email{" "}
+              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>{" "}
+              with the subject line &quot;Privacy Request.&quot; We will respond within 30 days. Note that some
+              requests are handled manually at this stage, so please allow reasonable time for processing.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>9. Children&apos;s Privacy</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>10. Children&apos;s Privacy</h2>
             <p>
-              Bidlyze is not directed at individuals under 18 years of age. We do not knowingly collect personal
-              data from children. If we learn that we have collected data from a child, we will promptly delete it.
+              Bidlyze is a business tool designed for professionals. It is not directed at individuals under
+              18 years of age. We do not knowingly collect personal data from children. If we learn that we
+              have collected data from a child, we will promptly delete it.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>10. Changes to This Policy</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>11. Changes to This Policy</h2>
             <p>
               We may update this Privacy Policy from time to time. We will notify you of material changes by
               posting the revised policy on this page and updating the &quot;Last updated&quot; date. Your continued use
@@ -191,11 +219,10 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>11. Contact</h2>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>12. Contact</h2>
             <p>If you have any questions about this Privacy Policy or your personal data, please contact us:</p>
             <ul className="list-none mt-2 space-y-1">
-              <li>Privacy inquiries: <a href="mailto:privacy@bidlyze.com" className="text-emerald-500 hover:underline">privacy@bidlyze.com</a></li>
-              <li>General support: <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a></li>
+              <li>Email: <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a></li>
               <li>Website: <a href="https://bidlyze.com" className="text-emerald-500 hover:underline">bidlyze.com</a></li>
             </ul>
           </section>
