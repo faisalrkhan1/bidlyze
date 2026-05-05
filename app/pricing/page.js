@@ -13,7 +13,7 @@ const PLAN_CARDS = [
     key: "free",
     tagline: "Explore the platform",
     features: [
-      "3 analyses per month",
+      `${PLANS.free.analysesLimit} analyses per month`,
       "RFI / RFQ / RFP / Other",
       "AI summary & requirement extraction",
       "Requirement status tracking",
@@ -27,7 +27,7 @@ const PLAN_CARDS = [
     popular: true,
     tagline: "For bid professionals",
     features: [
-      "25 analyses per month",
+      `${PLANS.pro.analysesLimit} analyses per month`,
       "Everything in Free, plus:",
       "Source page references per requirement",
       "Owner assignment & due dates",
@@ -50,7 +50,7 @@ const PLAN_CARDS = [
     key: "team",
     tagline: "Collaborate on bids",
     features: [
-      "80 analyses per month",
+      `${PLANS.team.analysesLimit} analyses per month`,
       "Everything in Professional, plus:",
       "Internal review comments",
       "Full audit trail",

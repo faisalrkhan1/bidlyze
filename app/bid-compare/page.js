@@ -8,7 +8,7 @@ import AppShell from "@/app/components/AppShell";
 import UpgradeGate from "@/app/components/UpgradeGate";
 
 const MAX_FILES = 6;
-const MAX_SIZE = 3 * 1024 * 1024;
+const MAX_SIZE = 45 * 1024 * 1024;
 
 const COMPARE_TYPES = [
   { id: "quotation", label: "Vendor Quotations", desc: "Compare pricing, scope, and commercial terms across vendor quotes" },
@@ -66,7 +66,7 @@ export default function BidComparePage() {
     const next = [...files];
     for (const f of incoming) {
       if (next.length >= MAX_FILES) { setError(`Maximum ${MAX_FILES} submissions.`); break; }
-      if (f.size > MAX_SIZE) { setError(`${f.name} exceeds 3MB limit.`); continue; }
+      if (f.size > MAX_SIZE) { setError(`${f.name} exceeds 45MB limit.`); continue; }
       if (!f.name.match(/\.(pdf|docx|txt)$/i)) { setError(`Unsupported: ${f.name}`); continue; }
       if (next.find((x) => x.file.name === f.name)) continue;
       next.push({ file: f, label: f.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ") });
@@ -186,7 +186,7 @@ export default function BidComparePage() {
                 <svg className="w-6 h-6" style={{ color: "var(--text-secondary)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               </div>
               <p className="font-medium mb-1">Drop submissions here or click to browse</p>
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>2–{MAX_FILES} files &middot; PDF, DOCX, or TXT &middot; 3MB each</p>
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>2–{MAX_FILES} files &middot; PDF, DOCX, or TXT &middot; 45MB each</p>
             </div>
 
             {/* File List with Labels */}

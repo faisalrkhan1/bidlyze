@@ -12,14 +12,14 @@ const ACCEPTED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ];
-const MAX_SIZE = 3 * 1024 * 1024;
+const MAX_SIZE = 45 * 1024 * 1024;
 
 function validateFile(f) {
   if (!f) return "Please select a file.";
   if (!ACCEPTED_TYPES.includes(f.type) && !f.name.match(/\.(pdf|docx|txt)$/i)) {
     return "Unsupported file type. Please upload a PDF, DOCX, or TXT file.";
   }
-  if (f.size > MAX_SIZE) return "File too large. Maximum size is 3MB.";
+  if (f.size > MAX_SIZE) return "File too large. Maximum size is 45MB.";
   return null;
 }
 
@@ -75,7 +75,7 @@ function UploadZone({ label, sublabel, file, onFile, dragActive, onDrag, onDrop,
               </svg>
             </div>
             <p className="font-medium text-sm mb-1">Drop file here or click to browse</p>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT — max 3MB</p>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT — max 45MB</p>
           </div>
         )}
       </div>

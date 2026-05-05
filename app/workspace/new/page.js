@@ -8,7 +8,7 @@ import AppShell from "@/app/components/AppShell";
 import UpgradeGate from "@/app/components/UpgradeGate";
 
 const ACCEPTED = [".pdf", ".docx", ".txt"];
-const MAX_FILE_SIZE = 3 * 1024 * 1024;
+const MAX_FILE_SIZE = 45 * 1024 * 1024;
 const MAX_FILES = 10;
 
 const FILE_CATEGORIES = [
@@ -85,7 +85,7 @@ export default function WorkspaceNewPage() {
       if (newFiles.length >= MAX_FILES) { setError(`Maximum ${MAX_FILES} files per package.`); break; }
       const ext = "." + f.name.split(".").pop().toLowerCase();
       if (!ACCEPTED.includes(ext)) { setError(`Unsupported file: ${f.name}`); continue; }
-      if (f.size > MAX_FILE_SIZE) { setError(`File too large: ${f.name} (max 3MB each)`); continue; }
+      if (f.size > MAX_FILE_SIZE) { setError(`File too large: ${f.name} (max 45MB each)`); continue; }
       if (newFiles.find((x) => x.file.name === f.name)) continue;
       newFiles.push({ file: f, category: classifyFile(f.name) });
     }
@@ -212,7 +212,7 @@ export default function WorkspaceNewPage() {
                 </svg>
               </div>
               <p className="font-medium mb-1">Drop tender package files here or click to browse</p>
-              <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max {MAX_FILES} files, 3MB each</p>
+              <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max {MAX_FILES} files, 45MB each</p>
             </div>
 
             {/* File List */}

@@ -93,14 +93,14 @@ export async function POST(request) {
 
     const fileName = file.name;
     const fileSize = file.size;
-    const maxSize = 3 * 1024 * 1024; // 3MB
+    const maxSize = 45 * 1024 * 1024; // 45MB
     const fileExtension = fileName.split(".").pop().toLowerCase();
 
     if (fileSize > maxSize) {
       return NextResponse.json(
         {
           success: false,
-          error: "File too large. Please upload a PDF under 3MB.",
+          error: "File too large. Maximum size is 45MB.",
         },
         { status: 400 }
       );
@@ -132,7 +132,7 @@ export async function POST(request) {
         );
       }
 
-      result = await analyzeTender(text.substring(0, 100000), rfxType);
+      result = await analyzeTender(text.substring(0, 400000), rfxType);
     } else if (fileExtension === "txt") {
       const text = fileBuffer.toString("utf-8");
 
@@ -146,7 +146,7 @@ export async function POST(request) {
         );
       }
 
-      result = await analyzeTender(text.substring(0, 100000), rfxType);
+      result = await analyzeTender(text.substring(0, 400000), rfxType);
     } else {
       return NextResponse.json(
         {

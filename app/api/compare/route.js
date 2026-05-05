@@ -74,10 +74,10 @@ export async function POST(request) {
       );
     }
 
-    const maxSize = 3 * 1024 * 1024;
+    const maxSize = 45 * 1024 * 1024;
     if (originalFile.size > maxSize || amendedFile.size > maxSize) {
       return NextResponse.json(
-        { success: false, error: "Each file must be under 3MB." },
+        { success: false, error: "Each file must be under 45MB." },
         { status: 400 }
       );
     }

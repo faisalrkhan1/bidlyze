@@ -11,7 +11,7 @@ const ACCEPTED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ];
-const MAX_SIZE = 3 * 1024 * 1024; // 3MB
+const MAX_SIZE = 45 * 1024 * 1024; // 45MB
 const FREE_LIMIT = 3;
 
 const RFX_TYPES = [
@@ -114,7 +114,7 @@ export default function UploadPage() {
     if (!ACCEPTED_TYPES.includes(f.type) && !f.name.match(/\.(pdf|docx|txt)$/i)) {
       return "Unsupported file type. Please upload a PDF, DOCX, or TXT file.";
     }
-    if (f.size > MAX_SIZE) return "File too large. Maximum size is 3MB on the free plan.";
+    if (f.size > MAX_SIZE) return "File too large. Maximum size is 45MB.";
     return null;
   }
 
@@ -459,7 +459,7 @@ export default function UploadPage() {
                     <p className="font-medium mb-1">
                       Drop your document here or click to browse
                     </p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max 3MB</p>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max 45MB</p>
                   </div>
                 )}
               </div>

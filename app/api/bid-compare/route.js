@@ -67,7 +67,7 @@ export async function POST(request) {
         text = `[Could not extract text from ${fileName}]`;
       }
 
-      submissions.push({ label, fileName, size: file.size, text: text.substring(0, 30000) });
+      submissions.push({ label, fileName, size: file.size, text: text.substring(0, 80000) });
     }
 
     log(`extracted ${submissions.length} submissions`);
@@ -95,7 +95,7 @@ export async function POST(request) {
         model: "openai/gpt-5.4",
         messages: [
           { role: "system", content: "You are an expert procurement bid evaluation analyst. Compare all submissions structurally. Return ONLY valid JSON." },
-          { role: "user", content: `${BID_COMPARE_PROMPT}\n\nCOMPARISON TYPE: ${compareType}\nNUMBER OF SUBMISSIONS: ${submissions.length}\n\n${combinedText.substring(0, 100000)}` },
+          { role: "user", content: `${BID_COMPARE_PROMPT}\n\nCOMPARISON TYPE: ${compareType}\nNUMBER OF SUBMISSIONS: ${submissions.length}\n\n${combinedText.substring(0, 400000)}` },
         ],
         max_tokens: 16384,
         response_format: { type: "json_object" },
