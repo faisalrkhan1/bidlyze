@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { LogoMark } from "@/app/components/Logo";
-import { PLANS } from "@/lib/plans";
+import LandingPricingCards from "@/app/components/LandingPricingCards";
+
+// Pre-launch flag — read once at build time so the banner/chip render
+// statically on the public landing page. To flip back to "live payments"
+// posture, set NEXT_PUBLIC_PAYMENTS_ENABLED=true in Vercel and redeploy.
+const PAYMENTS_LIVE = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 
 export const metadata = {
   title: "Bidlyze",
@@ -70,6 +75,17 @@ const METRICS = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+      {/* Pre-launch banner — auto-hidden when NEXT_PUBLIC_PAYMENTS_ENABLED=true */}
+      {!PAYMENTS_LIVE && (
+        <div className="w-full text-center text-[13px] py-2.5 px-4" style={{ background: "var(--accent-muted)", color: "var(--accent-text)", borderBottom: "1px solid var(--accent-border)" }}>
+          <span aria-hidden="true">🎁 </span>
+          Bidlyze is in pre-launch — every signed-up user gets Pro features with 10 analyses/month, free.{" "}
+          <a href="#pricing" className="font-semibold underline decoration-emerald-500/40 underline-offset-4 hover:decoration-emerald-500 transition-colors">
+            Join waitlist for paid plans →
+          </a>
+        </div>
+      )}
+
       {/* Navigation */}
       <header className="sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)", borderBottom: "1px solid var(--border-primary)" }}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -101,9 +117,17 @@ export default function LandingPage() {
         </div>
 
         <div className="max-w-5xl mx-auto px-6 pt-20 pb-24 text-center relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8" style={{ background: "var(--accent-muted)", color: "var(--accent-text)", border: "1px solid var(--accent-border)" }}>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            AI RFx & Tender Intelligence Platform
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium" style={{ background: "var(--accent-muted)", color: "var(--accent-text)", border: "1px solid var(--accent-border)" }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              AI RFx & Tender Intelligence Platform
+            </div>
+            {!PAYMENTS_LIVE && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                <span aria-hidden="true">🎁</span>
+                Free during pre-launch • Pro features included
+              </div>
+            )}
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
@@ -287,128 +311,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-            {[
-              {
-                key: "free",
-                tagline: "Explore the platform",
-                features: [
-                  `${PLANS.free.analysesLimit} analyses per month`,
-                  "RFI / RFQ / RFP / Other",
-                  "AI summary & requirement extraction",
-                  "Requirement status tracking",
-                  "Internal notes",
-                  "PDF export",
-                  `${PLANS.free.historyDays}-day history`,
-                ],
-                cta: "Get Started",
-              },
-              {
-                key: "pro",
-                popular: true,
-                tagline: "For bid professionals",
-                features: [
-                  `${PLANS.pro.analysesLimit} analyses per month`,
-                  "Everything in Free, plus:",
-                  "Source page references per requirement",
-                  "Owner assignment & due dates",
-                  "Full compliance matrix",
-                  "Risk & assumption mapping",
-                  "Bid / No-Bid scoring & win probability",
-                  "Competitor intelligence",
-                  "Pricing Advisor",
-                  "Proposal Writer (6 sections)",
-                  "Amendment Intelligence",
-                  "Tender Package workspace",
-                  "Bid Comparison",
-                  "Deadline Tracker with urgency views",
-                  "Action items & decision panel",
-                  "Excel & requirement export",
-                  "Unlimited history",
-                ],
-                cta: "Upgrade",
-              },
-              {
-                key: "team",
-                tagline: "Collaborate on bids",
-                features: [
-                  `${PLANS.team.analysesLimit} analyses per month`,
-                  "Everything in Professional, plus:",
-                  "Internal review comments",
-                  "Full audit trail",
-                  "Branded PDF exports (coming soon)",
-                  "Shared tender library (roadmap)",
-                  "Team roles & permissions (roadmap)",
-                ],
-                cta: "Upgrade",
-              },
-              {
-                key: "enterprise",
-                tagline: "For large organizations",
-                features: [
-                  "Custom analysis volume",
-                  "Everything in Team, plus:",
-                  "SSO & admin controls (roadmap)",
-                  "Custom analysis templates (roadmap)",
-                  "API access (roadmap)",
-                  "Priority support & SLA",
-                  "Custom onboarding",
-                ],
-                cta: "Contact Sales",
-              },
-            ].map((card) => {
-              const plan = PLANS[card.key];
-              return (
-              <div
-                key={card.key}
-                className="relative p-6 rounded-2xl flex flex-col"
-                style={{
-                  background: "var(--bg-subtle)",
-                  border: card.popular ? "2px solid #10b981" : "1px solid var(--border-primary)",
-                }}
-              >
-                {card.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white">
-                    Recommended
-                  </span>
-                )}
-                <div className="mb-1">
-                  <h3 className="font-bold">{plan.name}</h3>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>{card.tagline}</p>
-                </div>
-                <div className="flex items-baseline gap-1 mb-5 mt-3">
-                  {plan.price !== null ? (
-                    <>
-                      <span className="text-3xl font-bold">${plan.price}</span>
-                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
-                    </>
-                  ) : (
-                    <span className="text-2xl font-bold">Custom</span>
-                  )}
-                </div>
-                <ul className="space-y-2.5 mb-6 flex-1">
-                  {card.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                      <svg className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                      </svg>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={card.key === "enterprise" ? "mailto:sales@bidlyze.com" : "/login?tab=signup"}
-                  className={`w-full py-3 rounded-xl text-sm font-semibold text-center transition-colors block ${
-                    card.popular ? "bg-emerald-500 hover:bg-emerald-400 text-white" : ""
-                  }`}
-                  style={!card.popular ? { border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" } : {}}
-                >
-                  {card.cta}
-                </Link>
-              </div>
-              );
-            })}
-          </div>
+          <LandingPricingCards />
 
           <p className="text-center text-xs mt-6" style={{ color: "var(--text-muted)" }}>
             All plans include RFI, RFQ, RFP, and tender document support.{" "}
