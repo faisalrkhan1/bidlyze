@@ -4,6 +4,19 @@ import { getStripe } from "@/lib/stripe";
 
 export async function POST(request) {
   try {
+    // Pre-launch gate. Bidlyze is not yet able to accept payments while the
+    // legal entity is being registered. Setting PAYMENTS_ENABLED=true on the
+    // server restores the normal Stripe flow with no other code change.
+    if (process.env.PAYMENTS_ENABLED !== "true") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Payments are not yet enabled. Please join the waitlist.",
+        },
+        { status: 403 }
+      );
+    }
+
     // Authenticate user
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
