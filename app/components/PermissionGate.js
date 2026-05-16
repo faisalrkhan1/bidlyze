@@ -1,6 +1,6 @@
 "use client";
 
-import { hasPermission, ROLES } from "@/lib/permissions";
+import { hasPermission, ROLES, minRoleFor } from "@/lib/permissions";
 
 /**
  * Permission gate wrapper.
@@ -20,6 +20,8 @@ export default function PermissionGate({ role, permission, children, fallback, s
   if (fallback) return fallback;
 
   if (showLock) {
+    const requiredRole = minRoleFor(permission);
+    const requiredLabel = ROLES[requiredRole]?.label || "higher";
     return (
       <div className="p-5 rounded-2xl text-center" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
         <svg className="w-8 h-8 mx-auto mb-2" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -27,7 +29,7 @@ export default function PermissionGate({ role, permission, children, fallback, s
         </svg>
         <p className="text-sm font-medium mb-1">Access Restricted</p>
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-          This action requires {ROLES[Object.entries(ROLES).find(([, r]) => r.level >= (require("@/lib/permissions").PERMISSIONS?.[permission] || 0))?.[0]]?.label || "higher"} role or above.
+          This action requires {requiredLabel} role or above.
         </p>
       </div>
     );
