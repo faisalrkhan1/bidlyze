@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { hasFeature, minPlanFor, PLAN_DISPLAY } from "@/lib/plans";
+import { getUpgradeButtonLabel, getUpgradeExplainerText, paymentsEnabled } from "@/lib/upgradeCopy";
 
 /**
  * Feature gate component.
@@ -22,14 +23,19 @@ export default function UpgradeGate({ plan, feature, label, children, inline = f
   const planName = PLAN_DISPLAY[requiredPlan] || "Professional";
 
   if (inline) {
-    return <InlineUpgrade planName={planName} label={label} />;
+    return <InlineUpgrade planName={planName} label={label} targetPlan={requiredPlan} />;
   }
 
-  return <BlockUpgrade planName={planName} label={label} />;
+  return <BlockUpgrade planName={planName} label={label} targetPlan={requiredPlan} />;
 }
 
-function BlockUpgrade({ planName, label }) {
+function BlockUpgrade({ planName, label, targetPlan }) {
   const router = useRouter();
+  const live = paymentsEnabled();
+  const buttonLabel = live ? "View Plans" : getUpgradeButtonLabel(targetPlan);
+  const description = live
+    ? `Upgrade to ${planName} to unlock ${(label || "this feature").toLowerCase()} and accelerate your bid workflow.`
+    : getUpgradeExplainerText(targetPlan);
   return (
     <div className="rounded-2xl p-8 text-center relative overflow-hidden" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
       {/* Blurred preview background */}
@@ -43,21 +49,23 @@ function BlockUpgrade({ planName, label }) {
         </div>
         <h3 className="font-semibold mb-1">{label || "Feature"} — {planName} Plan</h3>
         <p className="text-sm mb-4 max-w-sm mx-auto" style={{ color: "var(--text-muted)" }}>
-          Upgrade to {planName} to unlock {(label || "this feature").toLowerCase()} and accelerate your bid workflow.
+          {description}
         </p>
         <button
           onClick={() => router.push("/pricing")}
           className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
         >
-          View Plans
+          {buttonLabel}
         </button>
       </div>
     </div>
   );
 }
 
-function InlineUpgrade({ planName, label }) {
+function InlineUpgrade({ planName, targetPlan }) {
   const router = useRouter();
+  const live = paymentsEnabled();
+  const label = live ? planName : getUpgradeButtonLabel(targetPlan);
   return (
     <button
       onClick={() => router.push("/pricing")}
@@ -67,7 +75,7 @@ function InlineUpgrade({ planName, label }) {
       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
       </svg>
-      {planName}
+      {label}
     </button>
   );
 }

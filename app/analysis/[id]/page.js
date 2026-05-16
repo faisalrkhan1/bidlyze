@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
-import { exportPDF } from "@/app/utils/exportPDF";
 import AppShell from "@/app/components/AppShell";
 import { ConfidenceBadge, AIDisclaimer, getSectionConfidence } from "@/app/components/AIConfidence";
 import AnalysisNotes from "@/app/components/AnalysisNotes";
@@ -15,6 +14,10 @@ import CommentThread from "@/app/components/CommentThread";
 import AuditTrail from "@/app/components/AuditTrail";
 import UpgradeGate from "@/app/components/UpgradeGate";
 import { RFIResults, RFQResults, OtherResults } from "@/app/components/RFxResults";
+import ExportCenter from "@/app/components/ExportCenter";
+import BidReadiness from "@/app/components/BidReadiness";
+import ClarificationRegister from "@/app/components/ClarificationRegister";
+import ComplianceMatrix from "@/app/components/ComplianceMatrix";
 
 function ScoreBadge({ score }) {
   const color =
@@ -130,6 +133,17 @@ export default function AnalysisDetailPage({ params }) {
       });
   }, [id, user, authLoading]);
 
+  // Memoize seed clarifications across renders. Hooks must run on every render,
+  // so it has to come before any early return below.
+  const seededClarifications = useMemo(() => {
+    const analysis = record?.analysis_data;
+    return (
+      analysis?.clarificationQuestions ||
+      analysis?.clarificationPoints ||
+      []
+    );
+  }, [record]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
@@ -177,23 +191,26 @@ export default function AnalysisDetailPage({ params }) {
   const isSpecializedType = rfxType !== "rfp";
   const { summary, requirements, complianceAnalysis, riskRadar, keyDates, evaluationCriteria, financialRequirements, bidScore, winProbability, competitorIntelligence, pricingAdvisor } = analysis;
 
-  function exportJSON() {
-    const blob = new Blob([JSON.stringify(analysis, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `bidlyze-analysis-${record.id}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+  // Workspace state pulled straight from the record row. Child components own
+  // the editing/persistence of these JSONB columns; we pass copies down so
+  // Export Center and Bid Readiness reflect the most recent server state.
+  const requirementStatuses = record.requirement_statuses || null;
+  const complianceEdits = record.compliance_edits || {};
+  const workflowActions = record.workflow_actions || [];
+  const workflowDecision = record.workflow_decision || null;
+  const clarificationsSaved = record.clarifications || [];
+
 
   async function downloadOriginal() {
     if (!filePath) return;
+    // Bucket name matches the upload-side configuration in /api/storage/signed-upload
+    // and /api/analyze. If you renamed the bucket, update both routes and this call.
     const { data, error } = await getSupabase().storage
-      .from("tenders")
+      .from("tender-uploads")
       .download(filePath);
     if (error || !data) {
       console.error("Download error:", error);
+      alert("The original file could not be downloaded right now. Please try again, or contact support if the issue persists.");
       return;
     }
     const url = URL.createObjectURL(data);
@@ -223,58 +240,45 @@ export default function AnalysisDetailPage({ params }) {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => exportPDF(analysis, fileName)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-            </svg>
-            Export PDF
-          </button>
-          <button
-            onClick={exportJSON}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-            style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}
-            onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
-            </svg>
-            Export JSON
-          </button>
-          {filePath && (
-            <button
-              onClick={downloadOriginal}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-subtle)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-              </svg>
-              Original File
-            </button>
-          )}
-          {userPlan !== "free" && (
-            <button
-              onClick={() => router.push(`/proposal/${record.id}`)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{ border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}
-              onMouseEnter={(e) => e.currentTarget.style.background = "var(--accent-muted)"}
-              onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-              </svg>
-              Generate Proposal
-            </button>
-          )}
+        {/* Verify-before-submission banner — kept prominent to set expectations for AI output */}
+        <div className="px-5 py-3 rounded-xl flex items-start gap-3" style={{ background: "var(--accent-muted)", border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}>
+          <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold mb-0.5">Verify before submission</p>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              Bidlyze accelerates analysis but does not replace your review. Cross-check every requirement, deadline, financial figure, and clause reference against the source tender before responding to the issuing authority.
+            </p>
+          </div>
         </div>
+
+        {/* Bid Readiness — only meaningful for full RFP analyses */}
+        {!isSpecializedType && (
+          <BidReadiness
+            analysis={analysis}
+            requirementStatuses={requirementStatuses}
+            complianceEdits={complianceEdits}
+            actions={workflowActions}
+            decision={workflowDecision}
+            clarifications={clarificationsSaved.length > 0 ? clarificationsSaved : seededClarifications}
+          />
+        )}
+
+        {/* Export Center */}
+        <ExportCenter
+          analysis={analysis}
+          fileName={fileName}
+          filePath={filePath}
+          analysisId={record.id}
+          userPlan={userPlan}
+          requirementStatuses={requirementStatuses}
+          complianceEdits={complianceEdits}
+          workflowActions={workflowActions}
+          workflowDecision={workflowDecision}
+          clarifications={clarificationsSaved.length > 0 ? clarificationsSaved : seededClarifications}
+          onDownloadOriginal={downloadOriginal}
+        />
 
         {/* Quick Info Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -761,9 +765,9 @@ export default function AnalysisDetailPage({ params }) {
         {/* Collapsible Sections */}
         <UpgradeGate plan={userPlan} feature="complianceMatrix" label="Compliance, Risk & Pricing Analysis">
         <div className="space-y-3">
-          {/* Compliance Gap Detector */}
+          {/* Compliance Overview — AI summary; the editable matrix is below */}
           {complianceAnalysis && (
-            <Section title={<span className="flex items-center gap-2.5">Compliance Gap Detector <ConfidenceBadge level={getSectionConfidence("complianceAnalysis")} /></span>} defaultOpen>
+            <Section title={<span className="flex items-center gap-2.5">Compliance Overview <ConfidenceBadge level={getSectionConfidence("complianceAnalysis")} /></span>} defaultOpen>
               <div className="space-y-6">
                 {/* Score + Summary Row */}
                 <div className="flex flex-col sm:flex-row gap-6">
@@ -1188,14 +1192,57 @@ export default function AnalysisDetailPage({ params }) {
         </div>
         </UpgradeGate>
 
-            {/* Action Tracker */}
-            <UpgradeGate plan={userPlan} feature="actionTracker" label="Action Tracker">
-              <ActionTracker analysisId={record.id} userId={user.id} analysisData={analysis} />
+            {/* Editable Compliance Matrix — replaces the read-only inline list */}
+            {complianceAnalysis?.items?.length > 0 && (
+              <UpgradeGate plan={userPlan} feature="complianceMatrix" label="Compliance Matrix">
+                <ComplianceMatrix
+                  analysisId={record.id}
+                  userId={user.id}
+                  items={complianceAnalysis.items}
+                />
+              </UpgradeGate>
+            )}
+
+            {/* Clarification Register — RFP-specific, seeded from any AI clarification list if present */}
+            <UpgradeGate plan={userPlan} feature="actionTracker" label="Clarification Register">
+              <ClarificationRegister
+                analysisId={record.id}
+                userId={user.id}
+                seedItems={seededClarifications}
+              />
             </UpgradeGate>
 
-            {/* Decision Panel */}
+            {/* Action / RACI Tracker */}
+            <UpgradeGate plan={userPlan} feature="actionTracker" label="Action Tracker">
+              <ActionTracker
+                analysisId={record.id}
+                userId={user.id}
+                seedItems={[
+                  ...((analysis?.complianceAnalysis?.actionPlan) || []).map((a) => ({
+                    title: a.action,
+                    owner: a.owner,
+                    dueDate: a.deadline,
+                    priority: typeof a.priority === "number" ? (a.priority <= 2 ? "high" : a.priority <= 4 ? "medium" : "low") : (a.priority || "medium"),
+                    source: "Compliance action plan",
+                  })),
+                  ...((analysis?.riskRadar?.topActions) || []).map((a) => ({
+                    title: a.action,
+                    owner: a.responsible,
+                    priority: a.priority === "immediate" ? "high" : a.priority === "before_submission" ? "medium" : "low",
+                    source: "Risk top actions",
+                  })),
+                ]}
+              />
+            </UpgradeGate>
+
+            {/* Decision Panel — surfaces the AI BID/NO-BID as a starting reference */}
             <UpgradeGate plan={userPlan} feature="decisionPanel" label="Decision Panel">
-              <DecisionPanel analysisId={record.id} userId={user.id} />
+              <DecisionPanel
+                analysisId={record.id}
+                userId={user.id}
+                userEmail={user.email}
+                aiRecommendation={bidScore ? { decision: bidScore.recommendation, reasoning: bidScore.reasoning } : null}
+              />
             </UpgradeGate>
 
             {/* Comments — Team+ */}

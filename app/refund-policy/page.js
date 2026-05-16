@@ -25,59 +25,67 @@ export default function RefundPolicyPage() {
       {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-16">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Refund Policy</h1>
-        <p className="text-sm mb-12" style={{ color: "var(--text-muted)" }}>Last updated: April 4, 2026</p>
+        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Last updated: May 16, 2026</p>
+
+        <div className="mb-10 rounded-2xl px-5 py-4 flex items-start gap-3" style={{ background: "var(--accent-muted)", border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}>
+          <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <p className="text-sm leading-relaxed">
+            <strong>Pre-launch notice:</strong> Bidlyze is currently in pre-launch and does not yet accept payments. All signed-up users receive Pro features with a monthly usage cap, free of charge. These terms will be updated with full merchant and payment-processor details before any paid plans go live.
+          </p>
+        </div>
 
         <div className="space-y-10 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           <section>
             <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>1. Overview</h2>
             <p>
-              Bidlyze offers a free plan so you can evaluate the platform before subscribing. If you
-              subscribe to a paid plan and are not satisfied, you may request a refund as described below.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>2. Billing</h2>
-            <p>
-              Paid subscriptions are billed on a monthly recurring basis through our merchant of record,
-              Paddle (Paddle.com Market Limited). Current plan pricing is available on our{" "}
-              <Link href="/#pricing" className="text-emerald-500 hover:underline">Pricing section</Link>.
-              Paddle handles all billing, invoicing, and tax-related processing.
-            </p>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>3. Refunds</h2>
-            <p>
-              If you are not satisfied with your paid subscription, you may request a refund
-              within <strong>14 days</strong> of your purchase. To request a refund, email{" "}
-              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>{" "}
-              with your account email address and we will process your request promptly.
+              Bidlyze is operated by an individual founder based in Abu Dhabi, United Arab Emirates. A formal
+              company registration is in progress. Once registered, this policy will be updated with the full
+              legal entity details and customers will be notified.
             </p>
             <p className="mt-3">
-              Refunds are processed through Paddle and returned to your original payment method. Processing
-              times may vary depending on your bank or payment provider.
+              Refund procedures will be published when paid plans become available. The current pre-launch
+              service is provided free of charge.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>2. Billing (pre-launch)</h2>
+            <p>
+              Bidlyze does not currently charge for any plan. Every signed-up user is on the pre-launch tier,
+              which includes Pro features with a monthly usage cap and is free of charge. Current plan details
+              are listed on our{" "}
+              <Link href="/pricing" className="text-emerald-500 hover:underline">Pricing page</Link>.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>3. Refunds (when paid plans launch)</h2>
+            <p>
+              A refund policy will be published before paid plans become available. We will notify users by
+              email and update this page with refund eligibility windows, request procedures, and processing
+              times at that time.
             </p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>4. Cancellation</h2>
             <p>
-              You may cancel your subscription at any time. When you cancel:
+              Because the pre-launch service is free of charge, no cancellation is required. You may stop using
+              the service at any time. If you wish to delete your account, contact{" "}
+              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>.
+              Cancellation behaviour for paid plans will be described here when those plans launch.
             </p>
-            <ul className="list-disc pl-6 mt-2 space-y-1">
-              <li>Your subscription remains active until the end of the current billing period.</li>
-              <li>No further charges will be made after cancellation.</li>
-              <li>After the billing period ends, your account will transition to the Free plan.</li>
-            </ul>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>5. Billing Issues</h2>
             <p>
-              If you experience a billing error or duplicate charge, please contact us at{" "}
+              While Bidlyze is in pre-launch, no charges are made. If you have any other billing or account
+              questions, please contact us at{" "}
               <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>{" "}
-              and we will resolve it as quickly as possible.
+              and we will respond as quickly as possible.
             </p>
           </section>
 

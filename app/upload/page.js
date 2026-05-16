@@ -11,7 +11,7 @@ const ACCEPTED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   "text/plain",
 ];
-const MAX_SIZE = 45 * 1024 * 1024; // 45MB
+const MAX_SIZE = 50 * 1024 * 1024; // 50MB — matches signed-upload route + Supabase bucket limit
 const FREE_LIMIT = 3;
 
 const RFX_TYPES = [
@@ -42,7 +42,7 @@ const RFX_TYPES = [
 ];
 
 const ANALYSIS_STAGES = [
-  { label: "Uploading document", delay: 0 },
+  { label: "Preparing document", delay: 0 },
   { label: "Extracting content", delay: 2000 },
   { label: "Analyzing requirements", delay: 5000 },
   { label: "Scoring opportunity", delay: 10000 },
@@ -59,6 +59,8 @@ export default function UploadPage() {
   const [usageCount, setUsageCount] = useState(null);
   const [analysesLimit, setAnalysesLimit] = useState(FREE_LIMIT);
   const [currentStage, setCurrentStage] = useState(0);
+  const [uploadStage, setUploadStage] = useState("idle"); // idle | preflight | uploading | analyzing
+  const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef(null);
   const router = useRouter();
 
@@ -91,9 +93,10 @@ export default function UploadPage() {
       });
   }, [user]);
 
-  // Analysis stage progression
+  // Analysis stage progression — starts only when the analyze API call begins,
+  // not while we're still uploading the file to Supabase.
   useEffect(() => {
-    if (!loading) return;
+    if (uploadStage !== "analyzing") return;
 
     const timers = ANALYSIS_STAGES.map((stage, index) => {
       if (index === 0) return null; // First stage is immediate
@@ -105,7 +108,7 @@ export default function UploadPage() {
     return () => {
       timers.forEach((t) => t && clearTimeout(t));
     };
-  }, [loading]);
+  }, [uploadStage]);
 
   const limitReached = usageCount !== null && usageCount >= analysesLimit;
 
@@ -114,7 +117,7 @@ export default function UploadPage() {
     if (!ACCEPTED_TYPES.includes(f.type) && !f.name.match(/\.(pdf|docx|txt)$/i)) {
       return "Unsupported file type. Please upload a PDF, DOCX, or TXT file.";
     }
-    if (f.size > MAX_SIZE) return "File too large. Maximum size is 45MB.";
+    if (f.size > MAX_SIZE) return "File too large. Maximum size is 50MB.";
     return null;
   }
 
@@ -142,38 +145,109 @@ export default function UploadPage() {
     else if (e.type === "dragleave") setDragActive(false);
   }
 
+  function guessContentType(f) {
+    if (f.type) return f.type;
+    const ext = f.name.split(".").pop()?.toLowerCase();
+    if (ext === "pdf") return "application/pdf";
+    if (ext === "docx") return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    if (ext === "txt") return "text/plain";
+    return "application/octet-stream";
+  }
+
+  // PUT directly to Supabase Storage. XHR (not fetch) so we can show upload progress.
+  function uploadWithProgress(url, f, onProgress) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("PUT", url);
+      xhr.setRequestHeader("Content-Type", f.type || "application/octet-stream");
+      xhr.upload.onprogress = (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new Error(`Upload failed with status ${xhr.status}`));
+      };
+      xhr.onerror = () => reject(new Error("Network error during upload"));
+      xhr.onabort = () => reject(new Error("Upload aborted"));
+      xhr.send(f);
+    });
+  }
+
+  function resetFlow() {
+    setLoading(false);
+    setUploadStage("idle");
+    setUploadProgress(0);
+  }
+
   async function handleAnalyze() {
     if (!file || limitReached) return;
     setLoading(true);
     setError("");
     setCurrentStage(0);
+    setUploadProgress(0);
+    setUploadStage("preflight");
 
     try {
-      const { data: { session } } = await getSupabase().auth.getSession();
+      const supabase = getSupabase();
+      const { data: { session } } = await supabase.auth.getSession();
+      const auth = { Authorization: `Bearer ${session?.access_token}` };
+      const contentType = guessContentType(file);
 
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("rfxType", rfxType);
+      // Step 1 — preflight: ask the server for a signed upload URL
+      const preRes = await fetch("/api/storage/signed-upload", {
+        method: "POST",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          filename: file.name,
+          contentType,
+          fileSize: file.size,
+        }),
+      });
+      const preData = await preRes.json().catch(() => ({}));
+      if (!preRes.ok || !preData?.uploadUrl) {
+        setError(preData?.error || "Could not start upload. Please try again.");
+        resetFlow();
+        return;
+      }
+      const { uploadUrl, storagePath } = preData;
 
+      // Step 2 — direct PUT to Supabase Storage (no Vercel body limit involved)
+      setUploadStage("uploading");
+      try {
+        await uploadWithProgress(uploadUrl, file, setUploadProgress);
+      } catch (uploadErr) {
+        console.error("Direct upload failed:", uploadErr);
+        setError("Upload failed. Please check your connection and try again.");
+        resetFlow();
+        return;
+      }
+
+      // Step 3 — trigger analysis with a reference to the uploaded file
+      setUploadStage("analyzing");
+      setCurrentStage(0);
       const res = await fetch("/api/analyze", {
         method: "POST",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`,
-        },
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          storagePath,
+          filename: file.name,
+          contentType,
+          rfxType,
+        }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-      if (!data.success) {
-        setError(data.error || "Analysis failed. Please try again.");
-        setLoading(false);
+      if (!data?.success) {
+        setError(data?.error || "Analysis failed. Please try again.");
+        resetFlow();
         return;
       }
 
       router.push("/analysis/" + data.analysisId);
-    } catch {
+    } catch (err) {
+      console.error("Analyze flow error:", err);
       setError("Network error. Please check your connection and try again.");
-      setLoading(false);
+      resetFlow();
     }
   }
 
@@ -312,8 +386,37 @@ export default function UploadPage() {
                 View Pricing
               </button>
             </div>
+          ) : loading && uploadStage !== "analyzing" ? (
+            /* Step 2: direct upload to Supabase Storage */
+            <div
+              className="rounded-2xl p-8 sm:p-10 transition-colors duration-300"
+              style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
+            >
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-6 h-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+                  </svg>
+                </div>
+                <h2 className="text-lg font-semibold mb-1">Uploading document</h2>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                  {file?.name}
+                </p>
+              </div>
+              <div className="max-w-sm mx-auto">
+                <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--border-primary)" }}>
+                  <div
+                    className="h-full rounded-full bg-emerald-500 transition-all duration-150 ease-out"
+                    style={{ width: `${Math.max(uploadProgress, uploadStage === "preflight" ? 2 : 0)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-center mt-2" style={{ color: "var(--text-muted)" }}>
+                  {uploadStage === "preflight" ? "Preparing secure upload…" : `${uploadProgress}%`}
+                </p>
+              </div>
+            </div>
           ) : loading ? (
-            /* Analysis Progress Stages */
+            /* Step 3: Analysis Progress Stages */
             <div
               className="rounded-2xl p-8 sm:p-10 transition-colors duration-300"
               style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
@@ -459,7 +562,7 @@ export default function UploadPage() {
                     <p className="font-medium mb-1">
                       Drop your document here or click to browse
                     </p>
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max 45MB</p>
+                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, DOCX, or TXT &mdash; max 50MB</p>
                   </div>
                 )}
               </div>

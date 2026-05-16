@@ -25,7 +25,16 @@ export default function TermsPage() {
       {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-16">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Terms of Service</h1>
-        <p className="text-sm mb-12" style={{ color: "var(--text-muted)" }}>Last updated: April 4, 2026</p>
+        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Last updated: May 16, 2026</p>
+
+        <div className="mb-10 rounded-2xl px-5 py-4 flex items-start gap-3" style={{ background: "var(--accent-muted)", border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}>
+          <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <p className="text-sm leading-relaxed">
+            <strong>Pre-launch notice:</strong> Bidlyze is currently in pre-launch and does not yet accept payments. All signed-up users receive Pro features with a monthly usage cap, free of charge. These terms will be updated with full merchant and payment-processor details before any paid plans go live.
+          </p>
+        </div>
 
         <div className="space-y-10 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           <section>
@@ -37,7 +46,9 @@ export default function TermsPage() {
               proposal generation to help procurement professionals and bid teams make faster, data-driven decisions.
             </p>
             <p className="mt-3">
-              The Service is operated by Bidlyze and is accessible at{" "}
+              Bidlyze is operated by an individual founder based in Abu Dhabi, United Arab Emirates. A formal
+              company registration is in progress. Once registered, these terms will be updated with the full
+              legal entity details and customers will be notified. The Service is accessible at{" "}
               <a href="https://bidlyze.com" className="text-emerald-500 hover:underline">bidlyze.com</a>.
               By accessing or using the Service, you agree to be bound by these Terms of Service. If you do not
               agree, you must not use the Service.
@@ -63,14 +74,14 @@ export default function TermsPage() {
               Enterprise plans are available with custom terms upon request.
             </p>
             <p className="mt-3">
-              All paid subscriptions are billed on a monthly recurring basis. Payments are processed through
-              our merchant of record, Paddle (Paddle.com Market Limited). By subscribing to a paid plan, you
-              authorize Paddle to charge the applicable fees to your chosen payment method on a recurring basis
-              until you cancel.
+              During pre-launch, Bidlyze does not accept payments. All signed-up users receive the
+              pre-launch tier (Pro features with a monthly usage cap) at no charge.
             </p>
             <p className="mt-3">
-              Prices are displayed in USD and are exclusive of any applicable taxes. Paddle will calculate and
-              collect applicable taxes at checkout based on your location.
+              When paid plans launch, payments will be processed by Stripe Inc., a third-party payment processor.
+              Customers will be notified before any payment processing begins. Prices will be displayed in USD
+              and may be exclusive of any applicable taxes, which the payment processor will calculate and
+              collect at checkout based on your location.
             </p>
           </section>
 

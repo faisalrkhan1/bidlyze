@@ -25,7 +25,16 @@ export default function PrivacyPage() {
       {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-16">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Privacy Policy</h1>
-        <p className="text-sm mb-12" style={{ color: "var(--text-muted)" }}>Last updated: April 4, 2026</p>
+        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Last updated: May 16, 2026</p>
+
+        <div className="mb-10 rounded-2xl px-5 py-4 flex items-start gap-3" style={{ background: "var(--accent-muted)", border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}>
+          <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+          </svg>
+          <p className="text-sm leading-relaxed">
+            <strong>Pre-launch notice:</strong> Bidlyze is currently in pre-launch and does not yet accept payments. All signed-up users receive Pro features with a monthly usage cap, free of charge. These terms will be updated with full merchant and payment-processor details before any paid plans go live.
+          </p>
+        </div>
 
         <div className="space-y-10 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
           <section>
@@ -35,6 +44,11 @@ export default function PrivacyPage() {
               your personal data. This Privacy Policy explains what information we collect, how we use it, and
               your choices regarding your data when you use our platform at{" "}
               <a href="https://bidlyze.com" className="text-emerald-500 hover:underline">bidlyze.com</a>.
+            </p>
+            <p className="mt-3">
+              Bidlyze is operated by an individual founder based in Abu Dhabi, United Arab Emirates. A formal
+              company registration is in progress. Once registered, this policy will be updated with the full
+              legal entity details and customers will be notified.
             </p>
           </section>
 
@@ -75,10 +89,11 @@ export default function PrivacyPage() {
 
             <h3 className="text-base font-semibold mt-4 mb-2" style={{ color: "var(--text-primary)" }}>2.4 Payment Information</h3>
             <p>
-              Payments are processed by our authorized merchant of record, Paddle (Paddle.com Market Limited).
-              We do not store your credit card number, CVV, or bank account details on our servers. Paddle
-              handles all payment data in accordance with PCI DSS standards. We receive only a transaction
-              reference, plan type, and billing status from Paddle.
+              Bidlyze does not currently accept payments. When paid plans launch, payments will be processed
+              by Stripe Inc., a third-party payment processor. Customers will be notified before any payment
+              processing begins. Bidlyze will not store credit card numbers, CVVs, or bank account details on
+              its servers — the payment processor will handle all card data in accordance with applicable PCI
+              standards, and Bidlyze will receive only the transaction reference, plan type, and billing status.
             </p>
           </section>
 
@@ -89,7 +104,7 @@ export default function PrivacyPage() {
               <li>Provide, operate, and improve the Bidlyze platform</li>
               <li>Process your document analyses and deliver results</li>
               <li>Manage your account and subscription</li>
-              <li>Process payments through Paddle</li>
+              <li>Process payments (when paid plans launch; not applicable during pre-launch)</li>
               <li>Send transactional emails (account verification, analysis summaries, usage notifications, and important service updates)</li>
               <li>Monitor usage to enforce plan limits and detect abuse</li>
               <li>Comply with legal obligations</li>
@@ -123,7 +138,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 mt-3 space-y-2">
               <li><strong>Authentication & data storage</strong> — We use a third-party service to manage user accounts, secure authentication, and store your account data and analysis results.</li>
               <li><strong>AI & document processing</strong> — We use third-party AI services to analyze uploaded document content and generate structured outputs for you. These providers process data only to the extent necessary to deliver the requested analysis, subject to their own privacy and data processing terms.</li>
-              <li><strong>Paddle</strong> — Paddle (Paddle.com Market Limited) acts as our merchant of record for payment processing and subscription management. Paddle handles all billing, invoicing, and tax-related processing on our behalf.</li>
+              <li><strong>Payment processing (when paid plans launch)</strong> — When paid plans launch, payments will be processed by Stripe Inc., a third-party payment processor. Stripe will handle all billing, invoicing, and tax-related processing on our behalf. Customers will be notified before any payment processing begins.</li>
               <li><strong>Hosting & infrastructure</strong> — We use a third-party cloud platform to host the Bidlyze application, serve web requests, and maintain standard server logs.</li>
               <li><strong>Email delivery</strong> — We use a third-party provider to deliver transactional emails, including account notifications and analysis summaries.</li>
             </ul>
@@ -158,7 +173,7 @@ export default function PrivacyPage() {
               <li>Authentication is managed by a dedicated service provider that handles password hashing and session tokens</li>
               <li>Database access is restricted using row-level security policies, ensuring users can only access their own data</li>
               <li>API endpoints verify user authentication before processing requests</li>
-              <li>We do not store payment credentials — all payment data is handled by Paddle</li>
+              <li>We do not store payment credentials — when paid plans launch, all card data will be handled by the payment processor and never reaches Bidlyze servers</li>
             </ul>
             <p className="mt-3">
               Our infrastructure providers maintain their own security certifications and encrypt data at
