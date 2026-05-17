@@ -29,7 +29,7 @@ const CARDS = [
       `${PLANS.free.analysesLimit} analyses per month`,
       "RFI / RFQ / RFP / Other",
       "AI summary & requirement extraction",
-      "Requirement status tracking",
+      "Basic requirement status tracking",
       "Internal notes",
       "PDF export",
       `${PLANS.free.historyDays}-day history`,
@@ -44,34 +44,30 @@ const CARDS = [
       `${PLANS.pro.analysesLimit} analyses per month`,
       "Everything in Free, plus:",
       "Source page references per requirement",
-      "Owner assignment & due dates",
       "Full compliance matrix",
-      "Risk & assumption mapping",
-      "Bid / No-Bid scoring & win probability",
-      "Competitor intelligence",
-      "Pricing Advisor",
-      "Proposal Writer (6 sections)",
-      "Amendment Intelligence",
-      "Tender Package workspace",
-      "Bid Comparison",
-      "Deadline Tracker with urgency views",
-      "Action items & decision panel",
-      "Excel & requirement export",
+      "Risk & gap analysis",
+      "Owner assignment & due dates",
+      "Excel requirement export",
+      "Proposal Writer",
+      "Tender package workspace",
+      "Deadline tracker",
       "Unlimited history",
     ],
     cta: "Upgrade",
   },
   {
     key: "team",
+    earlyAccess: true,
     tagline: "Collaborate on bids",
     features: [
       `${PLANS.team.analysesLimit} analyses per month`,
       "Everything in Professional, plus:",
+      "Team workspace",
       "Internal review comments",
-      "Full audit trail",
-      "Branded PDF exports (coming soon)",
-      "Shared tender library (roadmap)",
-      "Team roles & permissions (roadmap)",
+      "Shared tender library",
+      "Audit trail",
+      "Priority support",
+      "Team roles & permissions",
     ],
     cta: "Upgrade",
   },
@@ -81,9 +77,9 @@ const CARDS = [
     features: [
       "Custom analysis volume",
       "Everything in Team, plus:",
-      "SSO & admin controls (roadmap)",
-      "Custom analysis templates (roadmap)",
-      "API access (roadmap)",
+      "SSO & admin controls",
+      "Custom analysis templates",
+      "API access",
       "Priority support & SLA",
       "Custom onboarding",
     ],
@@ -109,7 +105,11 @@ export default function LandingPricingCards() {
               className="relative p-6 rounded-2xl flex flex-col"
               style={{
                 background: "var(--bg-subtle)",
-                border: card.popular ? "2px solid #10b981" : "1px solid var(--border-primary)",
+                border: card.popular
+                  ? "2px solid #10b981"
+                  : card.earlyAccess
+                    ? "1px solid rgba(245, 158, 11, 0.45)"
+                    : "1px solid var(--border-primary)",
               }}
             >
               {card.popular && (
@@ -117,15 +117,32 @@ export default function LandingPricingCards() {
                   Recommended
                 </span>
               )}
+              {card.earlyAccess && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500 text-white">
+                  Early Access
+                </span>
+              )}
               <div className="mb-1">
                 <h3 className="font-bold">{plan.name}</h3>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>{card.tagline}</p>
               </div>
-              <div className="flex items-baseline gap-1 mb-5 mt-3">
+              <div className="mb-5 mt-3">
                 {plan.price !== null ? (
                   <>
-                    <span className="text-3xl font-bold">${plan.price}</span>
-                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold">${plan.price}</span>
+                      <span className="text-xs" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
+                    </div>
+                    {plan.regularPrice && (
+                      <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                        ${plan.regularPrice}{plan.period} after early-access period
+                      </p>
+                    )}
+                    {card.earlyAccess && (
+                      <p className="text-[10px] mt-1 leading-snug" style={{ color: "rgb(217 119 6 / 0.85)" }}>
+                        Early Access: Team workspace, shared library, and roles ship during the early-access period. Comments and audit trail are available today.
+                      </p>
+                    )}
                   </>
                 ) : (
                   <span className="text-2xl font-bold">Custom</span>
@@ -177,7 +194,7 @@ export default function LandingPricingCards() {
               {/* Free-card pre-launch caption */}
               {!live && card.key === "free" && (
                 <p className="text-[11px] mt-2 text-center" style={{ color: "var(--text-muted)" }}>
-                  Available after pre-launch
+                  Available during pre-launch
                 </p>
               )}
             </div>

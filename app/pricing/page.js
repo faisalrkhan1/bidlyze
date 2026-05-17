@@ -20,10 +20,10 @@ const PLAN_CARDS = [
       `${PLANS.free.analysesLimit} analyses per month`,
       "RFI / RFQ / RFP / Other",
       "AI summary & requirement extraction",
-      "Requirement status tracking",
+      "Basic requirement status tracking",
       "Internal notes",
       "PDF export",
-      "30-day history",
+      `${PLANS.free.historyDays}-day history`,
     ],
   },
   {
@@ -34,33 +34,30 @@ const PLAN_CARDS = [
       `${PLANS.pro.analysesLimit} analyses per month`,
       "Everything in Free, plus:",
       "Source page references per requirement",
-      "Owner assignment & due dates",
       "Full compliance matrix",
-      "Risk & assumption mapping",
-      "Bid / No-Bid scoring & win probability",
-      "Competitor intelligence",
-      "Pricing Advisor",
-      "Proposal Writer (6 sections)",
-      "Amendment Intelligence",
-      "Tender Package workspace",
-      "Bid Comparison",
-      "Deadline Tracker with urgency views",
-      "Action items & decision panel",
-      "Excel & requirement export",
+      "Risk & gap analysis",
+      "Owner assignment & due dates",
+      "Excel requirement export",
+      "Proposal Writer",
+      "Tender package workspace",
+      "Deadline tracker",
       "Unlimited history",
     ],
   },
   {
     key: "team",
+    // Early-access tier — $99/mo today, $149/mo after the early-access period.
+    earlyAccess: true,
     tagline: "Collaborate on bids",
     features: [
       `${PLANS.team.analysesLimit} analyses per month`,
       "Everything in Professional, plus:",
+      "Team workspace",
       "Internal review comments",
-      "Full audit trail",
-      "Branded PDF exports (coming soon)",
-      "Shared tender library (roadmap)",
-      "Team roles & permissions (roadmap)",
+      "Shared tender library",
+      "Audit trail",
+      "Priority support",
+      "Team roles & permissions",
     ],
   },
   {
@@ -69,9 +66,9 @@ const PLAN_CARDS = [
     features: [
       "Custom analysis volume",
       "Everything in Team, plus:",
-      "SSO & admin controls (roadmap)",
-      "Custom analysis templates (roadmap)",
-      "API access (roadmap)",
+      "SSO & admin controls",
+      "Custom analysis templates",
+      "API access",
       "Priority support & SLA",
       "Custom onboarding",
     ],
@@ -87,10 +84,7 @@ const COMPARISON = [
       { name: "Requirement extraction table", free: true, pro: true, team: true, enterprise: true },
       { name: "Source page references per requirement", free: false, pro: true, team: true, enterprise: true },
       { name: "Full compliance matrix", free: false, pro: true, team: true, enterprise: true },
-      { name: "Risk & assumption mapping", free: false, pro: true, team: true, enterprise: true },
-      { name: "Bid / No-Bid scoring", free: false, pro: true, team: true, enterprise: true },
-      { name: "Win probability & competitor intel", free: false, pro: true, team: true, enterprise: true },
-      { name: "Pricing Advisor", free: false, pro: true, team: true, enterprise: true },
+      { name: "Risk & gap analysis", free: false, pro: true, team: true, enterprise: true },
     ],
   },
   {
@@ -100,8 +94,7 @@ const COMPARISON = [
       { name: "Internal notes", free: true, pro: true, team: true, enterprise: true },
       { name: "Owner assignment per requirement", free: false, pro: true, team: true, enterprise: true },
       { name: "Due dates per requirement", free: false, pro: true, team: true, enterprise: true },
-      { name: "Deadline Tracker with urgency views", free: false, pro: true, team: true, enterprise: true },
-      { name: "Action items & decision panel", free: false, pro: true, team: true, enterprise: true },
+      { name: "Deadline tracker", free: false, pro: true, team: true, enterprise: true },
       { name: "Internal review comments", free: false, pro: false, team: true, enterprise: true },
       { name: "Audit trail", free: false, pro: false, team: true, enterprise: true },
     ],
@@ -109,30 +102,29 @@ const COMPARISON = [
   {
     category: "Advanced Tools",
     features: [
-      { name: "Proposal Writer (6 sections)", free: false, pro: true, team: true, enterprise: true },
-      { name: "Amendment Intelligence (diff analysis)", free: false, pro: true, team: true, enterprise: true },
-      { name: "Tender Package workspace (multi-doc)", free: false, pro: true, team: true, enterprise: true },
-      { name: "Bid Comparison (side-by-side)", free: false, pro: true, team: true, enterprise: true },
+      { name: "Proposal Writer", free: false, pro: true, team: true, enterprise: true },
+      { name: "Tender package workspace", free: false, pro: true, team: true, enterprise: true },
     ],
   },
   {
     category: "Export & History",
     features: [
       { name: "PDF export", free: true, pro: true, team: true, enterprise: true },
-      { name: "Excel export", free: false, pro: true, team: true, enterprise: true },
-      { name: "Requirements table Excel export", free: false, pro: true, team: true, enterprise: true },
-      { name: "Branded exports", free: false, pro: false, team: "Coming soon", enterprise: "Coming soon" },
-      { name: "Tender history", free: "30 days", pro: "Unlimited", team: "Unlimited", enterprise: "Unlimited" },
+      { name: "Excel requirement export", free: false, pro: true, team: true, enterprise: true },
+      { name: "Tender history", free: `${PLANS.free.historyDays} days`, pro: "Unlimited", team: "Unlimited", enterprise: "Unlimited" },
     ],
   },
   {
     category: "Team & Enterprise",
     features: [
-      { name: "Shared tender library", free: false, pro: false, team: "Roadmap", enterprise: true },
-      { name: "Team roles & permissions", free: false, pro: false, team: "Roadmap", enterprise: true },
-      { name: "SSO & admin controls", free: false, pro: false, team: false, enterprise: "Roadmap" },
-      { name: "API access", free: false, pro: false, team: false, enterprise: "Roadmap" },
-      { name: "Priority support & SLA", free: false, pro: false, team: false, enterprise: true },
+      { name: "Team workspace", free: false, pro: false, team: true, enterprise: true },
+      { name: "Shared tender library", free: false, pro: false, team: true, enterprise: true },
+      { name: "Team roles & permissions", free: false, pro: false, team: true, enterprise: true },
+      { name: "Priority support", free: false, pro: false, team: true, enterprise: true },
+      { name: "SSO & admin controls", free: false, pro: false, team: false, enterprise: true },
+      { name: "API access", free: false, pro: false, team: false, enterprise: true },
+      { name: "Custom analysis templates", free: false, pro: false, team: false, enterprise: true },
+      { name: "Priority SLA", free: false, pro: false, team: false, enterprise: true },
       { name: "Custom onboarding", free: false, pro: false, team: false, enterprise: true },
     ],
   },
@@ -212,8 +204,9 @@ export default function PricingPage() {
           const isPopular = card.popular;
 
           return (
-            <div key={card.key} className="relative rounded-2xl p-5 flex flex-col" style={{ background: "var(--bg-subtle)", border: isPopular ? "2px solid #10b981" : "1px solid var(--border-primary)" }}>
+            <div key={card.key} className="relative rounded-2xl p-5 flex flex-col" style={{ background: "var(--bg-subtle)", border: isPopular ? "2px solid #10b981" : card.earlyAccess ? "1px solid rgba(245, 158, 11, 0.45)" : "1px solid var(--border-primary)" }}>
               {isPopular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500 text-white">Recommended</span>}
+              {card.earlyAccess && <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500 text-white">Early Access</span>}
 
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-0.5">
@@ -225,10 +218,22 @@ export default function PricingPage() {
 
               <div className="mb-5">
                 {plan.price !== null ? (
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">${plan.price}</span>
-                    <span className="text-sm" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
-                  </div>
+                  <>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-3xl font-bold">${plan.price}</span>
+                      <span className="text-sm" style={{ color: "var(--text-muted)" }}>{plan.period}</span>
+                    </div>
+                    {plan.regularPrice && (
+                      <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>
+                        ${plan.regularPrice}{plan.period} after early-access period
+                      </p>
+                    )}
+                    {card.earlyAccess && (
+                      <p className="text-[10px] mt-1 leading-snug" style={{ color: "rgb(217 119 6 / 0.85)" }}>
+                        Early Access: Team workspace, shared library, and roles ship during the early-access period. Comments and audit trail are available today.
+                      </p>
+                    )}
+                  </>
                 ) : (
                   <div><span className="text-2xl font-bold">Custom</span><p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Tailored to your organization</p></div>
                 )}
@@ -256,7 +261,7 @@ export default function PricingPage() {
                   <button disabled className="w-full py-2.5 rounded-xl font-semibold text-sm opacity-40 cursor-not-allowed" style={{ border: "1px solid var(--border-secondary)" }}>Free</button>
                   {!PAYMENTS_LIVE && (
                     <p className="text-[11px] mt-2 text-center" style={{ color: "var(--text-muted)" }}>
-                      Available after pre-launch
+                      Available during pre-launch
                     </p>
                   )}
                 </>
