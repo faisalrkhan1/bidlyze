@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import { FEATURES } from "@/lib/featureFlags";
 
 const DEFAULT_LIMIT = 3;
 
@@ -106,11 +107,11 @@ function WorkItemsSummary({ analyses, router }) {
   });
 
   const items = [
-    { label: "Overdue Deadlines", value: overdueDeadlines, color: "text-red-400", bg: "bg-red-500/10", show: overdueDeadlines > 0, link: "/deadlines" },
-    { label: "Due This Week", value: urgentDeadlines, color: "text-amber-400", bg: "bg-amber-500/10", show: urgentDeadlines > 0, link: "/deadlines" },
-    { label: "Open Actions", value: openActions, color: "text-blue-400", bg: "bg-blue-500/10", show: openActions > 0 },
-    { label: "Overdue Tasks", value: overdueActions, color: "text-red-400", bg: "bg-red-500/10", show: overdueActions > 0 },
-    { label: "Pending Decisions", value: pendingDecisions, color: "text-purple-400", bg: "bg-purple-500/10", show: pendingDecisions > 0 },
+    { label: "Overdue Deadlines", value: overdueDeadlines, color: "text-red-400", bg: "bg-red-500/10", show: FEATURES.showDeadlineTrackerRoute && overdueDeadlines > 0, link: "/deadlines" },
+    { label: "Due This Week", value: urgentDeadlines, color: "text-amber-400", bg: "bg-amber-500/10", show: FEATURES.showDeadlineTrackerRoute && urgentDeadlines > 0, link: "/deadlines" },
+    { label: "Open Actions", value: openActions, color: "text-blue-400", bg: "bg-blue-500/10", show: FEATURES.showActionTracker && openActions > 0 },
+    { label: "Overdue Tasks", value: overdueActions, color: "text-red-400", bg: "bg-red-500/10", show: FEATURES.showActionTracker && overdueActions > 0 },
+    { label: "Pending Decisions", value: pendingDecisions, color: "text-purple-400", bg: "bg-purple-500/10", show: FEATURES.showDecisionPanel && pendingDecisions > 0 },
   ].filter((i) => i.show);
 
   if (items.length === 0) {
@@ -364,8 +365,16 @@ export default function DashboardPage() {
           />
         </section>
 
-        {/* Quick Actions */}
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 animate-fade-in" style={{ animationDelay: "150ms" }}>
+        {/* Quick Actions — grid layout adapts to the number of visible cards
+            so a single visible card doesn't sit lopsided in a 3-col grid. */}
+        {(() => {
+          const visibleQuickActions = 1 + (FEATURES.showTenderPackageRoute ? 1 : 0) + (FEATURES.showBidCompareRoute ? 1 : 0);
+          const layoutClasses =
+            visibleQuickActions === 1 ? "grid grid-cols-1 max-w-md mx-auto" :
+            visibleQuickActions === 2 ? "grid grid-cols-1 sm:grid-cols-2 max-w-2xl mx-auto" :
+            "grid grid-cols-1 sm:grid-cols-3";
+          return (
+        <section className={`${layoutClasses} gap-4 mb-10 animate-fade-in`} style={{ animationDelay: "150ms" }}>
           {/* New Analysis */}
           <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
             <div className="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
@@ -377,28 +386,36 @@ export default function DashboardPage() {
           </div>
 
           {/* Tender Package */}
-          <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
-            <div className="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" /></svg>
+          {FEATURES.showTenderPackageRoute && (
+            <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
+              <div className="w-11 h-11 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" /></svg>
+              </div>
+              <h3 className="font-semibold mb-1">Tender Package</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Upload multiple files for combined package intelligence.</p>
+              <button onClick={() => router.push("/workspace/new")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--accent-border)", color: "var(--accent-text)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-muted)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Multi-Document</button>
             </div>
-            <h3 className="font-semibold mb-1">Tender Package</h3>
-            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Upload multiple files for combined package intelligence.</p>
-            <button onClick={() => router.push("/workspace/new")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--accent-border)", color: "var(--accent-text)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--accent-muted)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Multi-Document</button>
-          </div>
+          )}
 
           {/* Bid Compare */}
-          <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
-            <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 6l3 1m0 0-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2 3-1m-3 1-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+          {FEATURES.showBidCompareRoute && (
+            <div className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
+              <div className="w-11 h-11 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mb-4 transition-transform duration-200 group-hover:scale-110">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M3 6l3 1m0 0-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2 3-1m-3 1-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+              </div>
+              <h3 className="font-semibold mb-1">Bid Comparison</h3>
+              <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Compare vendor quotations, proposals, or bid options side by side.</p>
+              <button onClick={() => router.push("/bid-compare")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-input)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Compare Submissions</button>
             </div>
-            <h3 className="font-semibold mb-1">Bid Comparison</h3>
-            <p className="text-sm mb-5" style={{ color: "var(--text-secondary)" }}>Compare vendor quotations, proposals, or bid options side by side.</p>
-            <button onClick={() => router.push("/bid-compare")} className="w-full py-3 rounded-xl font-semibold text-sm transition-colors" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }} onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-input)")} onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}>Compare Submissions</button>
-          </div>
+          )}
         </section>
+          );
+        })()}
 
-        {/* Work Items Summary */}
-        {analyses && analyses.length > 0 && (
+        {/* Work Items Summary — only rendered when at least one of the underlying
+            workflow features is enabled. With all three flags off the rollup has
+            no meaning and would always show the "All clear" empty state. */}
+        {analyses && analyses.length > 0 && (FEATURES.showDeadlineTrackerRoute || FEATURES.showActionTracker || FEATURES.showDecisionPanel) && (
           <section className="mb-8 animate-fade-in" style={{ animationDelay: "175ms" }}>
             <h2 className="text-lg font-semibold mb-4">Work Items</h2>
             <WorkItemsSummary analyses={analyses} router={router} />

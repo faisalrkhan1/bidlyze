@@ -18,6 +18,7 @@ import ExportCenter from "@/app/components/ExportCenter";
 import BidReadiness from "@/app/components/BidReadiness";
 import ClarificationRegister from "@/app/components/ClarificationRegister";
 import ComplianceMatrix from "@/app/components/ComplianceMatrix";
+import { FEATURES } from "@/lib/featureFlags";
 
 function ScoreBadge({ score }) {
   const color =
@@ -234,9 +235,9 @@ export default function AnalysisDetailPage({ params }) {
             <span className="px-2.5 py-0.5 rounded-md text-xs font-semibold" style={{ background: "var(--accent-muted)", color: "var(--accent-text)", border: "1px solid var(--accent-border)" }}>
               {rfxType.toUpperCase()}
             </span>
-            {bidScore && <ScoreBadge score={bidScore.score} />}
-            {bidScore && <RecommendationBadge recommendation={bidScore.recommendation} />}
-            {!bidScore && analysis.qualificationSummary && <ScoreBadge score={analysis.qualificationSummary.fitScore} />}
+            {FEATURES.showBidScoreBadge && bidScore && <ScoreBadge score={bidScore.score} />}
+            {FEATURES.showBidScoreBadge && bidScore && <RecommendationBadge recommendation={bidScore.recommendation} />}
+            {FEATURES.showBidScoreBadge && !bidScore && analysis.qualificationSummary && <ScoreBadge score={analysis.qualificationSummary.fitScore} />}
           </div>
         </div>
 
@@ -254,7 +255,7 @@ export default function AnalysisDetailPage({ params }) {
         </div>
 
         {/* Bid Readiness — only meaningful for full RFP analyses */}
-        {!isSpecializedType && (
+        {FEATURES.showBidReadiness && !isSpecializedType && (
           <BidReadiness
             analysis={analysis}
             requirementStatuses={requirementStatuses}
@@ -266,6 +267,7 @@ export default function AnalysisDetailPage({ params }) {
         )}
 
         {/* Export Center */}
+        {FEATURES.showExportCenter && (
         <ExportCenter
           analysis={analysis}
           fileName={fileName}
@@ -279,8 +281,10 @@ export default function AnalysisDetailPage({ params }) {
           clarifications={clarificationsSaved.length > 0 ? clarificationsSaved : seededClarifications}
           onDownloadOriginal={downloadOriginal}
         />
+        )}
 
         {/* Quick Info Grid */}
+        {FEATURES.showQuickInfoGrid && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <InfoCard label="Issuing Authority" value={summary?.issuingAuthority} />
           <InfoCard label="Tender Reference" value={summary?.tenderReference} />
@@ -291,6 +295,7 @@ export default function AnalysisDetailPage({ params }) {
           <InfoCard label="Sector" value={summary?.sector} />
           <InfoCard label="Currency" value={summary?.currency} />
         </div>
+        )}
 
         {/* Brief Description */}
         {summary?.briefDescription && (
@@ -311,10 +316,12 @@ export default function AnalysisDetailPage({ params }) {
             {rfxType === "other" && <OtherResults analysis={analysis} />}
 
             {/* Internal Notes — shared across all types */}
-            <AnalysisNotes analysisId={record.id} userId={user.id} />
+            {FEATURES.showInternalNotes && (
+              <AnalysisNotes analysisId={record.id} userId={user.id} />
+            )}
 
             {/* Key Dates — shared across all types */}
-            {analysis.keyDates?.length > 0 && (
+            {FEATURES.showKeyDatesSection && analysis.keyDates?.length > 0 && (
               <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border-primary)" }}>
                 <div className="px-5 py-4 font-semibold" style={{ borderBottom: "1px solid var(--border-primary)" }}>Key Dates</div>
                 <div className="px-5 py-4 space-y-2">
@@ -347,19 +354,23 @@ export default function AnalysisDetailPage({ params }) {
             )}
 
             {/* Internal Notes */}
-            <AnalysisNotes analysisId={record.id} userId={user.id} />
+            {FEATURES.showInternalNotes && (
+              <AnalysisNotes analysisId={record.id} userId={user.id} />
+            )}
 
             {/* Requirements Tracker */}
-            <RequirementsTable
-              analysisId={record.id}
-              userId={user.id}
-              requirements={requirements}
-              complianceItems={complianceAnalysis?.items}
-            />
+            {FEATURES.showRequirementsTracker && (
+              <RequirementsTable
+                analysisId={record.id}
+                userId={user.id}
+                requirements={requirements}
+                complianceItems={complianceAnalysis?.items}
+              />
+            )}
 
         {/* Win Probability */}
         <UpgradeGate plan={userPlan} feature="winProbability" label="Win Probability & Competitor Intelligence">
-        {winProbability && (
+        {FEATURES.showWinProbability && winProbability && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-6">
               {/* Circular Progress */}
@@ -493,7 +504,7 @@ export default function AnalysisDetailPage({ params }) {
         )}
 
         {/* Competitor Intelligence */}
-        {competitorIntelligence && (
+        {FEATURES.showCompetitorIntelligence && competitorIntelligence && (
           <Section title={<span className="flex items-center gap-2.5">Competitor Intelligence <ConfidenceBadge level={getSectionConfidence("competitorIntelligence")} /></span>} defaultOpen={false}>
             <div className="space-y-6">
               {/* Market Dynamics */}
@@ -623,7 +634,7 @@ export default function AnalysisDetailPage({ params }) {
         )}
 
         {/* Pricing Advisor */}
-        {pricingAdvisor && (
+        {FEATURES.showPricingAdvisor && pricingAdvisor && (
           <Section title={<span className="flex items-center gap-2.5">Pricing Advisor <ConfidenceBadge level={getSectionConfidence("pricingAdvisor")} /></span>} defaultOpen>
             <div className="space-y-6">
               {pricingAdvisor.canEstimate ? (
@@ -766,7 +777,7 @@ export default function AnalysisDetailPage({ params }) {
         <UpgradeGate plan={userPlan} feature="complianceMatrix" label="Compliance, Risk & Pricing Analysis">
         <div className="space-y-3">
           {/* Compliance Overview — AI summary; the editable matrix is below */}
-          {complianceAnalysis && (
+          {FEATURES.showComplianceMatrix && complianceAnalysis && (
             <Section title={<span className="flex items-center gap-2.5">Compliance Overview <ConfidenceBadge level={getSectionConfidence("complianceAnalysis")} /></span>} defaultOpen>
               <div className="space-y-6">
                 {/* Score + Summary Row */}
@@ -946,7 +957,7 @@ export default function AnalysisDetailPage({ params }) {
           )}
 
           {/* Risk Radar */}
-          {riskRadar && (
+          {FEATURES.showRiskRadar && riskRadar && (
             <Section title={<span className="flex items-center gap-2.5">Risk Radar <ConfidenceBadge level={getSectionConfidence("riskRadar")} /></span>} defaultOpen>
               <div className="space-y-6">
                 {/* Overall Risk Gauge */}
@@ -1142,7 +1153,7 @@ export default function AnalysisDetailPage({ params }) {
           )}
 
           {/* Key Dates */}
-          {keyDates?.length > 0 && (
+          {FEATURES.showKeyDatesSection && keyDates?.length > 0 && (
             <Section title={`Key Dates (${keyDates.length})`}>
               <div className="space-y-2">
                 {keyDates.map((d, i) => (
@@ -1160,7 +1171,7 @@ export default function AnalysisDetailPage({ params }) {
           )}
 
           {/* Evaluation Criteria */}
-          {evaluationCriteria?.length > 0 && (
+          {FEATURES.showEvaluationCriteriaSection && evaluationCriteria?.length > 0 && (
             <Section title={`Evaluation Criteria (${evaluationCriteria.length})`}>
               <div className="space-y-3">
                 {evaluationCriteria.map((e, i) => (
@@ -1179,7 +1190,7 @@ export default function AnalysisDetailPage({ params }) {
           )}
 
           {/* Financial Requirements */}
-          {financialRequirements && (
+          {FEATURES.showFinancialRequirementsSection && financialRequirements && (
             <Section title="Financial Requirements">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <InfoCard label="Bid Bond" value={financialRequirements.bidBond} />
@@ -1193,7 +1204,7 @@ export default function AnalysisDetailPage({ params }) {
         </UpgradeGate>
 
             {/* Editable Compliance Matrix — replaces the read-only inline list */}
-            {complianceAnalysis?.items?.length > 0 && (
+            {FEATURES.showComplianceMatrix && complianceAnalysis?.items?.length > 0 && (
               <UpgradeGate plan={userPlan} feature="complianceMatrix" label="Compliance Matrix">
                 <ComplianceMatrix
                   analysisId={record.id}
@@ -1204,56 +1215,66 @@ export default function AnalysisDetailPage({ params }) {
             )}
 
             {/* Clarification Register — RFP-specific, seeded from any AI clarification list if present */}
-            <UpgradeGate plan={userPlan} feature="actionTracker" label="Clarification Register">
-              <ClarificationRegister
-                analysisId={record.id}
-                userId={user.id}
-                seedItems={seededClarifications}
-              />
-            </UpgradeGate>
+            {FEATURES.showClarificationRegister && (
+              <UpgradeGate plan={userPlan} feature="actionTracker" label="Clarification Register">
+                <ClarificationRegister
+                  analysisId={record.id}
+                  userId={user.id}
+                  seedItems={seededClarifications}
+                />
+              </UpgradeGate>
+            )}
 
             {/* Action / RACI Tracker */}
-            <UpgradeGate plan={userPlan} feature="actionTracker" label="Action Tracker">
-              <ActionTracker
-                analysisId={record.id}
-                userId={user.id}
-                seedItems={[
-                  ...((analysis?.complianceAnalysis?.actionPlan) || []).map((a) => ({
-                    title: a.action,
-                    owner: a.owner,
-                    dueDate: a.deadline,
-                    priority: typeof a.priority === "number" ? (a.priority <= 2 ? "high" : a.priority <= 4 ? "medium" : "low") : (a.priority || "medium"),
-                    source: "Compliance action plan",
-                  })),
-                  ...((analysis?.riskRadar?.topActions) || []).map((a) => ({
-                    title: a.action,
-                    owner: a.responsible,
-                    priority: a.priority === "immediate" ? "high" : a.priority === "before_submission" ? "medium" : "low",
-                    source: "Risk top actions",
-                  })),
-                ]}
-              />
-            </UpgradeGate>
+            {FEATURES.showActionTracker && (
+              <UpgradeGate plan={userPlan} feature="actionTracker" label="Action Tracker">
+                <ActionTracker
+                  analysisId={record.id}
+                  userId={user.id}
+                  seedItems={[
+                    ...((analysis?.complianceAnalysis?.actionPlan) || []).map((a) => ({
+                      title: a.action,
+                      owner: a.owner,
+                      dueDate: a.deadline,
+                      priority: typeof a.priority === "number" ? (a.priority <= 2 ? "high" : a.priority <= 4 ? "medium" : "low") : (a.priority || "medium"),
+                      source: "Compliance action plan",
+                    })),
+                    ...((analysis?.riskRadar?.topActions) || []).map((a) => ({
+                      title: a.action,
+                      owner: a.responsible,
+                      priority: a.priority === "immediate" ? "high" : a.priority === "before_submission" ? "medium" : "low",
+                      source: "Risk top actions",
+                    })),
+                  ]}
+                />
+              </UpgradeGate>
+            )}
 
             {/* Decision Panel — surfaces the AI BID/NO-BID as a starting reference */}
-            <UpgradeGate plan={userPlan} feature="decisionPanel" label="Decision Panel">
-              <DecisionPanel
-                analysisId={record.id}
-                userId={user.id}
-                userEmail={user.email}
-                aiRecommendation={bidScore ? { decision: bidScore.recommendation, reasoning: bidScore.reasoning } : null}
-              />
-            </UpgradeGate>
+            {FEATURES.showDecisionPanel && (
+              <UpgradeGate plan={userPlan} feature="decisionPanel" label="Decision Panel">
+                <DecisionPanel
+                  analysisId={record.id}
+                  userId={user.id}
+                  userEmail={user.email}
+                  aiRecommendation={bidScore ? { decision: bidScore.recommendation, reasoning: bidScore.reasoning } : null}
+                />
+              </UpgradeGate>
+            )}
 
             {/* Comments — Team+ */}
-            <UpgradeGate plan={userPlan} feature="comments" label="Internal Comments">
-              <CommentThread analysisId={record.id} userId={user.id} />
-            </UpgradeGate>
+            {FEATURES.showComments && (
+              <UpgradeGate plan={userPlan} feature="comments" label="Internal Comments">
+                <CommentThread analysisId={record.id} userId={user.id} />
+              </UpgradeGate>
+            )}
 
             {/* Audit Trail — Team+ */}
-            <UpgradeGate plan={userPlan} feature="auditTrail" label="Audit Trail">
-              <AuditTrail analysisId={record.id} />
-            </UpgradeGate>
+            {FEATURES.showAuditTrail && (
+              <UpgradeGate plan={userPlan} feature="auditTrail" label="Audit Trail">
+                <AuditTrail analysisId={record.id} />
+              </UpgradeGate>
+            )}
           </>
         )}
       </div>

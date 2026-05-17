@@ -7,6 +7,7 @@ import { exportToExcel, exportMultiSheetExcel } from "@/app/utils/exportExcel";
 import { getComplianceExportData } from "./ComplianceMatrix";
 import { getClarificationExportData } from "./ClarificationRegister";
 import { hasFeature, PLAN_DISPLAY, minPlanFor } from "@/lib/plans";
+import { FEATURES } from "@/lib/featureFlags";
 
 function ExportTile({ icon, title, description, badge, locked, lockedReason, onClick, disabled }) {
   const isDisabled = disabled || locked;
@@ -305,75 +306,91 @@ export default function ExportCenter({
       </div>
 
       <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <ExportTile
-          icon={FILE_ICONS.pdf}
-          title="Executive PDF Report"
-          badge="PDF"
-          description="Branded one-pager + breakdown of score, requirements, compliance, risk, and pricing."
-          onClick={doPdf}
-        />
-        <ExportTile
-          icon={FILE_ICONS.docx}
-          title="Proposal Sections (.docx)"
-          badge="DOCX"
-          locked={!canDocx}
-          lockedReason={`Proposal writer available on ${PLAN_DISPLAY[minPlanFor("proposalWriter")] || "paid"} plan and above.`}
-          description="Open the proposal writer to draft and export executive summary, technical response, compliance matrix, methodology, team, and risk mitigation as one document."
-          onClick={() => router.push(`/proposal/${analysisId}`)}
-        />
-        <ExportTile
-          icon={FILE_ICONS.xlsx}
-          title="Compliance Matrix"
-          badge="XLSX"
-          locked={!canExcel}
-          lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
-          description="Editable compliance positions with status, severity, owner, evidence, and notes."
-          onClick={doXlsxCompliance}
-        />
-        <ExportTile
-          icon={FILE_ICONS.xlsx}
-          title="Requirements Tracker"
-          badge="XLSX"
-          locked={!canExcel}
-          lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
-          description="Every extracted requirement with source reference, priority, status, owner, evidence, and due date."
-          onClick={doXlsxRequirements}
-        />
-        <ExportTile
-          icon={FILE_ICONS.xlsx}
-          title="Action / RACI Tracker"
-          badge="XLSX"
-          locked={!canExcel}
-          lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
-          description="All workspace actions with owner, due date, priority, status, source, and notes."
-          onClick={doXlsxActions}
-        />
-        <ExportTile
-          icon={FILE_ICONS.xlsx}
-          title="Clarification Register"
-          badge="XLSX"
-          locked={!canExcel}
-          lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
-          description="Open questions to the issuing authority, with priority, source, status, and recorded responses."
-          onClick={doXlsxClarifications}
-        />
-        <ExportTile
-          icon={FILE_ICONS.xlsx}
-          title="Workspace Bundle"
-          badge="XLSX"
-          locked={!canExcel}
-          lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
-          description="One workbook with every sheet — requirements, compliance, actions, clarifications, and risks."
-          onClick={doXlsxBundle}
-        />
-        <ExportTile
-          icon={FILE_ICONS.json}
-          title="Raw Data (JSON)"
-          badge="JSON"
-          description="Complete AI output plus your workspace edits — for archiving or piping into another tool."
-          onClick={doJson}
-        />
-        {filePath && (
+        {FEATURES.enablePdfReportExport && (
+          <ExportTile
+            icon={FILE_ICONS.pdf}
+            title="Executive PDF Report"
+            badge="PDF"
+            description="Branded one-pager + breakdown of score, requirements, compliance, risk, and pricing."
+            onClick={doPdf}
+          />
+        )}
+        {FEATURES.enableDocxProposalExport && (
+          <ExportTile
+            icon={FILE_ICONS.docx}
+            title="Proposal Sections (.docx)"
+            badge="DOCX"
+            locked={!canDocx}
+            lockedReason={`Proposal writer available on ${PLAN_DISPLAY[minPlanFor("proposalWriter")] || "paid"} plan and above.`}
+            description="Open the proposal writer to draft and export executive summary, technical response, compliance matrix, methodology, team, and risk mitigation as one document."
+            onClick={() => router.push(`/proposal/${analysisId}`)}
+          />
+        )}
+        {FEATURES.enableComplianceXlsxExport && (
+          <ExportTile
+            icon={FILE_ICONS.xlsx}
+            title="Compliance Matrix"
+            badge="XLSX"
+            locked={!canExcel}
+            lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
+            description="Editable compliance positions with status, severity, owner, evidence, and notes."
+            onClick={doXlsxCompliance}
+          />
+        )}
+        {FEATURES.enableRequirementsXlsxExport && (
+          <ExportTile
+            icon={FILE_ICONS.xlsx}
+            title="Requirements Tracker"
+            badge="XLSX"
+            locked={!canExcel}
+            lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
+            description="Every extracted requirement with source reference, priority, status, owner, evidence, and due date."
+            onClick={doXlsxRequirements}
+          />
+        )}
+        {FEATURES.enableRaciExport && (
+          <ExportTile
+            icon={FILE_ICONS.xlsx}
+            title="Action / RACI Tracker"
+            badge="XLSX"
+            locked={!canExcel}
+            lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
+            description="All workspace actions with owner, due date, priority, status, source, and notes."
+            onClick={doXlsxActions}
+          />
+        )}
+        {FEATURES.enableClarificationsExport && (
+          <ExportTile
+            icon={FILE_ICONS.xlsx}
+            title="Clarification Register"
+            badge="XLSX"
+            locked={!canExcel}
+            lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
+            description="Open questions to the issuing authority, with priority, source, status, and recorded responses."
+            onClick={doXlsxClarifications}
+          />
+        )}
+        {FEATURES.enableWorkspaceBundleExport && (
+          <ExportTile
+            icon={FILE_ICONS.xlsx}
+            title="Workspace Bundle"
+            badge="XLSX"
+            locked={!canExcel}
+            lockedReason={`Excel export available on ${PLAN_DISPLAY[minPlanFor("excelExport")] || "paid"} plan and above.`}
+            description="One workbook with every sheet — requirements, compliance, actions, clarifications, and risks."
+            onClick={doXlsxBundle}
+          />
+        )}
+        {FEATURES.enableJsonExport && (
+          <ExportTile
+            icon={FILE_ICONS.json}
+            title="Raw Data (JSON)"
+            badge="JSON"
+            description="Complete AI output plus your workspace edits — for archiving or piping into another tool."
+            onClick={doJson}
+          />
+        )}
+        {FEATURES.enableOriginalFileDownload && filePath && (
           <ExportTile
             icon={FILE_ICONS.pdf}
             title="Original Source Document"
