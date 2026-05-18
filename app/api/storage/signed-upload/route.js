@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { randomUUID } from "node:crypto";
+import { FILE_LIMITS } from "@/lib/constants";
 
 export const maxDuration = 30;
 
 const BUCKET = "tender-uploads";
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_FILE_SIZE = FILE_LIMITS.MAX_FILE_SIZE;
 const MAX_FILENAME_LEN = 200;
-
-const ALLOWED_CONTENT_TYPES = new Set([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "text/plain",
-]);
+const ALLOWED_CONTENT_TYPES = new Set(FILE_LIMITS.ALLOWED_CONTENT_TYPES);
 
 const CONTENT_TYPE_TO_EXT = {
   "application/pdf": "pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
   "text/plain": "txt",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
 };
 
 function err(status, message) {
@@ -37,6 +34,42 @@ function deriveExtension(filename, contentType) {
   return ext;
 }
 
+/**
+ * Normalize a single file entry. Returns the validated entry or a string error.
+ */
+function validateEntry(raw) {
+  const filename = raw?.filename;
+  const fileSize = raw?.fileSize;
+  const rawContentType = raw?.contentType;
+
+  if (typeof filename !== "string" || filename.length === 0) {
+    return "filename is required";
+  }
+  if (filename.length > MAX_FILENAME_LEN) {
+    return `filename exceeds ${MAX_FILENAME_LEN} characters`;
+  }
+  if (filename.includes("/") || filename.includes("\\") || filename.includes("..")) {
+    return "filename contains invalid path characters";
+  }
+
+  const contentType =
+    typeof rawContentType === "string"
+      ? rawContentType.split(";")[0].trim().toLowerCase()
+      : "";
+  if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
+    return "Unsupported content type. Allowed: PDF, DOCX, TXT, XLSX.";
+  }
+
+  if (typeof fileSize !== "number" || !Number.isFinite(fileSize) || fileSize <= 0) {
+    return "fileSize must be a positive number";
+  }
+  if (fileSize > MAX_FILE_SIZE) {
+    return `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB.`;
+  }
+
+  return { filename, fileSize, contentType };
+}
+
 export async function POST(request) {
   try {
     // ── Authenticate ──
@@ -53,7 +86,7 @@ export async function POST(request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) return err(401, "Unauthorized");
 
-    // ── Parse + validate body ──
+    // ── Parse body — accept both batch and legacy single-file shapes ──
     let body;
     try {
       body = await request.json();
@@ -61,37 +94,39 @@ export async function POST(request) {
       return err(400, "Invalid JSON body");
     }
 
-    const filename = body?.filename;
-    const rawContentType = body?.contentType;
-    const fileSize = body?.fileSize;
+    // Detect mode. Legacy single-file: top-level `filename` present. Batch: `files` array.
+    const isBatch = Array.isArray(body?.files);
+    const rawEntries = isBatch
+      ? body.files
+      : [{ filename: body?.filename, contentType: body?.contentType, fileSize: body?.fileSize }];
 
-    if (typeof filename !== "string" || filename.length === 0) {
-      return err(400, "filename is required");
+    if (rawEntries.length < 1) {
+      return err(400, "At least one file is required.");
     }
-    if (filename.length > MAX_FILENAME_LEN) {
-      return err(400, `filename exceeds ${MAX_FILENAME_LEN} characters`);
-    }
-    if (filename.includes("/") || filename.includes("\\") || filename.includes("..")) {
-      return err(400, "filename contains invalid path characters");
-    }
-
-    // Normalize content type: strip "; charset=..." parameters and lowercase
-    const contentType =
-      typeof rawContentType === "string"
-        ? rawContentType.split(";")[0].trim().toLowerCase()
-        : "";
-    if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
-      return err(400, "Unsupported content type. Allowed: PDF, DOCX, TXT.");
+    if (rawEntries.length > FILE_LIMITS.MAX_FILES_PER_PACKAGE) {
+      return err(400, `A tender package can contain at most ${FILE_LIMITS.MAX_FILES_PER_PACKAGE} files.`);
     }
 
-    if (typeof fileSize !== "number" || !Number.isFinite(fileSize) || fileSize <= 0) {
-      return err(400, "fileSize must be a positive number");
-    }
-    if (fileSize > MAX_FILE_SIZE) {
-      return err(400, `File too large. Maximum size is ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
+    // Per-file validation
+    const entries = [];
+    let totalSize = 0;
+    for (let i = 0; i < rawEntries.length; i++) {
+      const result = validateEntry(rawEntries[i]);
+      if (typeof result === "string") {
+        return err(400, isBatch ? `File ${i + 1}: ${result}` : result);
+      }
+      entries.push(result);
+      totalSize += result.fileSize;
     }
 
-    // ── Plan-limit check (mirrors /api/analyze) ──
+    if (totalSize > FILE_LIMITS.MAX_TOTAL_SIZE) {
+      return err(
+        400,
+        `Combined size exceeds the limit. Maximum total is ${FILE_LIMITS.MAX_TOTAL_SIZE / (1024 * 1024)}MB.`
+      );
+    }
+
+    // ── Plan-limit check (once per request — a Tender Package counts as 1 analysis) ──
     const { data: subscription } = await supabase
       .from("subscriptions")
       .select("plan, analyses_limit, status")
@@ -127,16 +162,10 @@ export async function POST(request) {
       return err(403, msg);
     }
 
-    // ── Generate signed upload URL via service-role client ──
-    const ext = deriveExtension(filename, contentType);
-    const randomId = randomUUID(); // lowercase hex + hyphens — already matches [a-z0-9-]
-    const storagePath = `${user.id}/${randomId}.${ext}`;
-
+    // ── Generate signed upload URLs via service-role client ──
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceRoleKey) {
-      console.error(
-        "[signed-upload] SUPABASE_SERVICE_ROLE_KEY is not configured"
-      );
+      console.error("[signed-upload] SUPABASE_SERVICE_ROLE_KEY is not configured");
       return err(500, "Failed to generate upload URL");
     }
 
@@ -145,20 +174,39 @@ export async function POST(request) {
       serviceRoleKey
     );
 
-    const { data: signed, error: signedError } = await adminClient.storage
-      .from(BUCKET)
-      .createSignedUploadUrl(storagePath);
+    const uploads = [];
+    for (const entry of entries) {
+      const ext = deriveExtension(entry.filename, entry.contentType);
+      const storagePath = `${user.id}/${randomUUID()}.${ext}`;
+      const { data: signed, error: signedError } = await adminClient.storage
+        .from(BUCKET)
+        .createSignedUploadUrl(storagePath);
 
-    if (signedError || !signed?.signedUrl) {
-      console.error("[signed-upload] createSignedUploadUrl failed:", signedError);
-      return err(500, "Failed to generate upload URL");
+      if (signedError || !signed?.signedUrl) {
+        console.error("[signed-upload] createSignedUploadUrl failed:", signedError);
+        return err(500, "Failed to generate upload URL");
+      }
+      uploads.push({
+        uploadUrl: signed.signedUrl,
+        storagePath,
+        token: signed.token ?? null,
+        filename: entry.filename,
+      });
     }
 
-    return NextResponse.json({
-      uploadUrl: signed.signedUrl,
-      storagePath,
-      token: signed.token ?? null,
-    });
+    // Backward-compat: when the caller sent the legacy single-file shape,
+    // return the legacy response shape too. The new caller sends `files` and
+    // receives `uploads`.
+    if (!isBatch) {
+      const u = uploads[0];
+      return NextResponse.json({
+        uploadUrl: u.uploadUrl,
+        storagePath: u.storagePath,
+        token: u.token,
+      });
+    }
+
+    return NextResponse.json({ success: true, uploads });
   } catch (error) {
     console.error("[signed-upload] unexpected error:", error);
     return err(500, "Failed to generate upload URL");
