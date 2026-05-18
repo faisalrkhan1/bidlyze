@@ -1,27 +1,51 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { analyzeTender, analyzeTenderFromPDF } from "@/lib/gemini";
+import { analyzeTender, analyzeTenderFromPDF, analyzeTenderPackage } from "@/lib/gemini";
+import { extractFileText } from "@/lib/extractFileText";
 import {
   sendEmail,
   buildAnalysisSummaryEmail,
   buildUsageWarningEmail,
 } from "@/lib/email";
+import { FILE_LIMITS, TEXT_LIMITS, TENDER_FILE_ROLES } from "@/lib/constants";
 
 export const maxDuration = 300;
 
 const BUCKET = "tender-uploads";
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const MAX_TEXT_CHARS = 400_000;
+const MAX_FILE_SIZE = FILE_LIMITS.MAX_FILE_SIZE;
+const MAX_TEXT_CHARS = TEXT_LIMITS.MAX_TEXT_CHARS_SINGLE;
 
-const ALLOWED_CONTENT_TYPES = new Set([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "text/plain",
-]);
+const ALLOWED_CONTENT_TYPES = new Set(FILE_LIMITS.ALLOWED_CONTENT_TYPES);
 const ALLOWED_RFX_TYPES = new Set(["rfp", "rfq", "rfi", "other"]);
+const VALID_ROLES = new Set(TENDER_FILE_ROLES);
 
 function err(status, message) {
   return NextResponse.json({ success: false, error: message }, { status });
+}
+
+function normalizeContentType(raw) {
+  return typeof raw === "string" ? raw.split(";")[0].trim().toLowerCase() : "";
+}
+
+function validateFileDescriptor(entry, idx, userId) {
+  const storagePath = entry?.storagePath;
+  const filename = entry?.filename;
+  const contentType = normalizeContentType(entry?.contentType);
+  const role = entry?.role || "primary";
+
+  if (typeof storagePath !== "string" || !storagePath.startsWith(`${userId}/`) || storagePath.includes("..")) {
+    return `File ${idx + 1}: Invalid storagePath`;
+  }
+  if (typeof filename !== "string" || filename.length === 0) {
+    return `File ${idx + 1}: filename is required`;
+  }
+  if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
+    return `File ${idx + 1}: Unsupported content type. Allowed: PDF, DOCX, TXT, XLSX.`;
+  }
+  if (!VALID_ROLES.has(role)) {
+    return `File ${idx + 1}: Invalid role "${role}"`;
+  }
+  return { storagePath, filename, contentType, role };
 }
 
 export async function POST(request) {
@@ -53,26 +77,43 @@ export async function POST(request) {
       return err(400, "Invalid JSON body");
     }
 
-    const storagePath = body?.storagePath;
-    const filename = body?.filename;
-    const rawContentType = body?.contentType;
     const rfxType = body?.rfxType || "rfp";
-
-    if (typeof storagePath !== "string" || !storagePath.startsWith(`${user.id}/`) || storagePath.includes("..")) {
-      return err(400, "Invalid storagePath");
-    }
-    if (typeof filename !== "string" || filename.length === 0) {
-      return err(400, "filename is required");
-    }
-    const contentType =
-      typeof rawContentType === "string"
-        ? rawContentType.split(";")[0].trim().toLowerCase()
-        : "";
-    if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
-      return err(400, "Unsupported content type. Allowed: PDF, DOCX, TXT.");
-    }
     if (!ALLOWED_RFX_TYPES.has(rfxType)) {
       return err(400, "Invalid rfxType");
+    }
+
+    // Detect mode — legacy single-file or new batch.
+    const isBatch = Array.isArray(body?.files);
+    const rawEntries = isBatch
+      ? body.files
+      : [{
+          storagePath: body?.storagePath,
+          filename: body?.filename,
+          contentType: body?.contentType,
+          role: "primary",
+        }];
+
+    if (rawEntries.length < 1) {
+      return err(400, "At least one file is required.");
+    }
+    if (rawEntries.length > FILE_LIMITS.MAX_FILES_PER_PACKAGE) {
+      return err(400, `A tender package can contain at most ${FILE_LIMITS.MAX_FILES_PER_PACKAGE} files.`);
+    }
+
+    // Per-file validation
+    const fileDescriptors = [];
+    for (let i = 0; i < rawEntries.length; i++) {
+      const result = validateFileDescriptor(rawEntries[i], i, user.id);
+      if (typeof result === "string") {
+        return err(400, result);
+      }
+      fileDescriptors.push(result);
+    }
+
+    // Exactly one primary
+    const primaryCount = fileDescriptors.filter((f) => f.role === "primary").length;
+    if (primaryCount !== 1) {
+      return err(400, "Exactly one file must be designated as the primary RFP.");
     }
 
     // ── Plan-limit check (authoritative) ──
@@ -104,64 +145,86 @@ export async function POST(request) {
 
     log("auth + usage check done");
 
-    // ── Download file from storage via service-role client ──
+    // ── Service-role client for storage + downstream inserts ──
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!serviceRoleKey) {
       console.error("[analyze] SUPABASE_SERVICE_ROLE_KEY is not configured");
       return err(500, "Failed to retrieve uploaded file");
     }
-
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL,
       serviceRoleKey
     );
 
-    const { data: blob, error: dlError } = await adminClient.storage
-      .from(BUCKET)
-      .download(storagePath);
-
-    if (dlError || !blob) {
-      console.error("[analyze] storage download failed:", dlError);
-      return err(500, "Failed to retrieve uploaded file");
+    // ── Download + extract each file ──
+    const downloaded = [];
+    let totalSize = 0;
+    for (let i = 0; i < fileDescriptors.length; i++) {
+      const fd = fileDescriptors[i];
+      const { data: blob, error: dlError } = await adminClient.storage
+        .from(BUCKET)
+        .download(fd.storagePath);
+      if (dlError || !blob) {
+        console.error(`[analyze] storage download failed (file ${i + 1}):`, dlError);
+        return err(500, `Failed to retrieve uploaded file: ${fd.filename}`);
+      }
+      const buffer = Buffer.from(await blob.arrayBuffer());
+      if (buffer.length > MAX_FILE_SIZE) {
+        return err(400, `${fd.filename} is too large (over 50MB).`);
+      }
+      totalSize += buffer.length;
+      downloaded.push({ ...fd, buffer });
+      log(`downloaded ${fd.filename} (${buffer.length} bytes)`);
     }
 
-    const fileBuffer = Buffer.from(await blob.arrayBuffer());
-    const fileSize = fileBuffer.length;
-
-    log(`file downloaded from storage: ${filename} (${fileSize} bytes)`);
-
-    if (fileSize > MAX_FILE_SIZE) {
-      return err(400, "File too large (over 50MB)");
+    if (totalSize > FILE_LIMITS.MAX_TOTAL_SIZE) {
+      return err(400, "Combined file size exceeds the package limit.");
     }
 
-    // ── Parse + analyze based on content type ──
+    // ── Single-file fast path (preserves legacy behaviour exactly) ──
     let result;
-    if (contentType === "application/pdf") {
-      const base64PDF = fileBuffer.toString("base64");
-      result = await analyzeTenderFromPDF(base64PDF, rfxType);
-    } else if (
-      contentType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    ) {
-      const mammoth = await import("mammoth");
-      const extracted = await mammoth.extractRawText({ buffer: fileBuffer });
-      const text = extracted.value;
-      if (!text || text.trim().length === 0) {
-        return err(
-          400,
-          "Could not extract text from the uploaded file. The file may be empty or corrupted."
-        );
+    let primaryFile;
+    if (downloaded.length === 1) {
+      const only = downloaded[0];
+      primaryFile = only;
+      if (only.contentType === "application/pdf") {
+        const base64PDF = only.buffer.toString("base64");
+        result = await analyzeTenderFromPDF(base64PDF, rfxType);
+      } else {
+        let text;
+        try {
+          text = await extractFileText({ buffer: only.buffer, contentType: only.contentType });
+        } catch (e) {
+          console.error("[analyze] text extraction failed:", e);
+          return err(400, "Could not extract text from the uploaded file. The file may be empty or corrupted.");
+        }
+        if (!text || text.trim().length === 0) {
+          return err(400, "Could not extract text from the uploaded file. The file may be empty or corrupted.");
+        }
+        result = await analyzeTender(text.substring(0, MAX_TEXT_CHARS), rfxType);
       }
-      result = await analyzeTender(text.substring(0, MAX_TEXT_CHARS), rfxType);
     } else {
-      // text/plain
-      const text = fileBuffer.toString("utf-8");
-      if (!text || text.trim().length === 0) {
-        return err(
-          400,
-          "Could not extract text from the uploaded file. The file may be empty or corrupted."
-        );
+      // ── Multi-file (Tender Package) path ──
+      const extractedFiles = [];
+      for (const d of downloaded) {
+        let text;
+        try {
+          text = await extractFileText({ buffer: d.buffer, contentType: d.contentType });
+        } catch (e) {
+          console.error(`[analyze] text extraction failed for ${d.filename}:`, e);
+          return err(400, `Could not extract text from ${d.filename}. The file may be empty, corrupted, or a scanned-image PDF.`);
+        }
+        if (!text || text.trim().length === 0) {
+          return err(400, `${d.filename} contained no extractable text.`);
+        }
+        extractedFiles.push({
+          filename: d.filename,
+          role: d.role,
+          text,
+        });
       }
-      result = await analyzeTender(text.substring(0, MAX_TEXT_CHARS), rfxType);
+      primaryFile = downloaded.find((d) => d.role === "primary");
+      result = await analyzeTenderPackage(extractedFiles, rfxType);
     }
 
     log("AI analysis complete");
@@ -170,13 +233,13 @@ export async function POST(request) {
       return err(500, result.error);
     }
 
-    // ── Insert analyses row (file already in storage at storagePath) ──
-    const { data: insertedRow } = await supabase
+    // ── Insert analyses row (primary file path for backward compat) ──
+    const { data: insertedRow } = await adminClient
       .from("analyses")
       .insert({
         user_id: user.id,
-        file_name: filename,
-        file_path: storagePath,
+        file_name: primaryFile.filename,
+        file_path: primaryFile.storagePath,
         project_name: result.data?.summary?.projectName || "Unknown",
         bid_score:
           result.data?.bidScore?.score ??
@@ -188,6 +251,29 @@ export async function POST(request) {
       .single();
 
     const analysisId = insertedRow?.id ?? null;
+
+    // ── Insert one analysis_files row per file (only for true packages or when
+    //    explicitly batch — legacy single-file callers don't get a row, to
+    //    minimise behaviour change). ──
+    if (isBatch && analysisId) {
+      const fileRows = downloaded.map((d, i) => ({
+        analysis_id: analysisId,
+        user_id: user.id,
+        storage_path: d.storagePath,
+        file_name: d.filename,
+        content_type: d.contentType,
+        file_size: d.buffer.length,
+        role: d.role,
+        sort_order: i,
+      }));
+      const { error: filesError } = await adminClient
+        .from("analysis_files")
+        .insert(fileRows);
+      if (filesError) {
+        console.error("[analyze] analysis_files insert failed:", filesError.message);
+        // Non-fatal: the analysis row is saved; only the per-file metadata is missing.
+      }
+    }
 
     // ── Email notifications (fire-and-forget) ──
     const newUsageCount = (count ?? 0) + 1;
@@ -217,8 +303,8 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      fileName: filename,
-      fileSize,
+      fileName: primaryFile.filename,
+      fileSize: primaryFile.buffer.length,
       analysis: result.data,
       analysisId,
     });

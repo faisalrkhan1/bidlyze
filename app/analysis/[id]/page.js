@@ -19,6 +19,7 @@ import BidReadiness from "@/app/components/BidReadiness";
 import ClarificationRegister from "@/app/components/ClarificationRegister";
 import ComplianceMatrix from "@/app/components/ComplianceMatrix";
 import { FEATURES } from "@/lib/featureFlags";
+import { TENDER_FILE_ROLE_LABELS } from "@/lib/constants";
 
 function ScoreBadge({ score }) {
   const color =
@@ -103,6 +104,7 @@ export default function AnalysisDetailPage({ params }) {
   const { id } = use(params);
   const { user, loading: authLoading, logout } = useAuth();
   const [record, setRecord] = useState(null);
+  const [sourceFiles, setSourceFiles] = useState([]);
   const [notFound, setNotFound] = useState(false);
   const [userPlan, setUserPlan] = useState("free");
   const router = useRouter();
@@ -122,6 +124,19 @@ export default function AnalysisDetailPage({ params }) {
         } else {
           setRecord(data);
         }
+      });
+
+    // Best-effort fetch of analysis_files. If the table doesn't exist yet
+    // (pre-migration) the query errors; we silently fall back to the single-file
+    // representation.
+    getSupabase()
+      .from("analysis_files")
+      .select("storage_path, file_name, content_type, file_size, role, sort_order")
+      .eq("analysis_id", id)
+      .eq("user_id", user.id)
+      .order("sort_order", { ascending: true })
+      .then(({ data, error }) => {
+        if (!error && Array.isArray(data)) setSourceFiles(data);
       });
 
     getSupabase()
@@ -202,24 +217,28 @@ export default function AnalysisDetailPage({ params }) {
   const clarificationsSaved = record.clarifications || [];
 
 
-  async function downloadOriginal() {
-    if (!filePath) return;
+  async function downloadFromStorage(path, displayName) {
+    if (!path) return;
     // Bucket name matches the upload-side configuration in /api/storage/signed-upload
     // and /api/analyze. If you renamed the bucket, update both routes and this call.
     const { data, error } = await getSupabase().storage
       .from("tender-uploads")
-      .download(filePath);
+      .download(path);
     if (error || !data) {
       console.error("Download error:", error);
-      alert("The original file could not be downloaded right now. Please try again, or contact support if the issue persists.");
+      alert("The file could not be downloaded right now. Please try again, or contact support if the issue persists.");
       return;
     }
     const url = URL.createObjectURL(data);
     const a = document.createElement("a");
     a.href = url;
-    a.download = fileName || "tender-document";
+    a.download = displayName || "tender-document";
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  async function downloadOriginal() {
+    return downloadFromStorage(filePath, fileName);
   }
 
   return (
@@ -286,6 +305,10 @@ export default function AnalysisDetailPage({ params }) {
         {/* Quick Info Grid */}
         {FEATURES.showQuickInfoGrid && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <InfoCard
+            label="Files"
+            value={sourceFiles.length > 1 ? `${sourceFiles.length} documents` : (fileName || "Not specified")}
+          />
           <InfoCard label="Issuing Authority" value={summary?.issuingAuthority} />
           <InfoCard label="Tender Reference" value={summary?.tenderReference} />
           <InfoCard label="Estimated Value" value={summary?.estimatedValue ? `${summary.currency || ""} ${summary.estimatedValue}` : null} />
@@ -293,8 +316,51 @@ export default function AnalysisDetailPage({ params }) {
           <InfoCard label="Duration" value={summary?.projectDuration} />
           <InfoCard label="Location" value={summary?.location} />
           <InfoCard label="Sector" value={summary?.sector} />
-          <InfoCard label="Currency" value={summary?.currency} />
         </div>
+        )}
+
+        {/* Source documents — only meaningful for multi-file Tender Packages. */}
+        {FEATURES.showSourceDocumentsList && sourceFiles.length > 1 && (
+          <details className="rounded-2xl overflow-hidden" style={{ border: "1px solid var(--border-primary)" }}>
+            <summary className="px-5 py-3 cursor-pointer text-sm font-semibold flex items-center gap-2 list-none [&::-webkit-details-marker]:hidden" style={{ background: "var(--bg-subtle)" }}>
+              <svg className="w-4 h-4" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776" />
+              </svg>
+              Source documents ({sourceFiles.length})
+              <svg className="w-4 h-4 ml-auto transition-transform" style={{ color: "var(--text-muted)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </summary>
+            <div className="divide-y" style={{ borderColor: "var(--border-primary)" }}>
+              {sourceFiles.map((f) => (
+                <div key={f.storage_path} className="px-5 py-3 flex items-center gap-3">
+                  <span
+                    className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider shrink-0"
+                    style={{
+                      background: f.role === "primary" ? "var(--accent-muted)" : "var(--bg-input)",
+                      color: f.role === "primary" ? "var(--accent-text)" : "var(--text-muted)",
+                      border: f.role === "primary" ? "1px solid var(--accent-border)" : "1px solid var(--border-secondary)",
+                    }}
+                  >
+                    {TENDER_FILE_ROLE_LABELS[f.role] || f.role}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">{f.file_name}</p>
+                    <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                      {(f.file_size / (1024 * 1024)).toFixed(1)} MB
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => downloadFromStorage(f.storage_path, f.file_name)}
+                    className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+                    style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}
+                  >
+                    Download
+                  </button>
+                </div>
+              ))}
+            </div>
+          </details>
         )}
 
         {/* Brief Description */}

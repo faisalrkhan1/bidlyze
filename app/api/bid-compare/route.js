@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { TEXT_LIMITS } from "@/lib/constants";
 
 export const maxDuration = 300;
 
@@ -95,7 +96,7 @@ export async function POST(request) {
         model: "openai/gpt-5.4",
         messages: [
           { role: "system", content: "You are an expert procurement bid evaluation analyst. Compare all submissions structurally. Return ONLY valid JSON." },
-          { role: "user", content: `${BID_COMPARE_PROMPT}\n\nCOMPARISON TYPE: ${compareType}\nNUMBER OF SUBMISSIONS: ${submissions.length}\n\n${combinedText.substring(0, 400000)}` },
+          { role: "user", content: `${BID_COMPARE_PROMPT}\n\nCOMPARISON TYPE: ${compareType}\nNUMBER OF SUBMISSIONS: ${submissions.length}\n\n${combinedText.substring(0, TEXT_LIMITS.MAX_TEXT_CHARS_SINGLE)}` },
         ],
         max_tokens: 16384,
         response_format: { type: "json_object" },
