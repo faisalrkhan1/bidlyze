@@ -8,6 +8,7 @@ import {
   buildUsageWarningEmail,
 } from "@/lib/email";
 import { FILE_LIMITS, TEXT_LIMITS, TENDER_FILE_ROLES } from "@/lib/constants";
+import { FEATURES } from "@/lib/featureFlags";
 
 export const maxDuration = 300;
 
@@ -272,6 +273,30 @@ export async function POST(request) {
       if (filesError) {
         console.error("[analyze] analysis_files insert failed:", filesError.message);
         // Non-fatal: the analysis row is saved; only the per-file metadata is missing.
+      }
+    }
+
+    // ── Disqualification Risk Detector (fire-and-forget) ──
+    // The detector re-reads tender text from storage and runs a separate AI pass.
+    // We do not await it so the main analyze response stays fast; the UI polls
+    // disqualification_analyses to render the result when ready.
+    if (FEATURES.DISQUALIFICATION_RISK_DETECTOR && analysisId) {
+      try {
+        const disqualUrl = new URL("/api/analyze/disqualification", request.url).toString();
+        // Fire-and-forget. We deliberately do not await — the .catch() prevents
+        // an unhandled promise rejection from killing the process.
+        fetch(disqualUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ analysis_id: analysisId }),
+        }).catch((e) => {
+          console.error("[analyze] disqualification trigger fetch failed:", e?.message);
+        });
+      } catch (e) {
+        console.error("[analyze] disqualification trigger setup failed:", e?.message);
       }
     }
 
