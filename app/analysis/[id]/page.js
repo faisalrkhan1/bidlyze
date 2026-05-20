@@ -18,6 +18,7 @@ import ExportCenter from "@/app/components/ExportCenter";
 import BidReadiness from "@/app/components/BidReadiness";
 import ClarificationRegister from "@/app/components/ClarificationRegister";
 import ComplianceMatrix from "@/app/components/ComplianceMatrix";
+import { DisqualificationRiskBadge, DisqualificationRiskSection } from "@/app/components/DisqualificationRisk";
 import { FEATURES } from "@/lib/featureFlags";
 import { TENDER_FILE_ROLE_LABELS } from "@/lib/constants";
 
@@ -257,6 +258,12 @@ export default function AnalysisDetailPage({ params }) {
             {FEATURES.showBidScoreBadge && bidScore && <ScoreBadge score={bidScore.score} />}
             {FEATURES.showBidScoreBadge && bidScore && <RecommendationBadge recommendation={bidScore.recommendation} />}
             {FEATURES.showBidScoreBadge && !bidScore && analysis.qualificationSummary && <ScoreBadge score={analysis.qualificationSummary.fitScore} />}
+            {FEATURES.DISQUALIFICATION_RISK_DETECTOR && !isSpecializedType && (
+              <DisqualificationRiskBadge
+                analysisId={record.id}
+                analysisCreatedAt={record.created_at}
+              />
+            )}
           </div>
         </div>
 
@@ -406,6 +413,14 @@ export default function AnalysisDetailPage({ params }) {
         {/* RFP Results (existing comprehensive layout) */}
         {!isSpecializedType && (
           <>
+            {/* Disqualification Risks — surfaced at the top so eligibility gaps are seen first */}
+            {FEATURES.DISQUALIFICATION_RISK_DETECTOR && (
+              <DisqualificationRiskSection
+                analysisId={record.id}
+                analysisCreatedAt={record.created_at}
+              />
+            )}
+
             {/* AI Recommendation */}
             {bidScore?.reasoning && (
               <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
