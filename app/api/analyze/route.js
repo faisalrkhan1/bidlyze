@@ -9,6 +9,8 @@ import {
 } from "@/lib/email";
 import { FILE_LIMITS, TEXT_LIMITS, TENDER_FILE_ROLES } from "@/lib/constants";
 import { FEATURES } from "@/lib/featureFlags";
+import { extractPages } from "@/lib/readiness/pages";
+import { runReadinessAnalysis } from "@/lib/readiness/engine";
 
 export const maxDuration = 300;
 
@@ -182,10 +184,32 @@ export async function POST(request) {
       return err(400, "Combined file size exceeds the package limit.");
     }
 
-    // ── Single-file fast path (preserves legacy behaviour exactly) ──
+    // ── MVP: Tender Readiness engine (page-cited, verified) ──
     let result;
     let primaryFile;
-    if (downloaded.length === 1) {
+    let disqualificationRecord = null;
+    if (FEATURES.READINESS_ENGINE_V2) {
+      const ordered = [
+        ...downloaded.filter((d) => d.role === "primary"),
+        ...downloaded.filter((d) => d.role !== "primary"),
+      ];
+      const pagedFiles = [];
+      for (let i = 0; i < ordered.length; i++) {
+        const d = ordered[i];
+        try {
+          const { pages, scannedPages } = await extractPages({ buffer: d.buffer, contentType: d.contentType });
+          pagedFiles.push({ fileIndex: i + 1, filename: d.filename, role: d.role, pages, scannedPages });
+        } catch (e) {
+          console.error(`[analyze] page extraction failed for ${d.filename}:`, e);
+          return err(400, `Could not read ${d.filename}. The file may be empty, corrupted, or password-protected.`);
+        }
+      }
+      log("pages extracted");
+      primaryFile = ordered[0];
+      result = await runReadinessAnalysis({ files: pagedFiles, rfxType });
+      disqualificationRecord = result.disqualification || null;
+    } else if (downloaded.length === 1) {
+    // ── Legacy single-file path ──
       const only = downloaded[0];
       primaryFile = only;
       if (only.contentType === "application/pdf") {
@@ -256,7 +280,7 @@ export async function POST(request) {
     // ── Insert one analysis_files row per file (only for true packages or when
     //    explicitly batch — legacy single-file callers don't get a row, to
     //    minimise behaviour change). ──
-    if (isBatch && analysisId) {
+    if ((isBatch || FEATURES.READINESS_ENGINE_V2) && analysisId) {
       const fileRows = downloaded.map((d, i) => ({
         analysis_id: analysisId,
         user_id: user.id,
@@ -280,7 +304,13 @@ export async function POST(request) {
     // The detector re-reads tender text from storage and runs a separate AI pass.
     // We do not await it so the main analyze response stays fast; the UI polls
     // disqualification_analyses to render the result when ready.
-    if (FEATURES.DISQUALIFICATION_RISK_DETECTOR && analysisId) {
+    if (FEATURES.READINESS_ENGINE_V2 && disqualificationRecord && analysisId) {
+      // v2 already ran the disqualification pass with verified citations — save it directly.
+      const { error: dqError } = await adminClient
+        .from("disqualification_analyses")
+        .upsert({ analysis_id: analysisId, user_id: user.id, ...disqualificationRecord }, { onConflict: "analysis_id" });
+      if (dqError) console.error("[analyze] disqualification upsert failed:", dqError.message);
+    } else if (FEATURES.DISQUALIFICATION_RISK_DETECTOR && analysisId) {
       try {
         const disqualUrl = new URL("/api/analyze/disqualification", request.url).toString();
         // Fire-and-forget. We deliberately do not await — the .catch() prevents

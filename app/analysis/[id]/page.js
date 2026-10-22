@@ -18,6 +18,7 @@ import ExportCenter from "@/app/components/ExportCenter";
 import BidReadiness from "@/app/components/BidReadiness";
 import ClarificationRegister from "@/app/components/ClarificationRegister";
 import ComplianceMatrix from "@/app/components/ComplianceMatrix";
+import ReadinessSummary from "@/app/components/ReadinessSummary";
 import { DisqualificationRiskBadge, DisqualificationRiskSection } from "@/app/components/DisqualificationRisk";
 import { FEATURES } from "@/lib/featureFlags";
 import { TENDER_FILE_ROLE_LABELS } from "@/lib/constants";
@@ -413,6 +414,9 @@ export default function AnalysisDetailPage({ params }) {
         {/* RFP Results (existing comprehensive layout) */}
         {!isSpecializedType && (
           <>
+            {/* Tender Readiness Report header (readiness-v2 engine) */}
+            <ReadinessSummary analysis={analysis} />
+
             {/* Disqualification Risks — surfaced at the top so eligibility gaps are seen first */}
             {FEATURES.DISQUALIFICATION_RISK_DETECTOR && (
               <DisqualificationRiskSection
@@ -421,8 +425,8 @@ export default function AnalysisDetailPage({ params }) {
               />
             )}
 
-            {/* AI Recommendation */}
-            {bidScore?.reasoning && (
+            {/* AI Recommendation (legacy engine — v2 shows it in ReadinessSummary) */}
+            {bidScore?.reasoning && analysis.engine !== "readiness-v2" && (
               <div className="p-5 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
                 <div className="flex items-center gap-2.5 mb-2">
                   <p className="text-emerald-400 text-xs uppercase tracking-wider font-semibold">
@@ -858,7 +862,7 @@ export default function AnalysisDetailPage({ params }) {
         <UpgradeGate plan={userPlan} feature="complianceMatrix" label="Compliance, Risk & Pricing Analysis">
         <div className="space-y-3">
           {/* Compliance Overview — AI summary; the editable matrix is below */}
-          {FEATURES.showComplianceMatrix && complianceAnalysis && (
+          {FEATURES.showComplianceMatrix && complianceAnalysis && analysis.engine !== "readiness-v2" && (
             <Section title={<span className="flex items-center gap-2.5">Compliance Overview <ConfidenceBadge level={getSectionConfidence("complianceAnalysis")} /></span>} defaultOpen>
               <div className="space-y-6">
                 {/* Score + Summary Row */}
@@ -1243,7 +1247,10 @@ export default function AnalysisDetailPage({ params }) {
                     className="flex items-center justify-between p-3 rounded-lg transition-colors duration-300"
                     style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}
                   >
-                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{d.event}</span>
+                    <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                      {d.event}
+                      {d.sourceRef && <span className="ml-2 text-[10px]" style={{ color: "var(--text-muted)" }}>{d.sourceRef}{d.citation?.status === "unverified" ? " ⚠ check" : ""}</span>}
+                    </span>
                     <span className="text-emerald-400 text-sm font-medium">{d.date}</span>
                   </div>
                 ))}
