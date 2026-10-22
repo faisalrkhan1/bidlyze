@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { exportPDF } from "@/app/utils/exportPDF";
-import { exportToExcel, exportMultiSheetExcel } from "@/app/utils/exportExcel";
+import { exportToExcel, exportMultiSheetExcel, exportReadinessWorkbook } from "@/app/utils/exportExcel";
+import { getSupabase } from "@/lib/supabase";
 import { getComplianceExportData } from "./ComplianceMatrix";
 import { getClarificationExportData } from "./ClarificationRegister";
 import { hasFeature, PLAN_DISPLAY, minPlanFor } from "@/lib/plans";
@@ -152,6 +153,19 @@ export default function ExportCenter({
     const items = analysis?.complianceAnalysis?.items || [];
     if (items.length === 0) {
       alert("No compliance items found in this analysis. Re-run analysis with the full compliance breakdown.");
+      return;
+    }
+    if (analysis?.engine === "readiness-v2") {
+      let disqualification = null;
+      if (analysisId) {
+        const { data } = await getSupabase()
+          .from("disqualification_analyses")
+          .select("risk_score, risk_level, fixed_checks, dynamic_findings, summary")
+          .eq("analysis_id", analysisId)
+          .maybeSingle();
+        disqualification = data || null;
+      }
+      exportReadinessWorkbook({ analysis, complianceEdits: complianceEdits || {}, disqualification, fileName: `${baseName}_Tender_Readiness.xlsx` });
       return;
     }
     const rows = getComplianceExportData(items, complianceEdits || {});

@@ -48,6 +48,20 @@ function Dropdown({ value, options, onChange }) {
   );
 }
 
+
+const CITATION_BADGE = {
+  verified: { label: "✓ Verified", cls: "bg-emerald-500/10 text-emerald-400", tip: "Quote found on the cited page" },
+  relocated: { label: "✓ Page fixed", cls: "bg-emerald-500/10 text-emerald-400", tip: "Quote found — page number corrected automatically" },
+  approximate: { label: "≈ Close match", cls: "bg-amber-500/10 text-amber-400", tip: "Most of the quote matches the cited page — check wording" },
+  unverified: { label: "⚠ Check source", cls: "bg-red-500/10 text-red-400", tip: "Quote not found in the tender — verify before relying on this" },
+};
+
+function CitationBadge({ status }) {
+  const b = CITATION_BADGE[status];
+  if (!b) return null;
+  return <span title={b.tip} className={`inline-block ml-1.5 px-1.5 py-0.5 rounded text-[9px] font-semibold align-middle ${b.cls}`}>{b.label}</span>;
+}
+
 export default function RequirementsTable({ analysisId, userId, requirements = [], complianceItems = [] }) {
   const [edits, setEdits] = useState({});
   const [filter, setFilter] = useState("all");
@@ -306,8 +320,9 @@ export default function RequirementsTable({ analysisId, userId, requirements = [
                   </div>
 
                   {/* Source Ref */}
-                  <div className="col-span-2 text-[10px] truncate" style={{ color: row.sourceRef ? "var(--text-secondary)" : "var(--text-muted)" }}>
+                  <div className="col-span-2 text-[10px] break-words" style={{ color: row.sourceRef ? "var(--text-secondary)" : "var(--text-muted)" }}>
                     {row.sourceRef || "—"}
+                    {row.citation && <CitationBadge status={row.citation.status} />}
                   </div>
 
                   {/* Category */}
@@ -347,6 +362,18 @@ export default function RequirementsTable({ analysisId, userId, requirements = [
                         <div>
                           <p className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Source Reference</p>
                           <p className="text-xs font-medium" style={{ color: "var(--accent-text)" }}>{row.sourceRef}</p>
+                        </div>
+                      )}
+                      {row.citation?.quote && (
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Tender Text</p>
+                          <p className="text-xs leading-relaxed italic" style={{ color: "var(--text-secondary)" }}>&ldquo;{row.citation.quote}&rdquo;</p>
+                        </div>
+                      )}
+                      {row.responseNeeded && (
+                        <div>
+                          <p className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>What To Submit</p>
+                          <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{row.responseNeeded}</p>
                         </div>
                       )}
                       {row.commonIssue && (
@@ -408,6 +435,7 @@ function buildRows(requirements, complianceItems) {
       rows.push({
         id: `req-${i}`, requirement: r.requirement, category: r.category || "Technical",
         mandatory: r.mandatory, priority: r.priority, sourceRef: r.sourceRef || null,
+        citation: r.citation || null, responseNeeded: r.responseNeeded || null,
         source: "requirements", commonIssue: null, remediation: null, timeToRemediate: null,
       });
       seen.add(r.requirement?.toLowerCase().trim());
@@ -416,6 +444,7 @@ function buildRows(requirements, complianceItems) {
 
   if (complianceItems?.length) {
     complianceItems.forEach((c, i) => {
+      if (c.citationStatus) return; // readiness-v2: compliance rows mirror requirements
       const text = c.item || c.requirement;
       if (!text || seen.has(text.toLowerCase().trim())) return;
       seen.add(text.toLowerCase().trim());

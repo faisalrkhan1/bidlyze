@@ -10,7 +10,7 @@ const BUCKET = "tender-uploads";
 
 // Mirror lib/gemini.js — same model, same headers, same error handling.
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "openai/gpt-5.4";
+const MODEL = process.env.AI_MODEL || "anthropic/claude-sonnet-5.5";
 
 function err(status, message) {
   return NextResponse.json({ success: false, error: message }, { status });
