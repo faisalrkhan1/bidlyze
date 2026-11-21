@@ -6,6 +6,8 @@ select 'can read own analyses' as test, count(*) as result from public.analyses;
 with u as (update public.analyses set requirement_statuses = '{"edits":{}}' where id = 'aaaaaaaa-0000-0000-0000-000000000001' returning 1)
 select 'can save own requirement edits', count(*) from u;
 select 'can read own plan', count(*) from public.subscriptions;
+with u as (update public.analyses set clarifications = '[]' where id = 'aaaaaaaa-0000-0000-0000-000000000001' returning 1)
+select 'can save clarifications', count(*) from u;
 select 'can read own risk check', count(*) from public.disqualification_analyses;
 select 'can download own file', count(*) from storage.objects where bucket_id = 'tender-uploads';
 reset role;

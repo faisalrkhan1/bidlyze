@@ -1,31 +1,35 @@
--- Harden Row Level Security on the core tables.  NOT YET APPLIED.
+-- Harden Row Level Security on the core tables and fix two schema gaps.
 --
--- Why: the analyses, subscriptions and disqualification_analyses tables were
--- created in the Supabase dashboard, so their policies are not in version
--- control and have never been reviewed. The app's usage limit and plan come
--- from these tables, so the database itself must stop a signed-in user from:
---   * raising their own plan or analyses_limit (subscriptions),
---   * back-dating created_at to reset the monthly usage count (analyses),
---   * moving a row to another user (analyses.user_id),
---   * reading anyone else's rows or uploaded tender files.
+-- Written against the live policies found by supabase/verify/01_rls_audit_READ_ONLY.sql
+-- on 21 Nov 2026 (project ufamfwmdzwrjvubaaohb):
 --
--- What the app actually needs (checked against every query in the code):
+--   analyses       "Service can insert analyses"  INSERT WITH CHECK (true), role public
+--                    -> anyone holding the public anon key could insert analysis
+--                       rows under ANY user's id (fake tenders in their dashboard,
+--                       or use up their monthly allowance).
+--                  NO UPDATE policy
+--                    -> every in-app edit (compliance matrix, requirement status,
+--                       notes, tender status, decisions) silently failed to save.
+--   subscriptions  "Users can insert own subscription"  INSERT WITH CHECK (auth.uid() = user_id)
+--                    -> a new user could create their own row with any plan and
+--                       analyses_limit before the server provisions one.
+--   disqualification_analyses  users could insert/update/delete their own risk
+--                    checks (all writes are meant to come from the server).
+--   analyses.clarifications column missing -> the Clarification Register could
+--                    not save.
+--   tender-uploads bucket allows only PDF/DOCX/TXT -> XLSX (BOQ) uploads,
+--                    which the app offers, were rejected by storage.
+--
+-- What the app needs (checked against every query in the code):
 --   analyses                  SELECT/UPDATE own rows (browser); INSERT own rows
 --                             (bid-compare/workspace, currently disabled).
---                             Main analysis rows are inserted server-side with
---                             the service role, which bypasses RLS.
+--                             The server inserts with the service role, which
+--                             bypasses RLS, so no "insert anything" policy.
 --   subscriptions             SELECT own row only. All writes are server-side.
 --   disqualification_analyses SELECT own rows only. All writes are server-side.
---   storage tender-uploads    SELECT (download) of files in the user's own
---                             folder "<user_id>/...". Uploads use signed URLs
---                             created server-side, so no INSERT policy needed.
+--   storage tender-uploads    existing own-folder policies are correct; unchanged.
 --
--- This replaces whatever policies exist on those three tables with exactly
--- that set. Run supabase/verify/01_rls_audit_READ_ONLY.sql first and keep its
--- output, so the old policies are on record.
---
--- Apply: Supabase Dashboard → SQL Editor → paste → Run (after approval).
--- Then run supabase/verify/02_rls_selftest_ROLLBACK.sql to prove it works.
+-- Safe to run more than once.
 
 begin;
 
@@ -47,11 +51,11 @@ create policy "analyses_insert_own" on public.analyses
 create policy "analyses_update_own" on public.analyses
   for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
 -- No DELETE policy: deleting rows would reset the monthly usage count.
--- Customer deletion will be a server-side route that removes the files and
--- content but keeps a content-free row for usage metering.
+-- Customers delete tenders through /api/analysis/delete, which removes the
+-- files and content but keeps a content-free row for usage metering.
 
 -- user_id and created_at never change after insert (created_at drives the
--- monthly usage limit).
+-- monthly usage limit, so back-dating would reset it).
 create or replace function public.analyses_lock_owner_and_created()
 returns trigger language plpgsql as $$
 begin
@@ -65,6 +69,9 @@ drop trigger if exists trg_analyses_lock_owner_and_created on public.analyses;
 create trigger trg_analyses_lock_owner_and_created
   before update on public.analyses
   for each row execute function public.analyses_lock_owner_and_created();
+
+-- Clarification Register saves here (app/components/ClarificationRegister.js).
+alter table public.analyses add column if not exists clarifications jsonb;
 
 -- ── subscriptions ───────────────────────────────────────────────────────────
 alter table public.subscriptions enable row level security;
@@ -96,31 +103,18 @@ end$$;
 create policy "disqualification_select_own" on public.disqualification_analyses
   for select to authenticated using (auth.uid() = user_id);
 
--- ── storage: tender-uploads ─────────────────────────────────────────────────
--- Private bucket, and enforce the 50 MB limit on the storage side too (the
--- signed-upload route only checks the size the browser *declares*).
--- File types are NOT restricted here: the browser uploads with whatever type
--- the operating system reports (sometimes empty -> application/octet-stream),
--- so a type list would block real tenders. /api/analyze validates the type.
+-- ── storage bucket ──────────────────────────────────────────────────────────
+-- Private; 50 MB per file (the app's own limit); the four file types the app
+-- accepts, now including XLSX for BOQs. Storage access policies are unchanged.
 update storage.buckets
 set public = false,
-    file_size_limit = 52428800
+    file_size_limit = 52428800,
+    allowed_mime_types = array[
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ]
 where id = 'tender-uploads';
-
-do $$
-declare p record;
-begin
-  for p in
-    select policyname from pg_policies
-    where schemaname = 'storage' and tablename = 'objects'
-      and (coalesce(qual, '') ilike '%tender-uploads%' or coalesce(with_check, '') ilike '%tender-uploads%')
-  loop
-    execute format('drop policy %I on storage.objects', p.policyname);
-  end loop;
-end$$;
-
-create policy "tender_uploads_read_own_folder" on storage.objects
-  for select to authenticated
-  using (bucket_id = 'tender-uploads' and (storage.foldername(name))[1] = auth.uid()::text);
 
 commit;
