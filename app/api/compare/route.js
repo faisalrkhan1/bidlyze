@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FEATURES } from "@/lib/featureFlags";
 import { createClient } from "@supabase/supabase-js";
 import { compareTenderAmendments, compareTenderPDFs } from "@/lib/gemini";
 
@@ -30,6 +31,11 @@ async function extractText(file) {
 }
 
 export async function POST(request) {
+  // Hidden feature: refuse server-side too, so the AI endpoint can't be called
+  // directly (no plan-limit check here, so it would be unmetered AI spend).
+  if (!FEATURES.showBidCompareRoute) {
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+  }
   try {
     // Authenticate user
     const authHeader = request.headers.get("authorization");

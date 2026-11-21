@@ -306,6 +306,18 @@ export async function POST(request) {
       .single();
     if (rowError || !analysisRow) return err(404, "Analysis not found");
 
+    // Each analysis gets one risk check. Re-running would be repeat AI spend
+    // with no plan-limit check, so return the stored result if there is one.
+    const { data: existingCheck } = await supabase
+      .from("disqualification_analyses")
+      .select("*")
+      .eq("analysis_id", analysisId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (existingCheck) {
+      return NextResponse.json({ success: true, disqualification: existingCheck, cached: true });
+    }
+
     log("auth + ownership verified");
 
     // ── Service-role client for storage download + upsert (matches analyze route) ──

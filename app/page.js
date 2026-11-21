@@ -10,11 +10,11 @@ const PAYMENTS_LIVE = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 export const metadata = {
   title: "Bidlyze",
   description:
-    "Analyze RFI, RFQ, RFP, and tender packages with AI. Get compliance mapping, requirement extraction, risk assessment, pricing analysis, and response planning — in minutes, not days.",
+    "Upload an RFI, RFQ, RFP or tender package and get a page-cited compliance matrix, a 20-point GCC disqualification check, clarification questions and a bid / no-bid recommendation.",
   keywords: "RFx analysis, RFP analysis, RFQ analysis, RFI analysis, tender intelligence, bid management, procurement intelligence, tender compliance, bid scoring, proposal automation, tender risk assessment, go no-go decision",
   openGraph: {
     title: "Bidlyze",
-    description: "From raw RFx documents to structured bid intelligence. Compliance, requirements, risks, and response planning in one platform.",
+    description: "From raw RFx documents to a page-cited tender readiness report: requirements, GCC disqualification checks and clarification questions.",
     type: "website",
     locale: "en_US",
     siteName: "Bidlyze",
@@ -28,48 +28,43 @@ export const metadata = {
 
 const FEATURES = [
   {
-    title: "RFx Type Analysis",
-    description: "Upload RFI, RFQ, RFP, or tender documents and get analysis tailored to each document type — from qualification fit to full bid evaluation.",
+    title: "Page-Cited Compliance Matrix",
+    description: "Every requirement in the RFP or tender package is listed with the file and page it came from, marked mandatory or desirable, and exported to Excel.",
     icon: "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
   },
   {
-    title: "Compliance & Requirement Extraction",
-    description: "Automatically extract every requirement, map compliance gaps, identify missing documents, and generate an actionable remediation checklist.",
+    title: "Every Quote Checked Against the Document",
+    description: "Bidlyze checks each quoted sentence against the tender text itself, not with AI, and labels it verified or unverified so you know what to double-check.",
     icon: "M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.745 3.745 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z",
   },
   {
-    title: "Commercial & BOQ Understanding",
-    description: "Extract pricing structures, BOQ line items, financial requirements, and commercial risk flags — structured for quoting and cost analysis.",
-    icon: "M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-  },
-  {
-    title: "Risk & Assumption Mapping",
-    description: "Identify timeline, financial, technical, and legal risks with severity ratings, likelihood analysis, and concrete mitigation strategies.",
+    title: "GCC Disqualification Check",
+    description: "20 common GCC knockout items, such as bid bonds, ICV certificates, portal registration, OEM authorisation letters, site visits and stamped or Arabic documents, checked against your tender.",
     icon: "M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z",
   },
   {
-    title: "Bid / No-Bid Decision Support",
-    description: "Scored qualification assessment with win probability, competitive positioning, strengths, and weaknesses — backed by data, not gut feel.",
+    title: "Bid / No-Bid Recommendation",
+    description: "A Bid, Conditional Bid or No-Bid recommendation with the reasons and the top actions, built from the findings in the report. The decision stays yours.",
     icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z",
   },
   {
-    title: "Response Planning & Proposal Writer",
-    description: "Generate tailored proposal sections — executive summary, technical response, compliance matrix, methodology — directly from your analysis.",
+    title: "Clarification Questions",
+    description: "Draft questions for the buyer about ambiguous or conflicting requirements, each tied to the page it refers to, ready to send before the clarification deadline.",
     icon: "m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10",
   },
 ];
 
 const STEPS = [
-  { step: "01", title: "Select & Upload", description: "Choose your document type — RFI, RFQ, RFP, or other tender — and upload a PDF, DOCX, or TXT file." },
-  { step: "02", title: "Get Structured Intelligence", description: "Receive tailored analysis: requirements extraction, compliance mapping, risk assessment, pricing insights, and qualification scoring." },
-  { step: "03", title: "Decide & Respond", description: "Make data-backed go/no-go decisions and generate proposal sections to accelerate your response timeline." },
+  { step: "01", title: "Upload Your Tender", description: "Upload the RFP or the full tender package: PDF, DOCX, XLSX or TXT files." },
+  { step: "02", title: "Get a Cited Readiness Report", description: "Requirements, disqualification checks, key dates and clarification questions, each linked to the page it came from." },
+  { step: "03", title: "Review and Decide", description: "Check anything flagged as unverified, export the Excel compliance matrix, and make the bid / no-bid call." },
 ];
 
 const METRICS = [
-  { value: "4", label: "RFx types supported" },
-  { value: "10+", label: "Assessment dimensions" },
-  { value: "6", label: "Proposal sections generated" },
-  { value: "PDF", label: "Export-ready reports" },
+  { value: "20", label: "GCC disqualification checks" },
+  { value: "Page", label: "Citation on every finding" },
+  { value: "4", label: "File types: PDF, DOCX, XLSX, TXT" },
+  { value: "Excel", label: "Compliance matrix export" },
 ];
 
 export default function LandingPage() {
@@ -189,9 +184,9 @@ export default function LandingPage() {
               <div className="space-y-4">
                 {[
                   { label: "RFI / RFQ / RFP / Tender", detail: "One platform for every RFx document type in your pipeline" },
-                  { label: "Requirement Extraction", detail: "Structured table with status tracking, categories, and remediation steps" },
-                  { label: "Qualification & Scoring", detail: "Data-backed bid/no-bid decisions with win probability and risk mapping" },
-                  { label: "Response Planning", detail: "Generate proposal sections and compliance matrices from your analysis" },
+                  { label: "Requirement Extraction", detail: "Structured table with mandatory / desirable flags, status tracking and page citations" },
+                  { label: "Disqualification Check", detail: "20 common GCC knockout items checked against the tender" },
+                  { label: "Bid / No-Bid", detail: "A recommendation with reasons and top actions, built from the verified findings" },
                 ].map((d) => (
                   <div key={d.label} className="flex items-start gap-3">
                     <div className="w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -247,7 +242,7 @@ export default function LandingPage() {
               Three steps from document to decision
             </h2>
             <p className="text-sm max-w-lg mx-auto" style={{ color: "var(--text-secondary)" }}>
-              No training required. No configuration. Upload a document and get results in under 60 seconds.
+              No training required. Upload a document and get a structured report in a few minutes.
             </p>
           </div>
 
@@ -269,30 +264,28 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Social Proof / Trust */}
+      {/* How findings are checked (replaces placeholder testimonials until real customers agree to be quoted) */}
       <section className="py-16" style={{ borderTop: "1px solid var(--border-primary)" }}>
         <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight mb-8 text-center">How Bidlyze keeps findings honest</h2>
           <div className="grid sm:grid-cols-3 gap-8">
             {[
               {
-                quote: "We used to spend 2 days reviewing each tender. Now we get a scored recommendation in under a minute.",
-                role: "Bid Manager, Engineering Consultancy",
+                title: "Every finding shows its page",
+                body: "Each requirement and risk links to the file and page it came from, so a reviewer can check it in seconds.",
               },
               {
-                quote: "The compliance mapping alone saved us from submitting an incomplete bid. That would have been a wasted month of work.",
-                role: "Contracts Director, IT Services",
+                title: "Quotes are checked by code",
+                body: "After the AI reads the tender, Bidlyze searches the document text for every quoted sentence. Anything it cannot find is marked unverified.",
               },
               {
-                quote: "Having a data-backed go/no-go framework changed how our leadership makes pursuit decisions.",
-                role: "Head of Proposals, Construction Firm",
+                title: "You make the call",
+                body: "Bidlyze is a review aid, not a guarantee. Always confirm requirements against the tender documents before you submit.",
               },
             ].map((t) => (
-              <div key={t.role} className="p-6 rounded-2xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
-                <svg className="w-6 h-6 text-emerald-500/30 mb-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H14.017zM0 21v-7.391c0-5.704 3.731-9.57 8.983-10.609L9.978 5.151c-2.432.917-3.995 3.638-3.995 5.849h4v10H0z" />
-                </svg>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--text-secondary)" }}>{t.quote}</p>
-                <p className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>{t.role}</p>
+              <div key={t.title} className="p-6 rounded-2xl" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
+                <h3 className="font-semibold mb-2">{t.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{t.body}</p>
               </div>
             ))}
           </div>
