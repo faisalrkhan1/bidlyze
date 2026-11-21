@@ -129,8 +129,13 @@ export async function GET(request) {
           const it = m ? byTi.get(m.tiId) : null;
           return it ? { ...it, id: k.id, viaTi: m.tiId } : { id: k.id, status: undefined, aiStatus: undefined, evidence: [] };
         }) };
+        const expected = JSON.parse(await readFile(path.join(bdir, "runs", `${ti}.expected.json`), "utf8"));
         return NextResponse.json({
           ok: true, model: currentModel(), fixture: ti,
+          // Primary: each extracted requirement scored on its own terms (expected
+          // statuses derived from the answer key, see runs/<ti>.expected.json).
+          extractedScore: scoreSubmission(expected, sc),
+          // Secondary: mapped back to the 38 answer-key items (merges distort this).
           chainedScore: scoreSubmission(key, mapped),
           chainedItems: mapped.items.map((i) => (i.viaTi ? `${i.id} via ${i.viaTi}: ${i.status} (ai ${i.aiStatus}, ${i.decidedBy}) ${i.evidence.map((e) => `p.${e.page} ${e.status}`).join(", ")}` : `${i.id}: not matched`)),
           extractedItems: sc.items.map((i) => `${i.id}: ${i.status} (ai ${i.aiStatus}) | ${i.gap}`),

@@ -219,3 +219,13 @@ test("echo: reusing the tender's words is not an echo; copying it is", () => {
   assert.equal(isEcho("It covers the initial installation and annual maintenance for Years 1 and 2.", r34), false);
   assert.equal(isEcho("A separate document confirming the total price for the initial installation and annual maintenance contract", r34), true);
 });
+
+test("'manual' (submission-process items) is kept, flagged for the user, and never counted as answered", async () => {
+  const [responseFiles] = await Promise.all([load("ECTA_test_response.pdf")]);
+  const g = applyGates({ id: "X1", requirement: "Seal the tender pack with no supplier markings." }, { status: "manual", evidence: [], gap: "Check the pack is sealed." }, buildIndex(responseFiles));
+  assert.equal(g.status, "manual");
+  assert.ok(g.flags.some((f) => /Check this yourself/.test(f)));
+  const s = scoreSubmission({ requirements: [{ id: "X1", expected: "answered", trap: "" }, { id: "X2", expected: "missing", trap: "" }] }, { items: [{ id: "X1", status: "manual", aiStatus: "manual", evidence: [] }, { id: "X2", status: "manual", aiStatus: "manual", evidence: [] }] });
+  assert.deepEqual(s.final.missedIssues, [], "manual is never a silent miss");
+  assert.equal(s.final.falseAlarmCount, "1/1", "manual on a real, answered requirement counts against us");
+});
