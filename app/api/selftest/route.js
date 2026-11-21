@@ -7,6 +7,7 @@ import { askJSON, currentModel, providerPreferences } from "@/lib/readiness/ai";
 import { score } from "@/lib/readiness/benchmark";
 import { runSubmissionCheck } from "@/lib/submission/check";
 import { scoreSubmission } from "@/lib/submission/benchmark";
+import { loadBenchmarkSource } from "@/lib/benchmarks/fetchSource";
 
 // Live self-test — PREVIEW DEPLOYMENTS ONLY (404 in production).
 //
@@ -55,6 +56,19 @@ export async function GET(request) {
     }
 
     const dir = path.join(process.cwd(), "tests", "e2e");
+
+    // Real-world benchmark: download an allowlisted public tender and return
+    // its page text exactly as the product's extractor sees it.
+    if (mode === "extract") {
+      const src = await loadBenchmarkSource(new URL(request.url).searchParams.get("bench") || "");
+      return NextResponse.json({
+        ok: true,
+        meta: src.meta,
+        pages: src.files[0].pages.map((p) => ({ n: p.n, text: p.text })),
+        scannedPages: src.files[0].scannedPages,
+        ms: Date.now() - t0,
+      });
+    }
 
     if (mode === "submission") {
       const [tenderPdf, responsePdf, subTruthRaw] = await Promise.all([
