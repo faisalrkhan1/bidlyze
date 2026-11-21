@@ -30,6 +30,7 @@ a justification and the trap type:
 | Benchmark construction | `make_proposal.py`, `make_answer_key.py`, `answer_key.json`, `supplier_proposal.pdf` |
 | Test execution (raw results of each live run) | `runs/` |
 | Findings and proposed fixes | `FINDINGS.md` |
+| Report with metrics and recommendation | `BENCHMARK_REPORT.md` |
 
 ## Running it (preview only)
 
@@ -42,4 +43,8 @@ Each URL below is opened on a preview deployment:
 - `/api/selftest?mode=bench-readiness&bench=alton-cctv-2026`: runs Tender Intelligence on the
   tender.
 - `/api/selftest?mode=bench-chained&bench=alton-cctv-2026`: feeds the requirements Tender
-  Intelligence extracted into Submission Check.
+  Intelligence extracted into Submission Check, in a single request. It takes about 2 minutes, which is too long for some clients.
+- `/api/selftest?mode=bench-readiness&bench=alton-cctv-2026&emit=requirements`: returns the extracted requirements, to
+  save as `runs/ti-runN.requirements.json`.
+- `/api/selftest?mode=bench-chained-fixture&bench=alton-cctv-2026&ti=ti-run3`: runs Submission Check on a saved
+  Tender Intelligence output. It is repeatable and is scored per extracted requirement.

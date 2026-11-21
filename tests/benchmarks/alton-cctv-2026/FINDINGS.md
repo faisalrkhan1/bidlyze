@@ -36,7 +36,7 @@ Submission Check: 3 runs × 38 requirements = 114 verdicts (raw records in `runs
 
 Summary before fixes: AI-only verdicts were 108/114 exact, 114/114 issue agreement, **0 missed issues and 0 false alarms**. After the code checks: 107/114 exact and **1 false alarm, created by the code** (F1). Across the 3 live runs the code checks changed 2 verdicts, and both changes were wrong.
 
-Tender Intelligence: 2 runs, raw output in the run notes in `BENCHMARK_REPORT.md`.
+Tender Intelligence: 3 runs (`runs/ti-run*.json`).
 
 | # | Finding | Root cause | Action |
 |---|---|---|---|
@@ -54,3 +54,16 @@ Tender Intelligence: 2 runs, raw output in the run notes in `BENCHMARK_REPORT.md
 | C2 | Merged requirements (T1) get one verdict. The verdict was correct for the merged requirement (e.g. insurance R20 = conflict because professional indemnity is £5m), but scoring against the 38 atomic items counts the good half as a false alarm. | **Measurement artefact**, plus TI granularity (T1). | Chained runs are now scored per extracted requirement (`runs/ti-run3.expected.json`, derived mechanically from the answer key). Splitting compound requirements in TI is left as a recommendation. |
 | C3 | HERS "certificates for the remaining four engineers will follow on award" was rated conflict (key: partial). | **Prompting side effect.** The new conflict rule lists "deferred"; the given-requirements runs still said partial 3/3. | Not changed; it is flagged either way. Watch it. |
 | C4 | **Regression caused by C1:** on the ECTA test, Q04 (supplier registered on the e-procurement portal) was marked `manual` although the response evidences it in an annex table. It was a false alarm (1/6) and the correct "answered" was lost. | **Prompting.** The first `manual` wording let the model use it for an item the response *does* address. | `manual` now requires both conditions: a process or conduct instruction **and** silence in the response ("if the response mentions the item at all, judge it"). Registrations were added to the never-manual list. Re-tested below. |
+
+**Re-test of C4 on the final build (`f33c7bd`):** ECTA 16/18 and 18/18. "Check manually" was not misused. In one run Q04 was rated partial instead, because the response did not state the closing date (AI reasoning), and Q07 was rated conflict instead of partial (severity). Alton given-requirements: 35/38, with 0 uses of "check manually" on real requirements. Chained: 36/39, 5/8 process items shown as "check manually".
+
+## Status at the end of this round
+
+| Area | Fixed | Open |
+|---|---|---|
+| Code checks | F1–F4 (echo, whole-word numbers, "within", unit conversion) | Deviation-word flag is noisy ("not blocked by trees"); tune in the UI phase |
+| Prompt | F6 (Year-3 deferral now conflict 5/5), F8 (both quotes 20/20), C1/C4 ("check manually") | F5: A35 still partial in 4/5 runs. Severity varies on about 5% of verdicts |
+| AI reasoning | n/a | A03 and A19 rated partial instead of missing (always flagged) |
+| Tender Intelligence | n/a | T1: split compound requirements (needs approval; changes the production matrix). T4: GCC-only fixed checklist |
+
+Full metrics and the recommendation are in `BENCHMARK_REPORT.md`.

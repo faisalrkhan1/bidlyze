@@ -1,0 +1,24 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "deployment": "dpl_4EvgXH1qHnrtLAP2RWxT817EHDmW",
+ "commit": "f33c7bd",
+ "date": "2026-11-21T18:08Z",
+ "note": "final build",
+ "mode": "submission (ECTA regression)",
+ "run": "regress3",
+ "final": {
+  "exact": "16/18",
+  "issuesFlagged": "12/12",
+  "falseAlarms": "1/6"
+ },
+ "wrong": [
+  "Q04: expected answered, got partial (AI: registration date given but closing date not stated in the response)",
+  "Q07: expected partial, got conflict (two of three certificates read as a 'lower value')"
+ ],
+ "usage": {
+  "promptTokens": 3347,
+  "completionTokens": 1535,
+  "costUsd": 0.023
+ },
+ "engineMs": 8427
+}

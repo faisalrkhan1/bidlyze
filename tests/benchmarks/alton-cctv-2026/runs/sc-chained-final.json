@@ -1,0 +1,33 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "deployment": "dpl_4EvgXH1qHnrtLAP2RWxT817EHDmW",
+ "commit": "f33c7bd",
+ "date": "2026-11-21T18:08Z",
+ "note": "final build",
+ "mode": "bench-chained-fixture",
+ "fixture": "ti-run3",
+ "extractedScore": {
+  "exact": "36/39",
+  "processItemsMarkedManual": "5/8",
+  "issuesFlagged": "19/19",
+  "falseAlarms": "0/12",
+  "wrong": [
+   "R5: expected manual, got partial",
+   "R34: expected manual, got conflict",
+   "R36: expected manual, got partial"
+  ]
+ },
+ "evidence": {
+  "responseQuotesFound": "40/40",
+  "tenderQuotesVerified": "39/39",
+  "contradictionsBothSidesCited": "4/4"
+ },
+ "usage": {
+  "calls": 1,
+  "promptTokens": 8224,
+  "completionTokens": 9750,
+  "cachedTokens": 0,
+  "costUsd": 0.1163
+ },
+ "engineMs": 57093
+}
