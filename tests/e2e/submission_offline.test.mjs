@@ -189,3 +189,33 @@ test("if every AI call fails, the check reports an error instead of a result", a
   globalThis.fetch = saved;
   assert.equal(r.success, false);
 });
+
+// ── Regression tests for bugs found by the real-world benchmark (Alton) ─────
+test("number words are whole words: 'height certificates' is not 'eight certificates'", () => {
+  assert.deepEqual(extractQuantities("Hold working at height certificates for operating a cherry picker."), []);
+  assert.deepEqual(extractQuantities("we attend site often; someone will call"), []);
+  assert.deepEqual(extractQuantities("eight certificates").map((q) => [q.n, q.unit]), [[8, "certificates"]]);
+});
+
+test("'within N hours' is a maximum; the nearest min/max word wins", () => {
+  assert.deepEqual(extractQuantities("evaluate within 24 hours of the report").map((q) => q.cmp), ["<="]);
+  assert.equal(compareValues("Evaluate each reported fault within 24 hours of the report.", "assess the fault within 12 hours").conflicts.length, 0, "a faster promise complies");
+  assert.equal(compareValues("Evaluate each reported fault within 24 hours of the report.", "assess the fault within 48 hours").conflicts.length, 1);
+  assert.deepEqual(extractQuantities("within 2 weeks of award, provide a minimum of 3 copies").map((q) => [q.n, q.cmp]), [[2, "<="], [3, ">="]]);
+  assert.deepEqual(extractQuantities("store at least 31 days of recordings").map((q) => q.cmp), [">="]);
+});
+
+test("durations compare across units (72 hours = three days)", () => {
+  const ok = compareValues("Remedy all reported faults within three days.", "Faults are remedied within 72 hours of the report");
+  assert.deepEqual([ok.conflicts.length, ok.unconfirmed.length], [0, 0]);
+  assert.equal(compareValues("Remedy all reported faults within three days.", "remedied within 96 hours").conflicts.length, 1);
+  assert.equal(compareValues("a warranty of at least 2 years", "a 36 months warranty").conflicts.length, 0);
+});
+
+test("echo: reusing the tender's words is not an echo; copying it is", () => {
+  const r31 = "Cover all six contract locations: four High Street positions, the High Street ANPR camera, Market Square, Public Gardens, Jubilee Playing Fields and Anstey Park.";
+  assert.equal(isEcho("Street ANPR camera, the Market Square, the Public Gardens, Jubilee Playing Fields and Anstey Park.", r31), false);
+  const r34 = "A separate document confirming the total price for the initial installation and annual maintenance contract for a three-year period.";
+  assert.equal(isEcho("It covers the initial installation and annual maintenance for Years 1 and 2.", r34), false);
+  assert.equal(isEcho("A separate document confirming the total price for the initial installation and annual maintenance contract", r34), true);
+});

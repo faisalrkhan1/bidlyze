@@ -18,3 +18,30 @@ deterministic validation / answer key) and whether it was fixed.
 - **F0-3 Offline perfect-reviewer test.** The answer key's own verdicts and quotes were passed
   through the real pipeline. The code checks changed none of the 38 verdicts, and all 4
   two-sided contradictions keep both quotes.
+
+## Found by the live runs (Sonnet 5.5 via OpenRouter, preview `dpl_GEejFxErGSqLXJ6FZp29PGs4pXSF`, commit 18f2661)
+
+Submission Check: 3 runs × 38 requirements = 114 verdicts (raw records in `runs/sc-run*.json`).
+
+| # | Requirement | Runs | Expected → got | Root cause | Fix |
+|---|---|---|---|---|---|
+| F1 | A31 six locations | run 3 | answered → **missing** (AI said answered) | **Deterministic validation.** The echo check marked the quote "Street ANPR camera, the Market Square, … Anstey Park." as a copy of the requirement, because it shares words and has no "we/our". The commitment ("Our proposal covers…") sat just before the quote. This is a false alarm caused by code. | Echo now means a *literal copy*: one unbroken run of the requirement's words covering at least 70% of the quote (minimum 6 words). Regression test added. |
+| F2 | A34 price for 3 years | run 3 | conflict → **missing** (AI said partial) | **Deterministic validation**, same echo flaw ("It covers the initial installation and annual maintenance for Years 1 and 2."). | Same fix. |
+| F3 | A30 working at height | runs 1–3 | answered → answered, with a bogus flag "confirm eight certificates" | **Deterministic validation.** Number words were matched inside other words: h-**eight**, at-**ten**-d, some-**one**. With a different response this could have produced a wrong "partial". | Number words must be whole words. Regression test added. |
+| F4 | (latent) A15/A16 | n/a | n/a | **Deterministic validation** (F0-2 confirmed offline). "within 24 hours" was treated as a minimum, so a *faster* promise (12 h) was a conflict, and 72 hours could not be compared with three days. | "within" counts as a maximum, the nearest min/max word wins, and hours/days/weeks and months/years are compared in a common unit. Regression tests added. |
+| F5 | A35 references (one outside 12 months) | runs 1–3 | conflict → partial | **Prompting.** The prompt's "partial" examples ("fewer items than required") steer an out-of-window reference to partial. Still flagged as an issue every time. | Prompt now says a *stated* value, date, period, exclusion, deferral, extra charge or self-contradiction is a conflict even if other parts comply; partial means part is covered and the rest is not mentioned. |
+| F6 | A34 price for 3 years | runs 1, 3 (AI) | conflict → partial | **Prompting**, same as F5 (an explicitly deferred Year 3). | Same prompt fix. |
+| F7 | A03 Council compound | run 2 | missing → partial | **AI reasoning.** The general claim "covers … Anstey Park" was treated as partial evidence for a specific new location. Still flagged as an issue. | Not fixed (1 of 3 runs, no missed issue). Watch it in the re-runs. |
+| F8 | Self-contradictions (A11, A12, A17, A29) | all runs | n/a | **Prompting.** Both sides of a contradiction were quoted in only 1/4, 3/4 and 3/4 cases (the gap text usually mentions the other side). | Prompt now asks for 1–3 quotes, including both statements when the response contradicts itself. |
+
+Summary before fixes: AI-only verdicts were 108/114 exact, 114/114 issue agreement, **0 missed issues and 0 false alarms**. After the code checks: 107/114 exact and **1 false alarm, created by the code** (F1). Across the 3 live runs the code checks changed 2 verdicts, and both changes were wrong.
+
+Tender Intelligence: 2 runs, raw output in the run notes in `BENCHMARK_REPORT.md`.
+
+| # | Finding | Root cause | Action |
+|---|---|---|---|
+| T1 | Compound tender sentences are merged into one requirement: new camera locations (A01–A03), monitor + evaluate (A14/A15), storage + viewing (A17/A18), public + professional insurance (A24/A25), trees folded into the system review (A06/A07). | **Prompting** (requirements pass). | Recommend only. Splitting changes the existing compliance matrix in production, so it needs your decision. It matters for chained Submission Check, where one merged verdict covers two obligations. |
+| T2 | "The locations covered by this contract" (A31) is not extracted as a requirement (it appears in the summary). "Supply time" (A37) appears only under evaluation criteria. | **AI extraction choice.** | Not fixed; minor. |
+| T3 | 1 of 39 page citations was wrong in run 2 (HERS; quote on p.4, AI cited another page). The code relocated it to the right page. | **AI reasoning**; caught by deterministic validation. | Working as designed. |
+| T4 | The fixed 20-item disqualification checklist is GCC-specific: on this UK tender only 2 items apply. The dynamic findings (13–15, all verified) carried the analysis. | **Product scope.** | Matches the plan for regional editions later. |
+| T5 | The page-4 extraction gap (F0-1) was handled: the AI took the full deadline from p.7. | n/a | n/a |

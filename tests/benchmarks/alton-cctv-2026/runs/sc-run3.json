@@ -1,0 +1,53 @@
+{
+ "deployment": "dpl_GEejFxErGSqLXJ6FZp29PGs4pXSF",
+ "commit": "18f2661",
+ "date": "2026-11-21T17:40Z",
+ "final": {
+  "exact": "35/38",
+  "issuesFlagged": "19/19",
+  "issueAgreement": "37/38",
+  "falseAlarms": "1/19 (A31)"
+ },
+ "aiOnly": {
+  "exact": "36/38",
+  "issuesFlagged": "19/19",
+  "falseAlarms": "0/19"
+ },
+ "wrong": [
+  "A31: expected answered, got missing (code: echo)",
+  "A34: expected conflict, got missing (AI partial, code: echo)",
+  "A35: expected conflict, got partial"
+ ],
+ "changedByCode": [
+  "A31: AI answered -> missing (echo gate)",
+  "A34: AI partial -> missing (echo gate)"
+ ],
+ "evidence": {
+  "responseQuotesFound": "41/41",
+  "onExpectedPage": "32/32",
+  "citationStatus": {
+   "verified": 41
+  },
+  "contradictionsBothSidesCited": "3/4"
+ },
+ "echo_quotes": {
+  "A31": "Street ANPR camera, the Market Square, the Public Gardens, Jubilee Playing Fields and Anstey Park.",
+  "A34": "It covers the initial installation and annual maintenance for Years 1 and 2."
+ },
+ "flags_noise": [
+  "A30: 'eight certificates' flag again"
+ ],
+ "usage": {
+  "calls": 1,
+  "promptTokens": 7685,
+  "completionTokens": 8820,
+  "cachedTokens": 4480,
+  "costUsd": 0.0951
+ },
+ "engineMs": 49118,
+ "totalMs": 50196,
+ "mode": "bench-submission",
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5"
+}

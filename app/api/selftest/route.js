@@ -113,6 +113,32 @@ export async function GET(request) {
         });
       }
 
+      // Chained, from a saved Tender Intelligence output (runs/<ti>.requirements.json):
+      // repeatable, and fits in one request (live TI + check exceeds some clients' timeouts).
+      if (mode === "bench-chained-fixture") {
+        const ti = new URL(request.url).searchParams.get("ti") || "";
+        if (!/^ti-run\d+$/.test(ti)) return NextResponse.json({ ok: false, error: "bad fixture name" }, { status: 400 });
+        const fixture = JSON.parse(await readFile(path.join(bdir, "runs", `${ti}.requirements.json`), "utf8"));
+        const extracted = fixture.requirements.map((r) => ({ id: r.id, requirement: r.requirement, tenderQuote: r.quote, tenderFile: "F1", tenderPage: r.page }));
+        const sc = await runSubmissionCheck({ requirements: extracted, responseFiles, tenderFiles });
+        if (!sc.success) return NextResponse.json({ ok: false, error: sc.error, ms: Date.now() - t0 }, { status: 502 });
+        const match = scoreReadiness(bench, key, { requirements: fixture.requirements.map((r) => ({ id: r.id, requirement: r.requirement, citation: { quote: r.quote, page: r.page, status: r.status } })) }).match;
+        const byTi = new Map(sc.items.map((i) => [i.id, i]));
+        const mapped = { items: key.requirements.map((k) => {
+          const m = match.get(k.id);
+          const it = m ? byTi.get(m.tiId) : null;
+          return it ? { ...it, id: k.id, viaTi: m.tiId } : { id: k.id, status: undefined, aiStatus: undefined, evidence: [] };
+        }) };
+        return NextResponse.json({
+          ok: true, model: currentModel(), fixture: ti,
+          chainedScore: scoreSubmission(key, mapped),
+          chainedItems: mapped.items.map((i) => (i.viaTi ? `${i.id} via ${i.viaTi}: ${i.status} (ai ${i.aiStatus}, ${i.decidedBy}) ${i.evidence.map((e) => `p.${e.page} ${e.status}`).join(", ")}` : `${i.id}: not matched`)),
+          extractedItems: sc.items.map((i) => `${i.id}: ${i.status} (ai ${i.aiStatus}) | ${i.gap}`),
+          tenderQuotesVerified: `${sc.items.filter((i) => i.tender && i.tender.status !== "unverified").length}/${sc.items.length}`,
+          summary: sc.summary, aiUsage: sc.meta.aiUsage, engineMs: sc.meta.durationMs, totalMs: Date.now() - t0,
+        });
+      }
+
       if (mode === "bench-readiness" || mode === "bench-chained") {
         const ti = await runReadinessAnalysis({ files: tenderFiles, rfxType: "rfp" });
         if (!ti.success) return NextResponse.json({ ok: false, error: ti.error, ms: Date.now() - t0 }, { status: 502 });
@@ -123,6 +149,15 @@ export async function GET(request) {
           meta: { failedPasses: ti.data.meta?.failedPasses, truncatedPasses: ti.data.meta?.truncatedPasses, requirementsCapped: ti.data.meta?.requirementsCapped, durationMs: ti.data.meta?.durationMs, aiUsage: ti.data.meta?.aiUsage },
         };
         if (mode === "bench-readiness") {
+          // emit=requirements: the extracted requirements with their tender
+          // quotes, to be saved as a fixture for the chained check below.
+          if (new URL(request.url).searchParams.get("emit") === "requirements") {
+            return NextResponse.json({
+              ok: true, tenderIntelligence: tiView,
+              fixture: (ti.data.requirements || []).map((r) => ({ id: r.id, requirement: r.requirement, quote: r.citation?.quote || "", page: r.citation?.page ?? null, status: r.citation?.status || "none" })),
+              totalMs: Date.now() - t0,
+            });
+          }
           return NextResponse.json({
             ok: true, model: currentModel(), source: src.meta, tenderIntelligence: tiView,
             requirements: (ti.data.requirements || []).map((r) => `${r.id} [${r.priority}${r.mandatory ? "" : ", optional"}] p.${r.citation?.page ?? "-"} ${r.citation?.status || "none"} | ${r.requirement}`),
