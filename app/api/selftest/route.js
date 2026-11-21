@@ -8,6 +8,9 @@ import { score } from "@/lib/readiness/benchmark";
 import { runSubmissionCheck } from "@/lib/submission/check";
 import { scoreSubmission } from "@/lib/submission/benchmark";
 import { loadBenchmarkSource } from "@/lib/benchmarks/fetchSource";
+import { BENCHMARKS } from "@/lib/benchmarks/registry";
+import { validateKey } from "@/lib/benchmarks/validateKey";
+import { scoreReadiness } from "@/lib/benchmarks/scoreReadiness";
 
 // Live self-test — PREVIEW DEPLOYMENTS ONLY (404 in production).
 //
@@ -68,6 +71,92 @@ export async function GET(request) {
         scannedPages: src.files[0].scannedPages,
         ms: Date.now() - t0,
       });
+    }
+
+    // Real-world benchmark (authentic public tender + fictional supplier
+    // response + hand-checked answer key). Modes:
+    //   bench-validate    answer-key quotes checked against the LIVE tender (no AI)
+    //   bench-submission  Submission Check on the key's requirements
+    //   bench-readiness   Tender Intelligence on the tender, matched to the key
+    //   bench-chained     Tender Intelligence requirements -> Submission Check
+    if (mode?.startsWith("bench-")) {
+      const benchId = new URL(request.url).searchParams.get("bench") || "";
+      const bench = BENCHMARKS[benchId];
+      if (!bench) return NextResponse.json({ ok: false, error: "unknown benchmark" }, { status: 400 });
+      const bdir = path.join(process.cwd(), bench.dir);
+      const [src, responsePdf, keyRaw] = await Promise.all([
+        loadBenchmarkSource(bench.source),
+        readFile(path.join(bdir, bench.response)),
+        readFile(path.join(bdir, bench.key), "utf8"),
+      ]);
+      const key = JSON.parse(keyRaw);
+      const tenderFiles = src.files;
+      const rp = await extractPages({ buffer: responsePdf, contentType: "application/pdf" });
+      const responseFiles = [{ fileIndex: 1, filename: bench.response, role: "primary", pages: rp.pages, scannedPages: rp.scannedPages }];
+      const fetchMs = Date.now() - t0;
+      const itemView = (i) => ({ id: i.id, status: i.status, ai: i.aiStatus, by: i.decidedBy, evidence: i.evidence.map((e) => `${e.file} p.${e.page} ${e.status}: ${e.quote.slice(0, 160)}`), checks: i.checks.map((c) => `${c.type}: ${c.result}`), flags: i.flags, gap: i.gap });
+
+      if (mode === "bench-validate") {
+        return NextResponse.json({ ok: true, source: src.meta, responsePages: rp.pages.length, validation: validateKey(key, tenderFiles, responseFiles), ms: Date.now() - t0 });
+      }
+
+      if (mode === "bench-submission") {
+        const requirements = key.requirements.map((k) => ({ id: k.id, requirement: k.requirement, tenderQuote: k.tenderQuote, tenderFile: "F1", tenderPage: k.tenderPage }));
+        const result = await runSubmissionCheck({ requirements, responseFiles, tenderFiles });
+        if (!result.success) return NextResponse.json({ ok: false, error: result.error, ms: Date.now() - t0 }, { status: 502 });
+        return NextResponse.json({
+          ok: true, model: currentModel(), source: src.meta,
+          score: scoreSubmission(key, result), summary: result.summary,
+          items: result.items.map(itemView),
+          aiUsage: result.meta.aiUsage, failedBatches: result.meta.failedBatches, truncatedBatches: result.meta.truncatedBatches,
+          fetchMs, engineMs: result.meta.durationMs, totalMs: Date.now() - t0,
+        });
+      }
+
+      if (mode === "bench-readiness" || mode === "bench-chained") {
+        const ti = await runReadinessAnalysis({ files: tenderFiles, rfxType: "rfp" });
+        if (!ti.success) return NextResponse.json({ ok: false, error: ti.error, ms: Date.now() - t0 }, { status: 502 });
+        const rs = scoreReadiness(bench, key, ti.data);
+        const tiView = {
+          score: rs.summary, notFound: rs.notFound, wrongPage: rs.wrongPage, dateHits: rs.dateHits, weightHits: rs.weightHits,
+          matches: rs.rows.map((r) => `${r.id}->${r.ti || "-"} p.${r.page ?? "-"} ${r.citation || ""} run=${r.run} cov=${r.cov}`),
+          meta: { failedPasses: ti.data.meta?.failedPasses, truncatedPasses: ti.data.meta?.truncatedPasses, requirementsCapped: ti.data.meta?.requirementsCapped, durationMs: ti.data.meta?.durationMs, aiUsage: ti.data.meta?.aiUsage },
+        };
+        if (mode === "bench-readiness") {
+          return NextResponse.json({
+            ok: true, model: currentModel(), source: src.meta, tenderIntelligence: tiView,
+            requirements: (ti.data.requirements || []).map((r) => `${r.id} [${r.priority}${r.mandatory ? "" : ", optional"}] p.${r.citation?.page ?? "-"} ${r.citation?.status || "none"} | ${r.requirement}`),
+            keyDates: ti.data.keyDates, evaluationCriteria: ti.data.evaluationCriteria, summary: ti.data.summary,
+            submission: ti.data.submission, financial: ti.data.financialRequirements,
+            disqualificationRequired: (ti.disqualification?.fixed_checks || ti.data.disqualification?.fixed_checks || []).filter((f) => f.status === "required").map((f) => `${f.id} p:${f.page_reference} ${f.citation_status}: ${f.details}`),
+            dynamicFindings: (ti.disqualification?.dynamic_findings || ti.data.disqualification?.dynamic_findings || []).map((d) => `${d.severity}: ${d.title} (${d.citation_status})`),
+            clarifications: (ti.data.clarificationQuestions || []).map((q) => `${q.priority} ${q.citation?.status || "none"}: ${q.question}`),
+            bidScore: ti.data.bidScore,
+            fetchMs, totalMs: Date.now() - t0,
+          });
+        }
+        // Chained: the requirements Tender Intelligence extracted are checked
+        // against the response; each key item takes the status of the
+        // extracted requirement it matched (unmatched = "none" = not checked).
+        const extracted = (ti.data.requirements || []).map((r) => ({ id: r.id, requirement: r.requirement, tenderQuote: r.citation?.quote || "", tenderFile: "F1", tenderPage: r.citation?.page || null }));
+        const sc = await runSubmissionCheck({ requirements: extracted, responseFiles, tenderFiles });
+        if (!sc.success) return NextResponse.json({ ok: false, error: sc.error, tenderIntelligence: tiView, ms: Date.now() - t0 }, { status: 502 });
+        const byTi = new Map(sc.items.map((i) => [i.id, i]));
+        const mapped = { items: key.requirements.map((k) => {
+          const m = rs.match.get(k.id);
+          const it = m ? byTi.get(m.tiId) : null;
+          return it ? { ...it, id: k.id, viaTi: m.tiId } : { id: k.id, status: undefined, aiStatus: undefined, evidence: [] };
+        }) };
+        return NextResponse.json({
+          ok: true, model: currentModel(), source: src.meta, tenderIntelligence: tiView,
+          chainedScore: scoreSubmission(key, mapped),
+          chainedItems: mapped.items.map((i) => (i.viaTi ? { via: i.viaTi, ...itemView(i) } : { id: i.id, status: "not extracted" })),
+          submissionSummary: sc.summary,
+          submissionUsage: sc.meta.aiUsage, submissionMs: sc.meta.durationMs,
+          fetchMs, totalMs: Date.now() - t0,
+        });
+      }
+      return NextResponse.json({ ok: false, error: "unknown mode" }, { status: 400 });
     }
 
     if (mode === "submission") {

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
       "./tests/e2e/ECTA_test_tender.pdf",
       "./tests/e2e/ground_truth.json",
       "./tests/e2e/ECTA_test_response.pdf",
-      "./tests/e2e/submission_truth.json",
+      "./tests/e2e/submission_truth.json", "./tests/benchmarks/alton-cctv-2026/supplier_proposal.pdf", "./tests/benchmarks/alton-cctv-2026/answer_key.json",
     ],
   },
 };
