@@ -5,6 +5,8 @@ import { extractPages } from "@/lib/readiness/pages";
 import { runReadinessAnalysis } from "@/lib/readiness/engine";
 import { askJSON, currentModel, providerPreferences } from "@/lib/readiness/ai";
 import { score } from "@/lib/readiness/benchmark";
+import { runSubmissionCheck } from "@/lib/submission/check";
+import { scoreSubmission } from "@/lib/submission/benchmark";
 
 // Live self-test — PREVIEW DEPLOYMENTS ONLY (404 in production).
 //
@@ -16,6 +18,10 @@ import { score } from "@/lib/readiness/benchmark";
 //   /api/selftest?mode=ping   one tiny AI call: proves the key, model and
 //                             privacy routing work (costs a fraction of a cent)
 //   /api/selftest             full analysis of the 8-page test tender
+//   /api/selftest?mode=submission
+//                             Submission Check prototype: the fictional bid
+//                             response (ECTA_test_response.pdf) checked against
+//                             18 known requirements (submission_truth.json)
 //
 // Preview URLs are behind Vercel Authentication, so only the project owner can
 // reach this. No user data is read or written.
@@ -49,6 +55,43 @@ export async function GET(request) {
     }
 
     const dir = path.join(process.cwd(), "tests", "e2e");
+
+    if (mode === "submission") {
+      const [tenderPdf, responsePdf, subTruthRaw] = await Promise.all([
+        readFile(path.join(dir, "ECTA_test_tender.pdf")),
+        readFile(path.join(dir, "ECTA_test_response.pdf")),
+        readFile(path.join(dir, "submission_truth.json"), "utf8"),
+      ]);
+      const subTruth = JSON.parse(subTruthRaw);
+      const asFiles = async (buffer, filename) => {
+        const { pages, scannedPages } = await extractPages({ buffer, contentType: "application/pdf" });
+        return [{ fileIndex: 1, filename, role: "primary", pages, scannedPages }];
+      };
+      const [tenderFiles, responseFiles] = await Promise.all([
+        asFiles(tenderPdf, "ECTA_test_tender.pdf"),
+        asFiles(responsePdf, "ECTA_test_response.pdf"),
+      ]);
+      const requirements = subTruth.requirements.map((t) => ({
+        id: t.id, requirement: t.requirement, tenderQuote: t.tenderQuote, tenderFile: "F1", tenderPage: t.tenderPage,
+      }));
+      const result = await runSubmissionCheck({ requirements, responseFiles, tenderFiles });
+      if (!result.success) {
+        return NextResponse.json({ ok: false, error: result.error, ms: Date.now() - t0 }, { status: 502 });
+      }
+      return NextResponse.json({
+        ok: true,
+        model: currentModel(),
+        provider: providerPreferences(),
+        score: scoreSubmission(subTruth, result),
+        summary: result.summary,
+        items: result.items.map((i) => ({ id: i.id, status: i.status, ai: i.aiStatus, by: i.decidedBy, evidence: i.evidence.map((e) => `${e.file} p.${e.page} ${e.status}`), checks: i.checks.map((c) => `${c.type}: ${c.result}`), gap: i.gap })),
+        aiUsage: result.meta.aiUsage,
+        truncatedBatches: result.meta.truncatedBatches,
+        engineMs: result.meta.durationMs,
+        totalMs: Date.now() - t0,
+      });
+    }
+
     const [pdf, truthRaw] = await Promise.all([
       readFile(path.join(dir, "ECTA_test_tender.pdf")),
       readFile(path.join(dir, "ground_truth.json"), "utf8"),

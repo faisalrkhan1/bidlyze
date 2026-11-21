@@ -1,0 +1,15 @@
+{
+  "tool": "Lucius AI free compliance checker (https://ailucius.com/tools/compliance-check)",
+  "run": "2026-11-21, no sign-up, same 18 requirement lines and the same response text as Bidlyze's test",
+  "notes": "Two statuses only (addressed / NOT FOUND). Evidence is a paraphrase with a section number, not an exact quote or page. Lucius's paid product was not tested.",
+  "results": {
+    "Q01": "NOT FOUND", "Q02": "NOT FOUND", "Q03": "addressed", "Q04": "addressed", "Q05": "addressed",
+    "Q06": "NOT FOUND", "Q07": "NOT FOUND", "Q08": "addressed", "Q09": "NOT FOUND", "Q10": "NOT FOUND",
+    "Q11": "NOT FOUND", "Q12": "NOT FOUND", "Q13": "addressed", "Q14": "addressed", "Q15": "NOT FOUND",
+    "Q16": "NOT FOUND", "Q17": "NOT FOUND", "Q18": "NOT FOUND"
+  },
+  "evidence_examples": {
+    "Q05": "Section 1.1 states UAE trade licence No. 123456 covers ICT systems integration and is valid until March 2028.",
+    "Q14": "Section 4.3 states the project manager joined the compulsory site inspection on 10/12/2026 with attendance sheet in Annex 6."
+  }
+}
