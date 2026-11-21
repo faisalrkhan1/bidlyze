@@ -116,6 +116,13 @@ test("values: below a minimum conflicts; above it is fine; fewer items is a shor
   assert.deepEqual(compareValues("for the last three years", "for 2023, 2024 and 2025").unconfirmed, ["three years"]);
 });
 
+test("standard and model numbers are not quantities (found in the live run)", () => {
+  assert.deepEqual(extractQuantities("valid ISO 9001 and ISO 27001 certificates"), []);
+  assert.deepEqual(extractQuantities("a valid ISO 9001:2015 certificate"), []);
+  assert.deepEqual(extractQuantities("ISO/IEC 27001 certificate"), []);
+  assert.deepEqual(extractQuantities("at least three (3) ISO-certified projects").map((q) => [q.n, q.unit]), [[3, "projects"]]);
+});
+
 test("standards and timing", () => {
   assert.deepEqual(extractCodes("valid ISO 9001 and ISO/IEC 27001 certificates, IP68, Cyber Essentials Plus"), ["ISO 9001", "ISO 27001", "IP68", "Cyber Essentials Plus"]);
   assert.equal(timingConflicts("type approval before delivery", "approval within 60 days after delivery").length, 1);
