@@ -3,6 +3,9 @@ import { createClient } from "@supabase/supabase-js";
 import { extractFileText } from "@/lib/extractFileText";
 import { FILE_LIMITS, TEXT_LIMITS } from "@/lib/constants";
 import { DISQUALIFICATION_CHECKLIST } from "@/lib/disqualificationChecklist";
+import { FEATURES } from "@/lib/featureFlags";
+import { extractPages } from "@/lib/readiness/pages";
+import { runDisqualificationCheck } from "@/lib/readiness/engine";
 
 export const maxDuration = 300;
 
@@ -197,6 +200,57 @@ function buildPrompt(tenderText) {
   return `${PROMPT_HEADER}${checklistBlock}\n\nTENDER DOCUMENT:\n${tenderText}`;
 }
 
+function inferContentType(contentType, filename) {
+  const ct = (contentType || "").toLowerCase();
+  if (ct && ct !== "application/octet-stream") return ct;
+  const lower = (filename || "").toLowerCase();
+  if (lower.endsWith(".pdf")) return "application/pdf";
+  if (lower.endsWith(".docx")) return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+  if (lower.endsWith(".xlsx")) return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+  if (lower.endsWith(".txt")) return "text/plain";
+  return ct;
+}
+
+/**
+ * Rebuild the page-numbered files exactly as /api/analyze did (primary first,
+ * then the rest in upload order, numbered F1, F2, ...) so citations line up.
+ */
+async function loadPagedFiles(adminClient, analysisRow) {
+  const { data: files } = await adminClient
+    .from("analysis_files")
+    .select("storage_path, file_name, content_type, role, sort_order")
+    .eq("analysis_id", analysisRow.id)
+    .order("sort_order", { ascending: true });
+
+  const descriptors = (files && files.length > 0)
+    ? files.map((f) => ({ storagePath: f.storage_path, filename: f.file_name, contentType: f.content_type, role: f.role || "primary" }))
+    : [{ storagePath: analysisRow.file_path, filename: analysisRow.file_name, contentType: "", role: "primary" }];
+  const ordered = [
+    ...descriptors.filter((d) => d.role === "primary"),
+    ...descriptors.filter((d) => d.role !== "primary"),
+  ];
+
+  const out = [];
+  for (let i = 0; i < ordered.length; i++) {
+    const fd = ordered[i];
+    if (!fd.storagePath) continue;
+    const { data: blob, error: dlError } = await adminClient.storage.from(BUCKET).download(fd.storagePath);
+    if (dlError || !blob) {
+      console.warn(`[disqual] download failed for ${fd.filename}:`, dlError?.message);
+      continue;
+    }
+    const buffer = Buffer.from(await blob.arrayBuffer());
+    if (buffer.length > FILE_LIMITS.MAX_FILE_SIZE) continue;
+    try {
+      const { pages, scannedPages } = await extractPages({ buffer, contentType: inferContentType(fd.contentType, fd.filename) });
+      out.push({ fileIndex: i + 1, filename: fd.filename, role: fd.role, pages, scannedPages });
+    } catch (e) {
+      console.warn(`[disqual] page extraction failed for ${fd.filename}:`, e?.message);
+    }
+  }
+  return out;
+}
+
 async function extractTenderTextForAnalysis(adminClient, analysisRow) {
   // Prefer the multi-file manifest if available; fall back to the single file.
   const { data: files } = await adminClient
@@ -331,7 +385,31 @@ export async function POST(request) {
       serviceRoleKey
     );
 
-    // ── Pull tender text from storage ──
+    // ── Readiness v2: same cited, verified check as the main analysis ──
+    // (The legacy prompt below has no citation verification and scores risk the
+    // opposite way round, so a re-run used to silently change the meaning of
+    // the risk score and drop the page checks.)
+    if (FEATURES.READINESS_ENGINE_V2) {
+      const pagedFiles = await loadPagedFiles(adminClient, analysisRow);
+      if (pagedFiles.length === 0) {
+        return err(400, "Could not read the tender files for this analysis.");
+      }
+      const out = await runDisqualificationCheck({ files: pagedFiles });
+      if (!out.success) return err(502, out.error);
+      const { data: saved, error: saveError } = await adminClient
+        .from("disqualification_analyses")
+        .upsert({ analysis_id: analysisId, user_id: user.id, ...out.record }, { onConflict: "analysis_id" })
+        .select("*")
+        .single();
+      if (saveError) {
+        console.error("[disqual] v2 upsert failed:", saveError.message);
+        return err(500, "Failed to save disqualification analysis");
+      }
+      log("v2 check saved");
+      return NextResponse.json({ success: true, disqualification: saved });
+    }
+
+    // ── Legacy engine: pull tender text from storage ──
     const fullText = await extractTenderTextForAnalysis(adminClient, analysisRow);
     if (!fullText || fullText.trim().length === 0) {
       return err(400, "Could not extract text from the tender for risk analysis.");

@@ -259,23 +259,34 @@ export async function POST(request) {
     }
 
     // ── Insert analyses row (primary file path for backward compat) ──
-    const { data: insertedRow } = await adminClient
-      .from("analyses")
-      .insert({
-        user_id: user.id,
-        file_name: primaryFile.filename,
-        file_path: primaryFile.storagePath,
-        project_name: result.data?.summary?.projectName || "Unknown",
-        bid_score:
-          result.data?.bidScore?.score ??
-          result.data?.qualificationSummary?.fitScore ??
-          null,
-        analysis_data: result.data,
-      })
-      .select("id")
-      .single();
+    // This row is also what the monthly usage limit counts, so a failed insert
+    // used to mean: AI cost spent, nothing saved, usage not counted, and the
+    // browser sent to /analysis/null. Retry once, then fail clearly.
+    const analysisRow = {
+      user_id: user.id,
+      file_name: primaryFile.filename,
+      file_path: primaryFile.storagePath,
+      project_name: result.data?.summary?.projectName || "Unknown",
+      bid_score:
+        result.data?.bidScore?.score ??
+        result.data?.qualificationSummary?.fitScore ??
+        null,
+      analysis_data: result.data,
+    };
+    let insertedRow = null;
+    let insertError = null;
+    for (let attempt = 1; attempt <= 2 && !insertedRow; attempt++) {
+      const res = await adminClient.from("analyses").insert(analysisRow).select("id").single();
+      insertedRow = res.data;
+      insertError = res.error;
+      if (insertError) console.error(`[analyze] analyses insert failed (attempt ${attempt}):`, insertError.message);
+    }
 
     const analysisId = insertedRow?.id ?? null;
+    if (!analysisId) {
+      console.error("[analyze] analysis could not be saved; AI usage:", JSON.stringify(result.data?.meta?.aiUsage || null));
+      return err(500, "The analysis finished but could not be saved, so it has not been counted against your monthly allowance. Please try again in a few minutes.");
+    }
 
     // ── Insert one analysis_files row per file (only for true packages or when
     //    explicitly batch — legacy single-file callers don't get a row, to

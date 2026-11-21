@@ -8,8 +8,10 @@ import {
 export async function POST(request) {
   try {
     // Simple internal auth — only allow calls from our own API routes
+    // Fail closed: if INTERNAL_API_KEY is not configured, nobody is authorised.
+    const expectedKey = process.env.INTERNAL_API_KEY;
     const internalKey = request.headers.get("x-internal-key");
-    if (internalKey !== process.env.INTERNAL_API_KEY) {
+    if (!expectedKey || internalKey !== expectedKey) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
         { status: 401 }
