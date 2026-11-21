@@ -6,6 +6,11 @@ import { getSupabase } from "@/lib/supabase";
 import { getLoginRedirectTarget } from "@/lib/auth-redirect";
 import { LogoMark } from "@/app/components/Logo";
 import ThemeToggle from "@/app/components/ThemeToggle";
+import { PLANS } from "@/lib/plans";
+
+// Free allowance shown to new users: pre-launch tier until payments go live.
+const FREE_ANALYSES =
+  process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true" ? PLANS.free.analysesLimit : PLANS.prelaunch.analysesLimit;
 
 const FEATURES = [
   {
@@ -14,8 +19,8 @@ const FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
       </svg>
     ),
-    title: "Bid/No-Bid Scoring",
-    description: "AI scores every tender 0-100 with a clear recommendation",
+    title: "Bid / No-Bid Recommendation",
+    description: "A recommendation with reasons and top actions, built from the findings",
   },
   {
     icon: (
@@ -23,8 +28,8 @@ const FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.745 3.745 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z" />
       </svg>
     ),
-    title: "Compliance Analysis",
-    description: "Auto-generated checklist with gap detection and remediation",
+    title: "Page-Cited Compliance Matrix",
+    description: "Every requirement with the page it came from, exported to Excel",
   },
   {
     icon: (
@@ -32,8 +37,8 @@ const FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
       </svg>
     ),
-    title: "Risk Radar",
-    description: "Identify risks with severity ratings and mitigation strategies",
+    title: "GCC Disqualification Check",
+    description: "20 common knockout items, such as bid bonds, ICV and OEM letters",
   },
   {
     icon: (
@@ -41,8 +46,8 @@ const FEATURES = [
         <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
       </svg>
     ),
-    title: "Proposal Writer",
-    description: "Generate tailored bid sections from your analysis instantly",
+    title: "Clarification Questions",
+    description: "Draft questions for the buyer, each tied to its page",
   },
 ];
 
@@ -200,7 +205,7 @@ export default function LoginPageClient() {
             <span className="text-emerald-500">intelligence</span>
           </h1>
           <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: "var(--text-secondary)" }}>
-            Upload RFI, RFQ, RFP, or tender packages and get AI-powered compliance mapping, requirement extraction, and response planning.
+            Upload an RFI, RFQ, RFP or tender package and get a page-cited readiness report: requirements, GCC disqualification checks and clarification questions.
           </p>
 
           {/* Feature list */}
@@ -222,7 +227,7 @@ export default function LoginPageClient() {
         {/* Social proof */}
         <div className="relative mt-8 pt-6" style={{ borderTop: "1px solid var(--border-primary)" }}>
           <div className="flex items-center gap-4 flex-wrap">
-            {["No credit card required", "3 free analyses per month", "Data encrypted at rest"].map((t) => (
+            {["No credit card required", `${FREE_ANALYSES} free analyses per month`, "Data encrypted at rest"].map((t) => (
               <span key={t} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                 <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                 {t}
@@ -241,7 +246,7 @@ export default function LoginPageClient() {
             <span className="text-2xl font-semibold tracking-tight">Bidlyze</span>
             <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>AI RFx & Tender Intelligence</p>
             <div className="flex items-center gap-4 mt-4 flex-wrap justify-center">
-              {["No credit card required", "3 free analyses", "Results in 60s"].map((t) => (
+              {["No credit card required", `${FREE_ANALYSES} free analyses`, "Results in minutes"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                   <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                   {t}
@@ -260,7 +265,7 @@ export default function LoginPageClient() {
                 ? "Enter your email and we'll send you a reset link"
                 : tab === "signin"
                 ? "Sign in to continue to Bidlyze"
-                : "3 free analyses per month. No credit card required."}
+                : `${FREE_ANALYSES} free analyses per month. No credit card required.`}
             </p>
           </div>
 
