@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
+import { isDeletedAnalysis } from "@/lib/deleteTender";
 
 const STATUSES = [
   { value: "analyzed", label: "Analyzed", color: "bg-blue-500/10 text-blue-400" },
@@ -111,7 +112,7 @@ export default function HistoryPage() {
     // Note: plan state may not be set yet on first render, so we also
     // apply client-side filtering below for free users.
     query.then(({ data }) => {
-        setRecords(data || []);
+        setRecords((data || []).filter((r) => !isDeletedAnalysis(r)));
         setLoading(false);
       });
   }, [user]);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { FEATURES } from "@/lib/featureFlags";
 import { createClient } from "@supabase/supabase-js";
 import { generateProposalSection } from "@/lib/gemini";
 
@@ -14,6 +15,11 @@ const VALID_SECTIONS = [
 ];
 
 export async function POST(request) {
+  // Hidden feature: refuse server-side too, so the AI endpoint can't be called
+  // directly (no plan-limit check here, so it would be unmetered AI spend).
+  if (!FEATURES.enableDocxProposalExport) {
+    return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+  }
   try {
     // Authenticate user
     const authHeader = request.headers.get("authorization");

@@ -1,0 +1,36 @@
+{
+  "required": {
+    "bid_bond": 2,
+    "bid_validity": 2,
+    "submission_format": 2,
+    "vendor_registration": 2,
+    "trade_license": 3,
+    "icv_certificate": 3,
+    "previous_experience": 3,
+    "financial_statements": 3,
+    "manufacturer_authorization": 4,
+    "type_approvals": 4,
+    "mandatory_site_visit": 5,
+    "clarification_deadline": 6,
+    "stamped_signed_forms": 6,
+    "arabic_documents": 6,
+    "deviation_statement": 6,
+    "iso_certifications": 8
+  },
+  "not_specified": [
+    "pre_bid_meeting",
+    "local_authority_approvals",
+    "mofa_attestation",
+    "classification_grade"
+  ],
+  "key_dates": {
+    "site visit": "2026-12-10",
+    "clarification deadline": "2026-12-20",
+    "closing": "2027-01-15"
+  },
+  "clarification_traps": {
+    "integration platform not named (4.4)": 4,
+    "BOQ 2,400 vs drawings 2,600 sensors (7.3)": 7
+  },
+  "spans_page_break": "site visit disqualification sentence runs from page 5 to page 6"
+}

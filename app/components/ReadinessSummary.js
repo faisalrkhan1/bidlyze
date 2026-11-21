@@ -92,6 +92,16 @@ export default function ReadinessSummary({ analysis }) {
       {meta.failedPasses?.length > 0 && (
         <p className="text-xs text-red-400">Some checks did not complete ({meta.failedPasses.join(", ")}). Re-run the analysis.</p>
       )}
+      {meta.truncatedPasses?.length > 0 && (
+        <p className="text-xs text-red-400">
+          The AI ran out of space while writing these lists: {meta.truncatedPasses.join(", ")}. They may be incomplete — review the tender for items not listed here.
+        </p>
+      )}
+      {meta.requirementsCapped && (
+        <p className="text-xs text-amber-400">
+          This tender has more requirements than the 150 the matrix can hold. Items beyond the first 150 are not listed — review the later sections manually.
+        </p>
+      )}
     </div>
   );
 }

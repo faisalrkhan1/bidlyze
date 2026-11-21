@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
 import UpgradeGate from "@/app/components/UpgradeGate";
+import { isDeletedAnalysis } from "@/lib/deleteTender";
 
 const STATUS_COLORS = {
   analyzed: "bg-blue-500/10 text-blue-400",
@@ -85,7 +86,7 @@ export default function DeadlinesPage() {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(200)
-      .then(({ data }) => { setRecords(data || []); setLoading(false); });
+      .then(({ data }) => { setRecords((data || []).filter((r) => !isDeletedAnalysis(r))); setLoading(false); });
   }, [user]);
 
   // Build enriched items
