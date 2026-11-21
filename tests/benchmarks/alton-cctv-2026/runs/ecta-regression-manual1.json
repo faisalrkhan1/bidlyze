@@ -1,0 +1,22 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "deployment": "dpl_QnX7noSjBe3Qg35ctkNa21Xg3EM2",
+ "commit": "4e3faf0",
+ "date": "2026-11-21T18:05Z",
+ "note": "with 'manual' status (first wording)",
+ "mode": "submission (ECTA regression)",
+ "final": {
+  "exact": "17/18",
+  "issuesFlagged": "12/12",
+  "falseAlarms": "1/6"
+ },
+ "wrong": [
+  "Q04: expected answered, got manual (portal registration IS evidenced in the response annex table) -> REGRESSION caused by the new status"
+ ],
+ "usage": {
+  "promptTokens": 3302,
+  "completionTokens": 1455,
+  "costUsd": 0.0221
+ },
+ "engineMs": 7539
+}
