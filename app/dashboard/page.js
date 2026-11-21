@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
 import { FEATURES } from "@/lib/featureFlags";
+import { isDeletedAnalysis } from "@/lib/deleteTender";
 
 const DEFAULT_LIMIT = 3;
 
@@ -200,7 +201,7 @@ export default function DashboardPage() {
       .order("created_at", { ascending: false })
       .limit(10)
       .then(({ data }) => {
-        setAnalyses(data ?? []);
+        setAnalyses((data ?? []).filter((r) => !isDeletedAnalysis(r)));
       });
 
     // Total analyses count

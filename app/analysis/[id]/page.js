@@ -22,6 +22,8 @@ import ReadinessSummary from "@/app/components/ReadinessSummary";
 import { DisqualificationRiskBadge, DisqualificationRiskSection } from "@/app/components/DisqualificationRisk";
 import { FEATURES } from "@/lib/featureFlags";
 import { TENDER_FILE_ROLE_LABELS } from "@/lib/constants";
+import DeleteTender from "@/app/components/DeleteTender";
+import { isDeletedAnalysis } from "@/lib/deleteTender";
 
 function ScoreBadge({ score }) {
   const color =
@@ -108,6 +110,7 @@ export default function AnalysisDetailPage({ params }) {
   const [record, setRecord] = useState(null);
   const [sourceFiles, setSourceFiles] = useState([]);
   const [notFound, setNotFound] = useState(false);
+  const [deleted, setDeleted] = useState(false);
   const [userPlan, setUserPlan] = useState("free");
   const router = useRouter();
 
@@ -123,6 +126,8 @@ export default function AnalysisDetailPage({ params }) {
       .then(({ data, error }) => {
         if (error || !data || !data.analysis_data) {
           setNotFound(true);
+        } else if (isDeletedAnalysis(data)) {
+          setDeleted(true);
         } else {
           setRecord(data);
         }
@@ -170,7 +175,7 @@ export default function AnalysisDetailPage({ params }) {
     );
   }
 
-  if (notFound) {
+  if (notFound || deleted) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
         <div className="text-center">
@@ -179,9 +184,11 @@ export default function AnalysisDetailPage({ params }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold mb-2">Analysis not found</h2>
+          <h2 className="text-xl font-bold mb-2">{deleted ? "Tender deleted" : "Analysis not found"}</h2>
           <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>
-            This analysis doesn&apos;t exist or you don&apos;t have access to it.
+            {deleted
+              ? "The uploaded files and everything extracted from them have been permanently deleted."
+              : <>This analysis doesn&apos;t exist or you don&apos;t have access to it.</>}
           </p>
           <button
             onClick={() => router.push("/dashboard")}
@@ -1365,6 +1372,9 @@ export default function AnalysisDetailPage({ params }) {
             )}
           </>
         )}
+
+        {/* Delete: removes uploaded files + extracted content (lib/deleteTender.js) */}
+        <DeleteTender analysisId={record.id} onDeleted={() => router.push("/dashboard")} />
       </div>
     </AppShell>
   );
