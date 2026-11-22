@@ -151,15 +151,15 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
       ))}
 
       {/* Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center gap-2 sticky top-14 z-10 py-2 backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)" }}>
-        <div className="flex gap-1 p-1 rounded-xl" style={{ background: "var(--bg-input)" }} role="tablist">
+      <div className="flex flex-col md:flex-row md:items-center gap-2 md:sticky md:top-14 z-10 py-2 md:backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)" }}>
+        <div className="flex gap-1 p-1 rounded-xl overflow-x-auto max-w-full shrink-0" style={{ background: "var(--bg-input)" }} role="tablist">
           {["all", ...GROUP_ORDER].map((g) => (
             <button
               key={g}
               role="tab"
               aria-selected={filters.group === g}
               onClick={() => setF({ group: g, status: "all" })}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filters.group === g ? "shadow-sm" : ""}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap shrink-0 transition-colors ${filters.group === g ? "shadow-sm" : ""}`}
               style={filters.group === g ? { background: "var(--bg-card)", color: "var(--text-primary)" } : { color: "var(--text-secondary)" }}
               data-testid={`tab-${g}`}
             >

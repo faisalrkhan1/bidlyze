@@ -1,0 +1,1430 @@
+{
+ "success": true,
+ "checkedAt": "2026-11-22T05:51:46.318Z",
+ "tender": {
+  "analysisId": "demo-alton",
+  "name": "Alton Town Council: CCTV review, installation and 3-year maintenance (sample)",
+  "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+  "requirementsTotal": 39,
+  "cited": 39
+ },
+ "response": {
+  "filename": "supplier_proposal.pdf",
+  "contentType": "application/pdf",
+  "sha256": "4506baf539df55a59ab25c4f80fe353d7f9fc0ab2630fa7a5d1672f6c89d88ce",
+  "pages": 10,
+  "unit": "page",
+  "scannedPages": []
+ },
+ "items": [
+  {
+   "id": "R1",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "which allows the system to grow over the next 5 to 10 years without replacing the core equipment.",
+     "file": "R1",
+     "page": 5,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Design a system that allows growth over the next 5 to 10 years.",
+   "tender": {
+    "quote": "The Council want a system which will allow growth over the next 5 to 10 years.",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.2"
+  },
+  {
+   "id": "R2",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Harry Baker Pavilion, Jubilee Playing Fields 2 Building entrances and frontage",
+     "file": "R1",
+     "page": 5,
+     "status": "verified"
+    },
+    {
+     "quote": "Anstey Lane car park, in front of Energique 3 Vehicle entrance and parking bays",
+     "file": "R1",
+     "page": 5,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "No new cameras are proposed for the Council compound at Anstey Park.",
+   "requirement": "Add extra cameras at the specified new locations: Harry Baker and Charles Read Pavilions, the Anstey Lane car park and parking area at Energique, and the Council compound at Anstey Park.",
+   "tender": {
+    "quote": "The Council is looking to add extra cameras in specific locations, these include:",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.2"
+  },
+  {
+   "id": "R3",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our maintenance agreement runs for three years, from 1 November 2026 to 31 October 2029.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Provide the maintenance contract for three years from 1 November 2026, ending 31 October 2029.",
+   "tender": {
+    "quote": "The contract will then run for three years and will end on 31st October 2029.",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.2"
+  },
+  {
+   "id": "R4",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Camera positions have been checked on site to ensure that the field of view is not blocked by existing trees.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    },
+    {
+     "quote": "intermittent power feed to the Market Square column and a failing wireless link at Jubilee Playing Fields. Both are corrected in our design.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Tree obstruction is checked only as at the survey date; there is nothing on tree growth during the contract period.",
+   "requirement": "Review the existing system to identify coverage and supply issues at existing locations, including tree obstruction now and during the contract period.",
+   "tender": {
+    "quote": "Review the existing system to identify the coverage and any supply issues for the existing locations.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R5",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our engineers surveyed all existing camera positions on 21 July 2026.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "A survey is described, but there is no statement that the visit was arranged through the Council.",
+   "requirement": "A site visit is recommended; arrange it by contacting the Council before bidding.",
+   "tender": {
+    "quote": "Site visit recommended, to arrange please contact Samantha on info@alton.gov.uk or 01420 83986.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R6",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "described in BS EN 62676-4, so recordings are of evidential quality for Hampshire Constabulary and the courts.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    },
+    {
+     "quote": "Hardware upgrades to retained cameras are excluded and can be quoted separately if required.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "The quoted text contains wording such as 'excluded', 'exception' or 'subject to' — check it is not a deviation."
+   ],
+   "gap": "Image quality is addressed, but upgrades to retained cameras are excluded.",
+   "requirement": "Recommend cameras that give image quality suitable for the Police and Courts, and include upgrades for any existing cameras retained.",
+   "tender": {
+    "quote": "Recommendation of cameras which provide good quality images as required by the Police and Courts.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R7",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Hardware upgrades to retained cameras are excluded and can be quoted separately if required.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "The quoted text contains wording such as 'excluded', 'exception' or 'subject to' — check it is not a deviation."
+   ],
+   "gap": "Upgrades to retained cameras are excluded and offered only as a separate quote.",
+   "requirement": "Include any upgrades needed where existing cameras are retained.",
+   "tender": {
+    "quote": "Where existing cameras are to be retained, any upgrades to be included.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R8",
+   "status": "missing",
+   "aiStatus": "missing",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "No commitment to produce detailed plans and records of each device location with the Project Manager.",
+   "requirement": "Produce detailed plans and records of the planned location of each device, with the Project Manager.",
+   "tender": {
+    "quote": "Detailed plans and records of the planned location of each device shall be drawn up by the contractor in conjunction with the Project Manager.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R9",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Installation and commissioning 12 October to 13 November 2026",
+     "file": "R1",
+     "page": 7,
+     "status": "verified"
+    },
+    {
+     "quote": "System handover and acceptance Week commencing 16 November 2026",
+     "file": "R1",
+     "page": 7,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The programme completes installation and handover after 1 November 2026, contradicting the executive summary's 1 November claim.",
+   "requirement": "Install the new system so it is fully operational by 1 November 2026.",
+   "tender": {
+    "quote": "Install the new system to be fully operational by 1st November 2026.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R10",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "and we will train three Council Officers so that the Council can apply for its public space surveillance licence.",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    },
+    {
+     "quote": "We will provide classroom and on-site training for two nominated Council Officers, covering system operation, evidence handling and the requirements of the public space surveillance licence.",
+     "file": "R1",
+     "page": 7,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The response contradicts itself: three Officers in the summary, two in the training section (fewer than the required three).",
+   "requirement": "Train at least three Council Officers so the Council can achieve the public space surveillance (CCTV) licence.",
+   "tender": {
+    "quote": "To provide training for at least three Officers to ensure the Town Council can achieve the public space surveillance (CCTV) licence.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R11",
+   "status": "missing",
+   "aiStatus": "missing",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "No mention of supplying or placing CCTV signage.",
+   "requirement": "Supply the required CCTV signage and place it.",
+   "tender": {
+    "quote": "To provide the required signage for the CCTV system and its placement.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R12",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Every reported fault is acknowledged within 4 hours. An engineer will attend site and assess the fault within 48 hours of the report.",
+     "file": "R1",
+     "page": 6,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Assessment is offered within 48 hours, not the required 24 hours.",
+   "requirement": "Monitor the system for faults and evaluate each reported fault within 24 hours of the report.",
+   "tender": {
+    "quote": "Monitor the system for any faults and evaluate within 24 hours of the report.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R13",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Faults are remedied within 72 hours of the report, seven days a week, including weekends and bank holidays.",
+     "file": "R1",
+     "page": 6,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Remedy all reported faults within three days, including weekends.",
+   "tender": {
+    "quote": "All reported faults are to be remedied within three days. Weekends shall not be excluded from this arrangement.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R14",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Recorders are configured to store at least 31 days of continuous recordings from every camera.",
+     "file": "R1",
+     "page": 6,
+     "status": "verified"
+    },
+    {
+     "quote": "Recording retention 30 days at full resolution from all cameras",
+     "file": "R1",
+     "page": 10,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The response contradicts itself: 31 days in section 5.1, 30 days in the equipment schedule.",
+   "requirement": "Ensure the system stores at least 31 days of recordings that Officers and the Police can view.",
+   "tender": {
+    "quote": "Ensure the system stores at least 31 days of recordings to be viewed by Officers and the Police.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R15",
+   "status": "missing",
+   "aiStatus": "missing",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The retention policy is only deferred to a mobilisation meeting; no commitment to review it against current requirements.",
+   "requirement": "Be able to review the Council's CCTV retention policy to confirm it meets current requirements.",
+   "tender": {
+    "quote": "The Contractor should be able to review the CCTV retention policy for the Council to ensure it meets current requirements.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R16",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Anchor points and catenary wires are load tested at installation and at every annual service visit, using our in-house test procedure HVS-TP-07.",
+     "file": "R1",
+     "page": 8,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Testing uses an in-house procedure, not ISO standards, and is at installation and annual visits only.",
+   "requirement": "Test anchor point safety and catenary wire viability throughout the contract, to ISO standards.",
+   "tender": {
+    "quote": "Testing shall include safety tests on anchor points and viability of any catenary wires which may be installed throughout the duration of the contract. Testing shall be carried out to ISO standards.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R17",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "All electrical components, wiring and connections are tested, and we issue an Electrical Installation Certificate to BS 7671 for every circuit we install or modify.",
+     "file": "R1",
+     "page": 8,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Test all electrical components and certify all wiring and connections as safe.",
+   "tender": {
+    "quote": "All electrical components shall be tested and all wiring, connections etc should be certified safe.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R18",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "We install and anchor all equipment to the manufacturer's instructions using load-rated brackets, so that every installation is safe and compliant with Health and Safety regulations.",
+     "file": "R1",
+     "page": 7,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Install and anchor all equipment safely and in compliance with Health and Safety regulations.",
+   "tender": {
+    "quote": "All equipment will be installed and anchored such that they are safe and compliant with Health and Safety regulations.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R19",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "barriers and traffic management around every work area, so that our workers and the public are protected at all times.",
+     "file": "R1",
+     "page": 7,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Adopt safe working practices at all times and fully protect workers and the public.",
+   "tender": {
+    "quote": "The contractor shall ensure safe working practices are adopted at all times and that workers and the public are fully protected.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R20",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "We hold Public Liability insurance of £10,000,000 and Professional Indemnity insurance of £5,000,000.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Professional Indemnity cover is £5m, below the required £10m.",
+   "requirement": "Hold relevant insurance, including professional and public liability, to the value of £10m.",
+   "tender": {
+    "quote": "The contractor will hold the relevant insurance cover including professional and public liability to the value of £10m.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R21",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "We supply all access equipment, including our own cherry pickers (mobile elevating work platforms), and our own vehicles to transport equipment.",
+     "file": "R1",
+     "page": 8,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Provide all necessary equipment, including cherry pickers and transport vehicles, at the contractor's own cost.",
+   "tender": {
+    "quote": "The contractor will provide all necessary equipment including cherry pickers and vehicles to transport equipment.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.3"
+  },
+  {
+   "id": "R22",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Call-outs to faults caused by vandalism, power failure or third-party damage are charged at £85 per hour plus parts.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    },
+    {
+     "quote": "Any remedial work to columns found during installation will be charged as a variation.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Some faults and remedial works are charged extra, so fees do not cover all works and faults.",
+   "requirement": "Fees must cover all works, including dealing with all faults.",
+   "tender": {
+    "quote": "The fees shall cover all works including dealing with all faults.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R23",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Any remedial work to columns found during installation will be charged as a variation.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    },
+    {
+     "quote": "Maintenance for Year 3 will be quoted at the first anniversary of the contract, in line with the equipment then installed.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The bid reserves additional payments (variations, Year 3 price), which the Council will not accept.",
+   "requirement": "Complete all due diligence before tendering; the Council will not accept liability for additional payments.",
+   "tender": {
+    "quote": "The contractor shall conduct all necessary due diligence in advance of submitting their tender as the Council will not accept liability for additional payments.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R24",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our lead engineers hold the HERS certificate; copies are provided in Appendix B.",
+     "file": "R1",
+     "page": 8,
+     "status": "verified"
+    },
+    {
+     "quote": "HERS certificates for our remaining four field engineers will follow on award.",
+     "file": "R1",
+     "page": 10,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "HERS certificates are not evidenced for all employees; the remaining field engineers' certificates are deferred until after award.",
+   "requirement": "The contractor and all employees must hold the required electrical installation qualifications, including the HERS certificate.",
+   "tender": {
+    "quote": "The contractor and all their employees shall hold the required electrical installation qualifications including the HERS certificate.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R25",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "All site operatives hold IPAF PAL cards in categories 3a and 3b for operating cherry pickers and are",
+     "file": "R1",
+     "page": 8,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Hold 'working at height' certificates for operating a cherry picker.",
+   "tender": {
+    "quote": "The contractor should also hold ‘working at height’ certificates for the operation of a cherry picker.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R26",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our proposal covers all six locations in the contract: the four High Street camera positions, the High",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    },
+    {
+     "quote": "Street ANPR camera, the Market Square, the Public Gardens, Jubilee Playing Fields and Anstey Park.",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Cover the contract locations, starting with four camera positions in the High Street, plus the ANPR location, Market Square, Public Gardens, Jubilee Playing Fields and Anstey Park.",
+   "tender": {
+    "quote": "Four positions in the High Street for CCTV cameras",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R27",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "solar-powered cameras with battery storage and 4G transmission. We would be pleased to survey both sites and provide options.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Optionally comment on CCTV options for Kings Pond car park and Holybourne Play Area (no electricity supply); these sites are outside the tender scope.",
+   "tender": {
+    "quote": "These are outside the scope of the tender, but contractors are invited to comment on potential options in these locations.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R28",
+   "status": "manual",
+   "aiStatus": "manual",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Check this yourself: it is about how or when the bid is submitted, not what the response says."
+   ],
+   "gap": "Submission deadline and delivery method are not addressed in the response.",
+   "requirement": "Submit the written tender to the Town Clerk by 4:30pm on Friday 14 August (2026) by post or email.",
+   "tender": {
+    "quote": "Written tenders are to be submitted to the Town Clerk by 4:30pm on Friday 14th August posting or emailing.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R29",
+   "status": "manual",
+   "aiStatus": "manual",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Check this yourself: it is about how or when the bid is submitted, not what the response says."
+   ],
+   "gap": "Sealing and unmarked packaging of the tender pack are not addressed in the response.",
+   "requirement": "Seal the tender pack, with no external markings identifying the supplier.",
+   "tender": {
+    "quote": "The packs shall not have any external means of identifying the potential supplier.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R30",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our experience, our proposed approach to the works and our technical specification are set out in",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Include a technical specification covering experience and proposed approach to the works.",
+   "tender": {
+    "quote": "The technical specification (details of experience, proposed approach to the works etc).",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R31",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "installation and annual maintenance for Years 1 and 2. Maintenance for Year 3 will be quoted at the",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Not stated in the quoted text: three years — confirm it is in your response."
+   ],
+   "gap": "The separate price covers only Years 1 and 2, not the full three-year maintenance period.",
+   "requirement": "Provide a separate document giving the total price for initial installation and annual maintenance over three years.",
+   "tender": {
+    "quote": "A separate document confirming the total price for the initial installation and annual maintenance contract for a three-year period.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R32",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Reference 1: Larkmoor Town Council. Upgrade of 22 town-centre cameras and the control room,",
+     "file": "R1",
+     "page": 3,
+     "status": "verified"
+    },
+    {
+     "quote": "Reference 2: Fenbridge Borough Council. Maintenance of 40 public space cameras from April 2021",
+     "file": "R1",
+     "page": 3,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "2/2 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Not stated in the quoted text: two references, 12 months — confirm it is in your response."
+   ],
+   "gap": "Only Reference 1 is within the past 12 months; Reference 2 ended in March 2024.",
+   "requirement": "Provide names and contact details of two references for similar services delivered in the past 12 months.",
+   "tender": {
+    "quote": "The names and contact details of two references who have received a similar service in the past 12 months.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R33",
+   "status": "manual",
+   "aiStatus": "manual",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Check this yourself: it is about how or when the bid is submitted, not what the response says."
+   ],
+   "gap": "The response does not address the rule against contacting Councillors or staff.",
+   "requirement": "Do not contact Councillors or staff to encourage or support the tender outside the process.",
+   "tender": {
+    "quote": "Bidders are prohibited from contacting Councillors or staff to encourage or support their tender outside of this process.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.4"
+  },
+  {
+   "id": "R34",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our offer is conditional on 50% of the installation price being paid with the order, before work starts; the balance is invoiced on handover.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The offer carries a payment condition, plus exclusions and reservations, so it may not be a compliant tender.",
+   "requirement": "Submit a compliant tender, as only compliant tenders are evaluated (including supply time and acceptance of terms).",
+   "tender": {
+    "quote": "Each compliant tender will be judged against the following criteria:-",
+    "file": "F1",
+    "page": 5,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.5"
+  },
+  {
+   "id": "R35",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Tom Wrexley Senior Field Engineer 9 years; HERS certificate holder; IPAF 3a and 3b",
+     "file": "R1",
+     "page": 3,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Provide evidence of the experience, capability and qualifications of key personnel (scored under General Suitability).",
+   "tender": {
+    "quote": "Evidence of the experience, capability and qualifications of key personnel",
+    "file": "F1",
+    "page": 5,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.5"
+  },
+  {
+   "id": "R36",
+   "status": "manual",
+   "aiStatus": "manual",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Check this yourself: it is about how or when the bid is submitted, not what the response says."
+   ],
+   "gap": "Scoring approach is an evaluation matter; the response does not address it.",
+   "requirement": "Meet and ideally exceed minimum requirements, adding innovation and detail, to reach the highest scores.",
+   "tender": {
+    "quote": "to achieve the highest scores available the Applicant must not only meet but exceed the Council’s minimum requirements, where these are stated.",
+    "file": "F1",
+    "page": 6,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.6"
+  },
+  {
+   "id": "R37",
+   "status": "manual",
+   "aiStatus": "manual",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Check this yourself: it is about how or when the bid is submitted, not what the response says."
+   ],
+   "gap": "The response does not address the email address or subject line.",
+   "requirement": "For email submissions, use the subject 'Confidential: CCTV Tender' and send to townclerk@alton.gov.uk by the same deadline.",
+   "tender": {
+    "quote": "Email submissions are also accepted and should be sent to townclerk@alton.gov.uk with the subject ‘Confidential: CCTV Tender’.",
+    "file": "F1",
+    "page": 7,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.7"
+  },
+  {
+   "id": "R38",
+   "status": "manual",
+   "aiStatus": "manual",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Check this yourself: it is about how or when the bid is submitted, not what the response says."
+   ],
+   "gap": "The response does not address postal delivery or the deadline.",
+   "requirement": "Postal tenders must reach Alton Town Council, Town Hall, Market Square, Alton GU34 1HD by 4:30pm on Friday 14 August 2026.",
+   "tender": {
+    "quote": "The tender information should be sent to Alton Town Council, Town Hall, Market Square, Alton, Hampshire, GU34 1HD by 4:30pm on Friday 14th August 2026.",
+    "file": "F1",
+    "page": 7,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.7"
+  },
+  {
+   "id": "R39",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our offer is conditional on 50% of the installation price being paid with the order, before work starts; the balance is invoiced on handover.",
+     "file": "R1",
+     "page": 9,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "The bid requires 50% payment up front before work starts, rather than payment on receipt of a satisfactory invoice.",
+   "requirement": "Accept payment on receipt of a satisfactory VAT invoice, possibly in instalments, with full terms agreed after award.",
+   "tender": {
+    "quote": "Payment for services will be made upon the receipt of a satisfactory VAT invoice and may be made in one or more instalments.",
+    "file": "F1",
+    "page": 7,
+    "status": "verified",
+    "fileName": "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "",
+   "mandatory": true,
+   "priority": "",
+   "sourceRef": "p.7"
+  }
+ ],
+ "summary": {
+  "total": 39,
+  "answered": 12,
+  "partial": 4,
+  "conflict": 14,
+  "missing": 3,
+  "manual": 6,
+  "unproven": 0,
+  "decidedByCode": 0
+ },
+ "meta": {
+  "model": "anthropic/claude-sonnet-5.5",
+  "durationMs": 57159,
+  "failedBatches": [],
+  "truncatedBatches": [],
+  "skipped": [],
+  "aiCostUsd": 0.1208
+ },
+ "truncated": false,
+ "legacy": false,
+ "provenance": "Live Submission Check run on Vercel preview dpl_GmomKh5L25Y9RNu7tSQ7T7q2oiiV (commit 0e8a00f), /api/submission-check/demo?part=record, 2026-11-22T05:51:46Z. Replayed for the sample proposal so demos cost nothing. The wording of the code-generated deviation note was updated after recording (2 items); AI output is unchanged."
+}

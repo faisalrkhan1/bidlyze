@@ -40,7 +40,7 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
             {group !== autoGroup && <Pill tone="gray" title="A reviewer changed this result">Reviewer: {GROUPS[group].label}</Pill>}
             {contra && <Pill tone="red"><Icon name="arrows" className="w-3 h-3" /> Contradiction</Pill>}
             {item.mandatory === false && <Pill tone="gray">Optional</Pill>}
-            {!open && item.gap && <span className="text-[12px] truncate max-w-full" style={{ color: "var(--text-muted)" }}>{item.gap}</span>}
+            {!open && item.gap && <span className="text-[12px] line-clamp-2 sm:line-clamp-1 basis-full sm:basis-auto sm:flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{item.gap}</span>}
           </span>
         </span>
         <span className="hidden sm:flex flex-col items-end gap-1 shrink-0 text-[11px]" style={{ color: "var(--text-muted)" }}>

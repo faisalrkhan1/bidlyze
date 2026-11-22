@@ -52,7 +52,7 @@ export async function POST(request) {
       if (!body.live) {
         const rec = await loadRecordedDemoResult();
         if (rec && response.sha256 && rec.response?.sha256 === response.sha256) {
-          return NextResponse.json({ ...rec, recorded: { checkedAt: rec.checkedAt } });
+          return NextResponse.json({ ...rec, response: { ...rec.response, filename: response.filename }, recorded: { checkedAt: rec.checkedAt } });
         }
       }
       // A live AI run (any other file, or a re-run) needs a signed-in user.

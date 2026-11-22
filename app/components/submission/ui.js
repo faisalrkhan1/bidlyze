@@ -48,9 +48,9 @@ export function QuoteCheckPill({ status }) {
   );
 }
 
-export function Card({ children, className = "", style }) {
+export function Card({ children, className = "", style, ...rest }) {
   return (
-    <div className={`rounded-2xl transition-colors duration-300 ${className}`} style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)", ...style }}>
+    <div className={`rounded-2xl transition-colors duration-300 ${className}`} style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)", ...style }} {...rest}>
       {children}
     </div>
   );

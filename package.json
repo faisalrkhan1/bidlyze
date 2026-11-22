@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import ./tests/helpers/register-alias.mjs --test \"lib/**/__tests__/*.test.mjs\" \"tests/**/*.test.mjs\""
+    "test": "node --import ./tests/helpers/register-alias.mjs --test \"lib/**/__tests__/*.test.mjs\" \"tests/**/*.test.mjs\"",
+    "test:ui": "playwright test -c tests/ui/playwright.config.mjs submission-check.spec.mjs"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.9.0",
@@ -26,6 +27,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

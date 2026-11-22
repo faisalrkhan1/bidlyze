@@ -369,7 +369,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
           <>
             {/* Tender + proposal summary strip */}
             <div className="grid md:grid-cols-2 gap-3">
-              <Card className="p-4 flex gap-3" data-testid="tender-card">
+              <Card className="p-4 flex gap-3 min-w-0" data-testid="tender-card">
                 <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center shrink-0"><Icon name="doc" className="w-5 h-5" /></div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>1 · Tender</p>
@@ -386,7 +386,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
                 )}
               </Card>
 
-              <Card className="p-4 flex gap-3" data-testid="proposal-card">
+              <Card className="p-4 flex gap-3 min-w-0" data-testid="proposal-card">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><Icon name="clipboard" className="w-5 h-5" /></div>
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>2 · Supplier proposal</p>

@@ -48,3 +48,7 @@ images/
 
 # Benchmark caches of third-party documents (not redistributed)
 tests/benchmarks/**/.cache/
+
+# Playwright
+test-results/
+playwright-report/

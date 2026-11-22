@@ -179,7 +179,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-[240px] flex flex-col min-h-screen">
+      <div className="flex-1 min-w-0 lg:ml-[240px] flex flex-col min-h-screen">
         {/* Top Bar */}
         <header
           className="sticky top-0 z-20 h-14 flex items-center gap-4 px-4 sm:px-6 backdrop-blur-md"
