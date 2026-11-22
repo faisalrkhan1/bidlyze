@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
 import { LogoMark } from "./Logo";
 import { FEATURES } from "@/lib/featureFlags";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
 
 const NAV_ITEMS = [
   {
@@ -22,6 +23,16 @@ const NAV_ITEMS = [
     icon: (
       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+    ),
+  },
+  {
+    label: "Submission Check",
+    href: "/submission-check",
+    beta: true, // preview deployments only (lib/submission/beta.js)
+    icon: (
+      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
       </svg>
     ),
   },
@@ -98,8 +109,8 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
 
         {/* Nav Items */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.filter((item) => !item.requires || FEATURES[item.requires]).map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          {NAV_ITEMS.filter((item) => (!item.requires || FEATURES[item.requires]) && (!item.beta || submissionCheckBetaClient())).map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href)) || (item.href === "/submission-check" && pathname.endsWith("/submission-check"));
             return (
               <button
                 key={item.href}
@@ -112,6 +123,9 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
                   {item.icon}
                 </span>
                 {item.label}
+                {item.beta && (
+                  <span className="ml-auto text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}>BETA</span>
+                )}
               </button>
             );
           })}

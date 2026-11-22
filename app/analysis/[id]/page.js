@@ -24,6 +24,7 @@ import { FEATURES } from "@/lib/featureFlags";
 import { TENDER_FILE_ROLE_LABELS } from "@/lib/constants";
 import DeleteTender from "@/app/components/DeleteTender";
 import { isDeletedAnalysis } from "@/lib/deleteTender";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
 
 function ScoreBadge({ score }) {
   const color =
@@ -287,6 +288,27 @@ export default function AnalysisDetailPage({ params }) {
             </p>
           </div>
         </div>
+
+        {/* Submission Check (beta, preview deployments only) */}
+        {submissionCheckBetaClient() && Array.isArray(requirements) && requirements.length > 0 && (
+          <div className="px-5 py-4 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }} data-testid="submission-check-entry">
+            <div className="flex-1">
+              <p className="text-sm font-semibold flex items-center gap-2">
+                Check a proposal against this tender
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}>BETA</span>
+              </p>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                Upload the supplier&apos;s technical proposal to see which of the {requirements.length} requirements need attention, with quotes from both documents.
+              </p>
+            </div>
+            <button
+              onClick={() => router.push(`/analysis/${id}/submission-check`)}
+              className="px-4 py-2 rounded-xl text-sm font-semibold bg-emerald-500 hover:bg-emerald-400 text-white transition-colors"
+            >
+              Submission Check
+            </button>
+          </div>
+        )}
 
         {/* Bid Readiness — only meaningful for full RFP analyses */}
         {FEATURES.showBidReadiness && !isSpecializedType && (
