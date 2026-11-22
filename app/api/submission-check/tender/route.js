@@ -5,6 +5,7 @@ import { readTenderRequirements, tenderAnalysisRow, SOURCE } from "@/lib/submiss
 import { requirementsFromAnalysis } from "@/lib/submission/fromAnalysis";
 import { prepareRequirements } from "@/lib/submission/obligations";
 import { errJson, readJsonBody, BodyError, userFromRequest, getQuota } from "@/lib/submission/http";
+import { estimateRunCostUsd } from "@/lib/submission/quota";
 
 // Submission Check step 1: read the tender's requirements.
 //
@@ -46,7 +47,7 @@ export async function POST(request) {
     const { files, totalChars } = normaliseDocuments(body?.tender, { kind: "tender" });
 
     quota = await getQuota();
-    claim = await quota.claim({ user, requestId: body?.requestId, kind: "tender" });
+    claim = await quota.claim({ user, requestId: body?.requestId, kind: "tender", reserveUsd: estimateRunCostUsd({ kind: "tender", chars: totalChars }) });
     if (!claim.ok) {
       // Same request again after a dropped connection: hand back the tender it already read.
       if (claim.code === "duplicate" && claim.existing?.status === "succeeded" && claim.existing.analysisId) {

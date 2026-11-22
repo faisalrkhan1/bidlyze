@@ -286,7 +286,7 @@ export function ProcessingNote({ open = false }) {
       </summary>
       <ul className="mt-2 space-y-1.5 list-disc pl-5 leading-relaxed">
         <li>Files are read in this browser. Only their text is sent to Bidlyze; the files themselves are not uploaded or stored.</li>
-        <li>Bidlyze sends the text to an AI model (Anthropic&apos;s Claude) through OpenRouter. We ask OpenRouter to use only providers that do not collect or train on the data; providers may keep requests for a limited time under their own terms (for example to detect abuse).</li>
+        <li>Bidlyze sends the full text of the documents, over an encrypted connection, to an AI model (Anthropic&apos;s Claude) through OpenRouter, an AI routing service. Claude may be run by Anthropic or by a cloud provider that hosts it (such as Amazon or Google). We ask OpenRouter to use only providers that do not collect or train on the data; providers may keep requests for a limited time under their own terms (for example to detect abuse).</li>
         <li>Tender: the requirement list Bidlyze extracts (with short quotes, page numbers and the file names) is saved to your account, so you can check more proposals against it. Delete it any time in History.</li>
         <li>Proposal: its text and the findings are not saved on Bidlyze&apos;s servers. For beta limits we keep a usage record (date, page count, AI cost); logs hold sizes, timings and costs only.</li>
         <li>Results and your review notes stay in this browser until you start a new check of the same tender. Export the report to keep or share them.</li>

@@ -45,6 +45,9 @@ create table if not exists public.submission_check_runs (
   started_at    timestamptz not null default now(),
   finished_at   timestamptz,
   ai_cost_usd   numeric(10, 4) check (ai_cost_usd >= 0),
+  -- Upper-bound cost booked when the run starts (from the document size), so runs that
+  -- are still in flight count against the cost caps until their real cost is known.
+  reserved_usd  numeric(10, 4) not null default 0 check (reserved_usd >= 0),
   error_code    text check (char_length(error_code) <= 60),
   analysis_id   uuid references public.analyses (id) on delete set null,
   pages         integer check (pages >= 0),
@@ -63,16 +66,20 @@ create policy "submission_check_runs_select_own" on public.submission_check_runs
 -- No insert/update/delete policies: only the server functions below write.
 
 -- ── 3. Claim a run (called by the server before any paid AI call) ───────────
--- Atomic per user (advisory lock), so two requests at the same moment cannot
--- both pass the limits. Same request id twice = the same run, never a second
--- paid call (double clicks, network retries).
+-- Claims are serialised by ONE transaction-level advisory lock for all users, so
+-- two requests at the same moment (same user or different users) cannot both pass
+-- a limit. A claim takes a few milliseconds, so this costs nothing at beta scale.
+-- Cost caps count real costs of finished runs PLUS the reserved (upper-bound) cost
+-- of runs still in flight, and the new run's own reservation must also fit.
+-- Same request id twice = the same run, never a second paid call.
 create or replace function public.submission_check_claim(
   p_user_id      uuid,
   p_email        text,
   p_request_id   text,
   p_kind         text,
   p_require_beta boolean,
-  p_limits       jsonb
+  p_limits       jsonb,
+  p_reserve_usd  numeric
 ) returns jsonb
 language plpgsql
 security definer
@@ -93,17 +100,19 @@ declare
   v_global_cost  numeric;
   l_checks       integer;
   l_tenders      integer;
-  l_hour         integer := coalesce((p_limits ->> 'per_hour')::integer, 6);
+  l_hour         integer := coalesce((p_limits ->> 'per_hour')::integer, 4);
   l_cost         numeric;
-  l_global       numeric := coalesce((p_limits ->> 'global_cost_usd_per_day')::numeric, 15);
+  l_global       numeric := coalesce((p_limits ->> 'global_cost_usd_per_day')::numeric, 8);
   l_stale_min    integer := coalesce((p_limits ->> 'stale_minutes')::integer, 10);
+  -- Never trust a missing or silly reservation: at least 5 cents, at most $20.
+  v_reserve      numeric := least(greatest(coalesce(p_reserve_usd, 1), 0.05), 20);
   v_id           uuid;
 begin
   if p_user_id is null or p_kind not in ('tender', 'check') or p_request_id is null then
     raise exception 'submission_check_claim: invalid arguments';
   end if;
 
-  perform pg_advisory_xact_lock(hashtextextended('submission_check:' || p_user_id::text, 0));
+  perform pg_advisory_xact_lock(hashtextextended('submission_check:claim', 0));
 
   select * into v_existing from public.submission_check_runs
    where user_id = p_user_id and request_id = p_request_id;
@@ -119,9 +128,9 @@ begin
     return jsonb_build_object('allowed', false, 'code', 'not_in_beta');
   end if;
 
-  l_checks  := coalesce(case when v_has_beta then v_beta.checks_per_month end, (p_limits ->> 'checks_per_month')::integer, 30);
-  l_tenders := coalesce(case when v_has_beta then v_beta.tenders_per_month end, (p_limits ->> 'tenders_per_month')::integer, 15);
-  l_cost    := coalesce(case when v_has_beta then v_beta.cost_cap_usd_per_month end, (p_limits ->> 'cost_cap_usd_per_month')::numeric, 10);
+  l_checks  := coalesce(case when v_has_beta then v_beta.checks_per_month end, (p_limits ->> 'checks_per_month')::integer, 10);
+  l_tenders := coalesce(case when v_has_beta then v_beta.tenders_per_month end, (p_limits ->> 'tenders_per_month')::integer, 5);
+  l_cost    := coalesce(case when v_has_beta then v_beta.cost_cap_usd_per_month end, (p_limits ->> 'cost_cap_usd_per_month')::numeric, 5);
 
   -- One paid run at a time per account. A run still 'running' after
   -- l_stale_min minutes crashed (Vercel stops functions after 5 minutes).
@@ -140,9 +149,10 @@ begin
   end if;
 
   -- Monthly allowance: failed runs do not use it up; their AI cost still counts.
+  -- Cost = real cost of finished runs + reserved cost of runs still running.
   select count(*) filter (where kind = 'check' and status <> 'failed'),
          count(*) filter (where kind = 'tender' and status <> 'failed'),
-         coalesce(sum(ai_cost_usd), 0)
+         coalesce(sum(case when status = 'running' then reserved_usd else coalesce(ai_cost_usd, 0) end), 0)
     into v_checks, v_tenders, v_cost
     from public.submission_check_runs
    where user_id = p_user_id and started_at >= v_month_start;
@@ -152,19 +162,21 @@ begin
   if p_kind = 'tender' and v_tenders >= l_tenders then
     return jsonb_build_object('allowed', false, 'code', 'monthly_tenders', 'limit', l_tenders);
   end if;
-  if v_cost >= l_cost then
+  if v_cost + v_reserve > l_cost then
     return jsonb_build_object('allowed', false, 'code', 'monthly_cost', 'limit', l_cost);
   end if;
 
-  -- Safety net across all accounts (for example a leaked password).
-  select coalesce(sum(ai_cost_usd), 0) into v_global_cost from public.submission_check_runs
+  -- Safety net across all accounts (for example a leaked password), counting
+  -- runs in flight at their reserved cost.
+  select coalesce(sum(case when status = 'running' then reserved_usd else coalesce(ai_cost_usd, 0) end), 0)
+    into v_global_cost from public.submission_check_runs
    where started_at > v_now - interval '24 hours';
-  if v_global_cost >= l_global then
+  if v_global_cost + v_reserve > l_global then
     return jsonb_build_object('allowed', false, 'code', 'global_cost', 'limit', l_global);
   end if;
 
-  insert into public.submission_check_runs (user_id, request_id, kind)
-  values (p_user_id, p_request_id, p_kind)
+  insert into public.submission_check_runs (user_id, request_id, kind, reserved_usd)
+  values (p_user_id, p_request_id, p_kind, v_reserve)
   returning id into v_id;
 
   return jsonb_build_object('allowed', true, 'run_id', v_id,
@@ -231,7 +243,7 @@ begin
   v_has_beta := found and v_beta.enabled and (v_beta.expires_at is null or v_beta.expires_at > now());
   select count(*) filter (where kind = 'check' and status <> 'failed'),
          count(*) filter (where kind = 'tender' and status <> 'failed'),
-         coalesce(sum(ai_cost_usd), 0)
+         coalesce(sum(case when status = 'running' then reserved_usd else coalesce(ai_cost_usd, 0) end), 0)
     into v_checks, v_tenders, v_cost
     from public.submission_check_runs
    where user_id = p_user_id and started_at >= v_month_start;
@@ -240,18 +252,18 @@ begin
     'beta_expires_at', case when v_has_beta then v_beta.expires_at end,
     'used', jsonb_build_object('checks', v_checks, 'tenders', v_tenders, 'cost_usd', v_cost),
     'limits', jsonb_build_object(
-      'checks_per_month', coalesce(case when v_has_beta then v_beta.checks_per_month end, (p_limits ->> 'checks_per_month')::integer, 30),
-      'tenders_per_month', coalesce(case when v_has_beta then v_beta.tenders_per_month end, (p_limits ->> 'tenders_per_month')::integer, 15),
-      'cost_cap_usd_per_month', coalesce(case when v_has_beta then v_beta.cost_cap_usd_per_month end, (p_limits ->> 'cost_cap_usd_per_month')::numeric, 10)),
+      'checks_per_month', coalesce(case when v_has_beta then v_beta.checks_per_month end, (p_limits ->> 'checks_per_month')::integer, 10),
+      'tenders_per_month', coalesce(case when v_has_beta then v_beta.tenders_per_month end, (p_limits ->> 'tenders_per_month')::integer, 5),
+      'cost_cap_usd_per_month', coalesce(case when v_has_beta then v_beta.cost_cap_usd_per_month end, (p_limits ->> 'cost_cap_usd_per_month')::numeric, 5)),
     'period_start', v_month_start);
 end;
 $$;
 
 -- Only the server (service role) may call these functions.
-revoke all on function public.submission_check_claim(uuid, text, text, text, boolean, jsonb) from public, anon, authenticated;
+revoke all on function public.submission_check_claim(uuid, text, text, text, boolean, jsonb, numeric) from public, anon, authenticated;
 revoke all on function public.submission_check_finish(uuid, uuid, text, numeric, text, uuid, integer, integer) from public, anon, authenticated;
 revoke all on function public.submission_check_usage(uuid, text, jsonb) from public, anon, authenticated;
-grant execute on function public.submission_check_claim(uuid, text, text, text, boolean, jsonb) to service_role;
+grant execute on function public.submission_check_claim(uuid, text, text, text, boolean, jsonb, numeric) to service_role;
 grant execute on function public.submission_check_finish(uuid, uuid, text, numeric, text, uuid, integer, integer) to service_role;
 grant execute on function public.submission_check_usage(uuid, text, jsonb) to service_role;
 
@@ -267,7 +279,7 @@ commit;
 -- begin;
 -- drop function if exists public.submission_check_usage(uuid, text, jsonb);
 -- drop function if exists public.submission_check_finish(uuid, uuid, text, numeric, text, uuid, integer, integer);
--- drop function if exists public.submission_check_claim(uuid, text, text, text, boolean, jsonb);
+-- drop function if exists public.submission_check_claim(uuid, text, text, text, boolean, jsonb, numeric);
 -- drop table if exists public.submission_check_runs;
 -- drop table if exists public.submission_check_beta_users;
 -- commit;

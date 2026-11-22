@@ -532,7 +532,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
             {demo && <Pill tone="blue">Sample data</Pill>}
           </div>
           <p className="text-[15px] max-w-2xl" style={{ color: "var(--text-secondary)" }}>
-            Check a supplier&apos;s proposal against every requirement of the tender before it is submitted. Each finding quotes both documents with page numbers, for your team to review.
+            Check a supplier&apos;s proposal against the tender&apos;s requirements before it is submitted. Each finding quotes both documents with page numbers, for your team to review.
           </p>
           <Stepper current={stepNow} />
         </header>
@@ -561,6 +561,9 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
                           <span className="tabular">{tender.requirementsTotal}</span> requirements{tender.cited ? `, ${tender.cited} with verified tender quotes` : ""}
                           {tender.justRead ? ", read just now" : ""}
                         </p>
+                        {tender.source === "submission-check" && (
+                          <p className="text-[12px] mt-1" style={{ color: "var(--text-muted)" }} data-testid="list-caveat">Read by AI: check the list covers the tender. Requirements can be missed, especially in long or scanned documents.</p>
+                        )}
                         {!tender.demo && tender.cited === 0 && tender.requirementsTotal > 0 && (
                           <p className="text-[12px] mt-1" style={{ color: "var(--st-manual)" }}>Analysed before page-cited quotes: tender quotes will not be shown.</p>
                         )}
@@ -740,7 +743,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
 
             {phase === "setup" && (
               <p className="text-[12px] text-center" style={{ color: "var(--text-muted)" }}>
-                Beta: results are an aid for your review, not a compliance certificate.
+                Beta: results are an aid for your review, not a compliance certificate. The requirement list and the findings can be incomplete or wrong.
               </p>
             )}
 

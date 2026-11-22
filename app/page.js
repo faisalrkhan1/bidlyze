@@ -72,8 +72,8 @@ const METRICS = [
 // With Submission Check switched on (previews now; production only after approval)
 // the public page presents that one product and its closed beta.
 const SC_METADATA = {
-  title: "Bidlyze: check a proposal against every tender requirement",
-  description: "Bidlyze checks a supplier's proposal against every requirement in the tender and quotes both documents, with page numbers, for your team to review. Closed beta.",
+  title: "Bidlyze: check a supplier proposal against a tender's requirements",
+  description: "Bidlyze lists the requirements in a tender, checks a supplier's proposal against each one and quotes both documents with page numbers, for your team to review. Closed beta.",
   openGraph: { title: "Bidlyze Submission Check", description: "Find the gaps in a proposal before the buyer does.", type: "website", locale: "en_US", siteName: "Bidlyze" },
 };
 export const metadata = submissionCheckBetaClient() ? SC_METADATA : TI_METADATA;

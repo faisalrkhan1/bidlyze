@@ -70,7 +70,7 @@ export default function PrivacyPage() {
               until you delete them.
             </p>
             <p className="mt-3">
-              <strong>Submission Check (beta).</strong> Files are read in your browser and are not uploaded. Only
+              <strong>Submission Check (beta).</strong> Files are read in your browser and the files themselves are not uploaded. Only
               their text is sent to our servers and on to our AI provider. See section 2.5 for exactly what is kept.
             </p>
 
@@ -157,7 +157,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-6 mt-3 space-y-2">
               <li><strong>Authentication and data storage</strong>: Supabase, Inc. manages accounts and sign-in, and stores account data, saved analyses, tender requirement lists and usage records.</li>
-              <li><strong>AI processing</strong>: document text is processed by Anthropic&apos;s Claude models, reached through OpenRouter, Inc. (an AI routing service). Claude may be served by Anthropic or by cloud providers that host Claude, such as Amazon Web Services or Google Cloud. With every request we instruct OpenRouter to route only to providers that do not collect user data (OpenRouter&apos;s &quot;data collection: deny&quot; setting). Under Anthropic&apos;s published policy for its API, inputs and outputs are not used for model training and are deleted within 30 days, unless longer retention is needed to enforce its usage policy or is required by law. Zero-data-retention routing is not switched on during the beta. Each provider processes data under its own privacy terms.</li>
+              <li><strong>AI processing</strong>: document text is processed by Anthropic&apos;s Claude models, reached through OpenRouter, Inc. (an AI routing service). Claude may be served by Anthropic or by cloud providers that host Claude, such as Amazon Web Services or Google Cloud. With every request we instruct OpenRouter to route only to providers that do not collect user data (OpenRouter&apos;s &quot;data collection: deny&quot; setting). When Anthropic serves the request, its published policy for its API is that inputs and outputs are not used for model training and are deleted within 30 days, unless longer retention is needed to enforce its usage policy or is required by law; cloud providers that host Claude apply their own terms. Zero-data-retention routing is not switched on during the beta. Each provider processes data under its own privacy terms.</li>
               <li><strong>Payment processing (when paid plans launch)</strong> — When paid plans launch, payments will be processed by Stripe Inc., a third-party payment processor. Stripe will handle all billing, invoicing, and tax-related processing on our behalf. Customers will be notified before any payment processing begins.</li>
               <li><strong>Hosting</strong>: Vercel, Inc. hosts the application, serves web requests and keeps standard server logs.</li>
               <li><strong>Email delivery</strong> — We use a third-party provider to deliver transactional emails, including account notifications and analysis summaries.</li>

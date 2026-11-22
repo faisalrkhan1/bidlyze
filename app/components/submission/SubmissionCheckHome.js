@@ -55,7 +55,7 @@ export default function SubmissionCheckHome() {
             <Pill tone="outline">Beta</Pill>
           </div>
           <p className="text-[15px] max-w-2xl" style={{ color: "var(--text-secondary)" }}>
-            Before a bid goes out, check the supplier&apos;s proposal against every requirement of the tender. Each finding quotes both documents with page numbers, for your team to review and export.
+            Before a bid goes out, check the supplier&apos;s proposal against the tender&apos;s requirements. Each finding quotes both documents with page numbers, for your team to review and export.
           </p>
         </header>
 
@@ -130,7 +130,7 @@ export default function SubmissionCheckHome() {
           {[
             ["shield", "Evidence you can check", "Every finding quotes the tender and the proposal. Bidlyze confirms each quote appears word for word on the cited page."],
             ["user", "Your team decides", "Findings are a starting point. Reviewers agree or override each one, add notes, and export the result."],
-            ["lock", "Your files stay with you", "Files are read in your browser and are not uploaded. The proposal and the results are not stored on Bidlyze's servers."],
+            ["lock", "Your files stay with you", "Files are read in your browser; only their text is sent for the check. The proposal and the results are not stored on Bidlyze's servers."],
           ].map(([icon, title, body], i) => (
             <div key={title} className={`p-4 sm:p-5 border-[var(--border-primary)] ${i ? "border-t sm:border-t-0 sm:border-l" : ""}`}>
               <p className="text-[14px] font-semibold inline-flex items-center gap-2"><span style={{ color: "var(--accent-text)" }}><Icon name={icon} className="w-[18px] h-[18px]" /></span>{title}</p>
@@ -140,7 +140,7 @@ export default function SubmissionCheckHome() {
         </div>
 
         <p className="text-[12px] text-center" style={{ color: "var(--text-muted)" }}>
-          Beta: an aid for your own review, not a compliance certificate.
+          Beta: an aid for your own review, not a compliance certificate. It can miss or misjudge a requirement.
         </p>
       </div>
     </AppShell>

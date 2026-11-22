@@ -4,6 +4,7 @@ import { normaliseResponse, checkProposalAgainstAnalysis, addDocumentFindings, C
 import { isDeletedAnalysis } from "@/lib/deleteTender";
 import { DEMO_ID, loadDemoAnalysis, loadRecordedDemoResult } from "@/lib/submission/demo";
 import { errJson, readJsonBody, BodyError, userFromRequest, getQuota } from "@/lib/submission/http";
+import { estimateRunCostUsd } from "@/lib/submission/quota";
 
 // Submission Check step 2: check a supplier proposal (one or more files)
 // against a tender's requirement list. The proposal's page text is extracted in
@@ -44,7 +45,9 @@ export async function POST(request) {
     // Beta list and usage limits first: an account that may not run paid checks
     // gets its answer before any tender is read from the database.
     quota = await getQuota();
-    claim = await quota.claim({ user, requestId: body?.requestId, kind: "check" });
+    // Requirement count is not known before the tender is loaded: reserve for the maximum (150).
+    const proposalChars = response.files.reduce((n, f) => n + f.chars, 0);
+    claim = await quota.claim({ user, requestId: body?.requestId, kind: "check", reserveUsd: estimateRunCostUsd({ kind: "check", chars: proposalChars }) });
     if (!claim.ok) return errJson(claim.status, claim.reason, { code: claim.code }, claim.retryAfterSec ? { "Retry-After": String(claim.retryAfterSec) } : undefined);
 
     let analysis;

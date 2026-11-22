@@ -4,7 +4,7 @@
 import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { normaliseDocuments, DOC_LIMITS, DocumentInputError } from "../../lib/submission/documents.js";
-import { createQuota, refusalMessage, isMissingSchema } from "../../lib/submission/quota.js";
+import { createQuota, refusalMessage, isMissingSchema, estimateRunCostUsd, DEFAULT_QUOTA } from "../../lib/submission/quota.js";
 import { askJSON } from "../../lib/readiness/ai.js";
 import { OVERVIEW_TASK, REQUIREMENTS_TASK } from "../../lib/readiness/passes.js";
 
@@ -26,7 +26,10 @@ const saved = new Map(); // analysis id -> row
 const runs = [];
 let inserts = 0;
 
+const reserves = [];
+const providerSeen = [];
 function rpcClaim(a) {
+  reserves.push({ kind: a.p_kind, usd: a.p_reserve_usd });
   const ex = runs.find((r) => r.user === a.p_user_id && r.req === a.p_request_id);
   if (ex) return { allowed: false, code: "duplicate", run_id: ex.id, status: ex.status, kind: ex.kind, analysis_id: ex.analysis || null };
   const mine = runs.filter((r) => r.user === a.p_user_id);
@@ -81,6 +84,7 @@ before(() => {
     }
     if (!u.includes("openrouter")) throw new Error(`unexpected network call: ${u}`);
     const body = JSON.parse(init.body);
+    providerSeen.push(body.provider);
     const task = body.messages[1].content.at(-1).text;
     const kind = task === OVERVIEW_TASK ? "overview" : task === REQUIREMENTS_TASK ? "requirements" : "other";
     aiCalls.push(kind);
@@ -332,4 +336,37 @@ test("AI: a temporary 503 is retried once", async () => {
   const r = await askJSON({ system: "s", task: "t", fetchImpl, label: "t" });
   assert.equal(r.json.ok, true);
   assert.equal(calls, 2);
+});
+
+// ── Cost reservations (in-flight runs count against the cost caps) ─────────
+test("every paid run books an upper-bound cost before the AI is called", async () => {
+  reserves.length = 0;
+  const t = await post("/tender", tenderBody(), { token: "tok-b" });
+  assert.equal(t.status, 200);
+  const r = reserves.find((x) => x.kind === "tender");
+  assert.ok(r && r.usd >= 0.5 && r.usd <= 20, `tender reservation ${r?.usd}`);
+});
+
+test("cost estimate: pessimistic, grows with size, bounded", () => {
+  const small = estimateRunCostUsd({ kind: "tender", chars: 20_000 });
+  const big = estimateRunCostUsd({ kind: "tender", chars: 600_000 });
+  const check = estimateRunCostUsd({ kind: "check", chars: 30_000 });
+  assert.ok(small >= 0.15 * 3, "at least 3x the live cost of a 7-page tender ($0.15)");
+  assert.ok(check >= 0.09 * 3, "at least 3x the live cost of a 10-page check ($0.09)");
+  assert.ok(big > small);
+  assert.ok(estimateRunCostUsd({ kind: "check", chars: 30_000, requirements: 20 }) < check, "fewer requirements, fewer AI calls");
+  assert.ok(estimateRunCostUsd({ kind: "check", chars: 1e9 }) <= 20);
+  assert.ok(estimateRunCostUsd({ kind: "tender", chars: -5 }) >= 0.05);
+});
+
+test("conservative defaults for the five-person beta", () => {
+  assert.deepEqual(
+    { c: DEFAULT_QUOTA.checks_per_month, t: DEFAULT_QUOTA.tenders_per_month, h: DEFAULT_QUOTA.per_hour, m: DEFAULT_QUOTA.cost_cap_usd_per_month, g: DEFAULT_QUOTA.global_cost_usd_per_day },
+    { c: 10, t: 5, h: 4, m: 5, g: 8 }
+  );
+});
+
+test("privacy: every AI request asks OpenRouter for providers that do not collect data", () => {
+  assert.ok(providerSeen.length >= 4, "AI calls were made in these tests");
+  assert.ok(providerSeen.every((p) => p?.data_collection === "deny"), JSON.stringify(providerSeen.slice(0, 2)));
 });

@@ -57,9 +57,9 @@ const FEATURES = [
 
 const SC_COPY = {
   features: [
-    { title: "Every requirement, checked", description: "The proposal is checked against each requirement of the tender, with the words from both documents." },
+    { title: "Requirements listed, then checked", description: "Bidlyze lists the tender's requirements and checks the proposal against each one, quoting both documents." },
     { title: "Quotes verified word for word", description: "Bidlyze confirms each quote is on the page it cites. Your team decides what the findings mean." },
-    { title: "Files stay with you", description: "Documents are read in your browser and are not uploaded." },
+    { title: "Files stay with you", description: "Documents are read in your browser; only their text is sent for the check." },
   ],
   chips: ["Closed beta for invited teams", "Free during the beta", "Files read in your browser"],
   tagline: "Submission Check",
@@ -214,7 +214,7 @@ export default function LoginPageClient() {
             <>
               <h1 className="text-3xl xl:text-4xl font-semibold tracking-[-0.02em] leading-tight mb-4">Find the gaps in a proposal before the buyer does.</h1>
               <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: "var(--text-secondary)" }}>
-                Check a supplier&apos;s proposal against every requirement in the tender, with both documents quoted and page numbers, for your team to review.
+                Check a supplier&apos;s proposal against the tender&apos;s requirements, with both documents quoted and page numbers, for your team to review.
               </p>
             </>
           ) : (

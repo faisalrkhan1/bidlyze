@@ -3,7 +3,7 @@ export default function manifest() {
   return {
     name: "Bidlyze",
     short_name: "Bidlyze",
-    description: "Check a supplier proposal against every tender requirement, with the evidence quoted.",
+    description: "Check a supplier proposal against a tender's requirements, with the evidence quoted.",
     start_url: "/submission-check",
     display: "standalone",
     background_color: "#F5F7FA",

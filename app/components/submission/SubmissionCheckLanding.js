@@ -7,17 +7,17 @@ import { LogoFull } from "@/app/components/Logo";
 const ACCESS = "mailto:support@bidlyze.com?subject=Submission%20Check%20beta%20access&body=Company%3A%0AYour%20role%3A%0AWhat%20you%20bid%20for%3A";
 
 const STEPS = [
-  ["Add the tender", "The ITT, RFP or RFQ, with its annexes. Bidlyze reads every requirement and where it is written."],
+  ["Add the tender", "The ITT, RFP or RFQ, with its annexes. Bidlyze lists the requirements it finds and the page each comes from. The list can miss items, so your team checks it."],
   ["Add the proposal", "The supplier's technical proposal and any separate parts, such as the price schedule."],
-  ["Run the check", "Each requirement is checked against the proposal. About two to three minutes."],
+  ["Run the check", "Each listed requirement is checked against the proposal. Usually two to three minutes."],
   ["Review the findings", "Needs attention, check manually or OK, each with the words from both documents and their pages."],
   ["Export the report", "An Excel action register with owners and your team's decisions, ready to work from."],
 ];
 
 const TRUST = [
-  ["Quotes checked in code", "Bidlyze confirms that every quote appears word for word on the page it cites. A quote it cannot find is marked, never presented as evidence."],
+  ["Quotes checked in code", "Bidlyze checks that each quote appears word for word in the document, on the page it cites, and marks any quote it cannot find. This proves the words are there; whether they meet the requirement is a judgement your team confirms."],
   ["People make the call", "Findings are a starting point. Your reviewers agree or override each one, and the report keeps their decisions apart from the AI's."],
-  ["Files stay with you", "Documents are read in your browser and are not uploaded. The proposal and the results are not stored on Bidlyze's servers."],
+  ["Files stay with you", "Documents are read in your browser and the files are not uploaded. Their text is sent to Bidlyze and its AI provider (Anthropic's Claude, through OpenRouter) for the check. The proposal and the results are not stored on Bidlyze's servers."],
 ];
 
 function Mark({ children }) {
@@ -47,13 +47,13 @@ export default function SubmissionCheckLanding() {
             <p className="text-[13px] font-medium inline-flex items-center gap-2 px-2.5 py-1 rounded-md" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}>Submission Check, closed beta</p>
             <h1 className="text-[38px] sm:text-[48px] leading-[1.08] font-semibold tracking-[-0.025em] max-w-[16ch]">Find the gaps in a proposal before the buyer does.</h1>
             <p className="text-[17px] leading-relaxed max-w-[52ch]" style={{ color: "var(--text-secondary)" }}>
-              Bidlyze checks a supplier&apos;s proposal against every requirement in the tender, and quotes both documents with page numbers so your team can see each finding for itself.
+              Bidlyze lists the requirements in a tender, checks the supplier&apos;s proposal against each one, and quotes both documents with page numbers, so your team can see each finding for itself.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <a href={ACCESS} className="inline-flex items-center h-11 px-5 rounded-lg text-[15px] font-semibold text-white" style={{ background: "var(--accent)" }} data-testid="landing-access">Request beta access</a>
               <Link href="/login" className="inline-flex items-center h-11 px-5 rounded-lg text-[15px] font-medium" style={{ border: "1px solid var(--border-secondary)" }}>Sign in</Link>
             </div>
-            <p className="text-[13px]" style={{ color: "var(--text-muted)" }}>For invited bid, presales and procurement teams. Free during the beta.</p>
+            <p className="text-[13px]" style={{ color: "var(--text-muted)" }}>For invited bid, presales and procurement teams. Free during the beta. An early beta: it can miss or misjudge a requirement, so your team reviews every finding.</p>
           </div>
 
           {/* A real finding from the sample check (public Alton Town Council tender, fictional supplier). */}
@@ -111,7 +111,7 @@ export default function SubmissionCheckLanding() {
               ))}
             </div>
             <p className="text-[13px] mt-10 max-w-[70ch]" style={{ color: "var(--text-muted)" }}>
-              Bidlyze is an aid for your own review, not a compliance certificate. Whether a quote meets a requirement is an AI judgement and can be wrong; every finding needs a person to confirm it. <Link href="/privacy#submission-check" className="underline underline-offset-2">How documents are processed</Link>.
+              Bidlyze is an aid for your own review, not a compliance certificate. The requirement list is read by AI and can be incomplete, and whether a quote meets a requirement is an AI judgement that can be wrong: every finding needs a person to confirm it. <Link href="/privacy#submission-check" className="underline underline-offset-2">How documents are processed</Link>.
             </p>
           </div>
         </section>

@@ -227,12 +227,12 @@ test("API: an allow-listed user can check their own analysis; another user's ana
 test("API: per-user rate limit (429 with Retry-After) stops repeated paid checks", async () => {
   const env = { VERCEL_ENV: "preview" };
   const statuses = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < 5; i++) {
     const r = await callRoute({ analysisId: "demo-alton", live: true, response: { filename: "x.pdf", pages } }, { env, headers: auth("tok-busy") });
     statuses.push(r.status);
     if (r.status === 429) assert.match(r.json.error, /in the last hour/);
   }
-  assert.deepEqual(statuses, [200, 200, 200, 200, 200, 200, 429]);
+  assert.deepEqual(statuses, [200, 200, 200, 200, 429], "beta default: 4 runs an hour");
   assert.ok(runs.filter((r) => r.user === USERS["tok-busy"].id).every((r) => r.status === "succeeded"), "every run was recorded as finished");
 });
 

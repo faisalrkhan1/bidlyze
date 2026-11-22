@@ -28,11 +28,24 @@ $PSQL -d bidlyze_test -f "$HERE/submission_check_quota.test.sql" 2>&1 | sed 's/^
 # Race: 8 parallel claims for one user with different request ids -> exactly one allowed.
 $PSQL -d bidlyze_test -c "insert into auth.users (id) values ('99999999-9999-9999-9999-999999999999')"
 for i in 1 2 3 4 5 6 7 8; do
-  $PSQL -d bidlyze_test -At -c "set role service_role; select public.submission_check_claim('99999999-9999-9999-9999-999999999999','r@x.com','race-0000-000$i','check',false,'{\"per_hour\":50}') ->> 'allowed'" &
+  $PSQL -d bidlyze_test -At -c "set role service_role; select public.submission_check_claim('99999999-9999-9999-9999-999999999999','r@x.com','race-0000-000$i','check',false,'{\"per_hour\":50,\"global_cost_usd_per_day\":9999}', 0.05) ->> 'allowed'" &
 done > /tmp/race.out; wait
 ALLOWED=$(grep -c '^true$' /tmp/race.out || true)
 if [ "$ALLOWED" != "1" ]; then echo "FAILED: $ALLOWED of 8 parallel claims were allowed (expected 1)"; cat /tmp/race.out; exit 1; fi
 echo "  ok - 8 parallel claims for one account: exactly 1 allowed, 7 refused"
+
+# Race across DIFFERENT accounts against the global daily cap: room for exactly $5,
+# each run reserves $1, 8 users start at the same moment -> exactly 5 allowed.
+for i in 1 2 3 4 5 6 7 8; do $PSQL -d bidlyze_test -c "insert into auth.users (id) values ('aaaaaaaa-0000-0000-0000-00000000000$i') on conflict do nothing" >/dev/null; done
+BASE=$($PSQL -d bidlyze_test -At -c "select coalesce(sum(case when status = 'running' then reserved_usd else coalesce(ai_cost_usd, 0) end), 0) from public.submission_check_runs where started_at > now() - interval '24 hours'")
+CAP=$(python3 -c "print(float('$BASE') + 5)")
+for i in 1 2 3 4 5 6 7 8; do
+  $PSQL -d bidlyze_test -At -c "set role service_role; select public.submission_check_claim('aaaaaaaa-0000-0000-0000-00000000000$i','u$i@x.com','xrace-000-000$i','check',false,'{\"per_hour\":50,\"cost_cap_usd_per_month\":99,\"global_cost_usd_per_day\":$CAP}', 1) ->> 'allowed'" &
+done > /tmp/xrace.out; wait
+XALLOWED=$(grep -c '^true$' /tmp/xrace.out || true)
+if [ "$XALLOWED" != "5" ]; then echo "FAILED: $XALLOWED of 8 cross-user claims were allowed (expected 5)"; cat /tmp/xrace.out; exit 1; fi
+INFLIGHT=$($PSQL -d bidlyze_test -At -c "select sum(reserved_usd) from public.submission_check_runs where request_id like 'xrace-%' and status = 'running'")
+echo "  ok - 8 users at once against \$5 of daily room (each run reserves \$1): exactly 5 allowed, \$$INFLIGHT in flight, cap never exceeded"
 
 # Rollback block in the migration file removes everything it added.
 sed -n '/^-- ── Rollback/,$p' "$ROOT/docs/proposals/2026-11-22_submission_check_beta_quota.sql" | sed 's/^-- //' | grep -v '^──' > /tmp/rollback.sql
