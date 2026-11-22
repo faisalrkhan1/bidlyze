@@ -1,4 +1,49 @@
-import * as XLSX from "xlsx";
+// Simple table exports for the Tender Intelligence pages.
+// Written with exceljs (the SheetJS "xlsx" npm package has unfixed advisories).
+
+const COL_MAX = 50;
+
+async function newWorkbook() {
+  const mod = await import("exceljs");
+  const ExcelJS = mod.default || mod;
+  const wb = new ExcelJS.Workbook();
+  wb.creator = "Bidlyze";
+  wb.created = new Date();
+  return wb;
+}
+
+function addTableSheet(wb, name, data) {
+  const keys = Object.keys(data[0] || {});
+  const ws = wb.addWorksheet(String(name).replace(/[\\/?*[\]:]/g, " ").substring(0, 31) || "Sheet1");
+  ws.columns = keys.map((key) => {
+    const maxLen = Math.max(key.length, ...data.map((r) => String(r[key] ?? "").length));
+    return { header: key, key, width: Math.min(maxLen + 2, COL_MAX) };
+  });
+  data.forEach((row) => {
+    const clean = {};
+    keys.forEach((k) => {
+      const v = row[k];
+      clean[k] = v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : v;
+    });
+    ws.addRow(clean);
+  });
+  ws.getRow(1).font = { bold: true };
+  ws.views = [{ state: "frozen", ySplit: 1 }];
+  return ws;
+}
+
+async function download(wb, fileName) {
+  const buffer = await wb.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
 
 /**
  * Export an array of objects as an Excel file.
@@ -6,19 +51,10 @@ import * as XLSX from "xlsx";
  * @param {string} sheetName - Sheet name
  * @param {string} fileName - Output filename
  */
-export function exportToExcel(data, sheetName = "Sheet1", fileName = "export.xlsx") {
-  const ws = XLSX.utils.json_to_sheet(data);
-
-  // Auto-size columns
-  const colWidths = Object.keys(data[0] || {}).map((key) => {
-    const maxLen = Math.max(key.length, ...data.map((r) => String(r[key] || "").length));
-    return { wch: Math.min(maxLen + 2, 50) };
-  });
-  ws["!cols"] = colWidths;
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  XLSX.writeFile(wb, fileName);
+export async function exportToExcel(data, sheetName = "Sheet1", fileName = "export.xlsx") {
+  const wb = await newWorkbook();
+  addTableSheet(wb, sheetName, data || []);
+  await download(wb, fileName);
 }
 
 /**
@@ -26,19 +62,21 @@ export function exportToExcel(data, sheetName = "Sheet1", fileName = "export.xls
  * @param {Array<{name: string, data: Object[]}>} sheets
  * @param {string} fileName
  */
-export function exportMultiSheetExcel(sheets, fileName = "export.xlsx") {
-  const wb = XLSX.utils.book_new();
+export async function exportMultiSheetExcel(sheets, fileName = "export.xlsx") {
+  const wb = await newWorkbook();
   sheets.forEach(({ name, data }) => {
     if (!data || data.length === 0) return;
-    const ws = XLSX.utils.json_to_sheet(data);
-    const colWidths = Object.keys(data[0] || {}).map((key) => {
-      const maxLen = Math.max(key.length, ...data.map((r) => String(r[key] || "").length));
-      return { wch: Math.min(maxLen + 2, 50) };
-    });
-    ws["!cols"] = colWidths;
-    XLSX.utils.book_append_sheet(wb, ws, name.substring(0, 31));
+    addTableSheet(wb, name, data);
   });
-  XLSX.writeFile(wb, fileName);
+  if (wb.worksheets.length === 0) addTableSheet(wb, "Sheet1", [{ Note: "No data" }]);
+  await download(wb, fileName);
+}
+
+/** For tests: build the workbook without downloading it. */
+export async function buildMultiSheetWorkbook(sheets) {
+  const wb = await newWorkbook();
+  sheets.forEach(({ name, data }) => data?.length && addTableSheet(wb, name, data));
+  return wb;
 }
 
 /**
@@ -149,7 +187,7 @@ const CITATION_LABEL = {
  * One file a bid engineer can forward to their manager:
  * Summary · Compliance Matrix · Disqualification Checklist · Clarifications · Key Dates.
  */
-export function exportReadinessWorkbook({ analysis, complianceEdits = {}, disqualification = null, fileName }) {
+export function buildReadinessSheets({ analysis, complianceEdits = {}, disqualification = null }) {
   const s = analysis.summary || {};
   const bid = analysis.bidScore || {};
   const c = analysis.citations || {};
@@ -241,5 +279,9 @@ export function exportReadinessWorkbook({ analysis, complianceEdits = {}, disqua
     data: (analysis.keyDates || []).map((d) => ({ Event: d.event, Date: d.date, Source: d.sourceRef || "" })),
   });
 
-  exportMultiSheetExcel(sheets, fileName);
+  return sheets;
+}
+
+export async function exportReadinessWorkbook({ analysis, complianceEdits = {}, disqualification = null, fileName }) {
+  await exportMultiSheetExcel(buildReadinessSheets({ analysis, complianceEdits, disqualification }), fileName);
 }

@@ -4,7 +4,7 @@
 // search, the findings list and the export.
 
 import { useMemo, useState } from "react";
-import { GROUPS, GROUP_ORDER, STATUS, TYPES, TYPE_ORDER, summarize, headline, filterItems, sortItems, locLabel } from "@/lib/submission/review";
+import { GROUPS, GROUP_ORDER, STATUS, TYPES, TYPE_ORDER, summarize, headline, filterItems, sortItems, locLabel, unitsFor, scannedByFile } from "@/lib/submission/review";
 import { buildReportWorkbook, reportFileName } from "@/lib/submission/report";
 import { formatTimestamp } from "@/lib/submission/actions";
 import FindingCard from "./FindingCard";
@@ -49,7 +49,8 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
   const items = useMemo(() => result.items || [], [result.items]);
   const summary = useMemo(() => summarize(items, reviews), [items, reviews]);
   const shown = useMemo(() => sortItems(filterItems(items, filters, reviews), reviews), [items, filters, reviews]);
-  const units = { R1: result.response?.unit || "page", F1: "page" };
+  const units = useMemo(() => unitsFor(result), [result]);
+  const files = result.response?.files?.length ? result.response.files : null;
   const statusCounts = summary.byStatus;
   const qs = useMemo(() => quoteStats(items), [items]);
   const [exported, setExported] = useState(false);
@@ -99,7 +100,10 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
   const warnings = [];
   if (result.meta?.failedBatches?.length) warnings.push("Some requirements could not be checked because of a processing error. They are listed as “Not checked”; run the check again or review them yourself.");
   if (result.meta?.skipped?.length) warnings.push(`The proposal is longer than the beta reads in one go; these parts were not read: ${result.meta.skipped.slice(0, 8).join(", ")}${result.meta.skipped.length > 8 ? "…" : ""}.`);
-  if (result.response?.scannedPages?.length) warnings.push(`${result.response.scannedPages.length} page(s) of the proposal had no readable text (scanned images?) and could not be checked: ${result.response.scannedPages.slice(0, 12).join(", ")}${result.response.scannedPages.length > 12 ? "…" : ""}.`);
+  for (const sf of scannedByFile(result)) {
+    warnings.push(`${sf.pages.length} page(s) of ${files && files.length > 1 ? `“${sf.filename}”` : "the proposal"} had no readable text (scanned images?) and could not be checked: ${sf.pages.slice(0, 12).join(", ")}${sf.pages.length > 12 ? "…" : ""}. Anything on them may be reported as missing.`);
+  }
+  if (result.tender?.scannedPages) warnings.push(`${result.tender.scannedPages} page(s) of the tender had no readable text, so requirements on them may be missing from this check.`);
   if (result.truncated) warnings.push(`This tender has ${result.tender?.requirementsTotal} requirements; the beta checks the first ${items.length}.`);
   if (result.legacy) warnings.push("This tender was analysed before page-cited quotes were added, so tender quotes are not shown. Re-analyse the tender for two-sided evidence.");
 
@@ -132,7 +136,7 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
           <div className="flex-1 min-w-0">
             <h2 className="text-[20px] leading-snug font-semibold tracking-[-0.01em]" data-testid="headline">{headline(summary)}</h2>
             <p className="text-[13px] mt-1.5 flex flex-wrap gap-x-4 gap-y-1" style={{ color: "var(--text-secondary)" }}>
-              <span className="inline-flex items-center gap-1.5 min-w-0"><Icon name="clipboard" className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{result.response?.filename}</span> ({result.response?.pages} {result.response?.unit === "page" ? "pages" : "sections"})</span>
+              <span className="inline-flex items-center gap-1.5 min-w-0"><Icon name="clipboard" className="w-3.5 h-3.5 shrink-0" /><span className="truncate" title={result.response?.filename}>{files && files.length > 1 ? `${files.length} proposal files` : result.response?.filename}</span> ({result.response?.pages} {result.response?.unit === "page" ? "pages" : "sections"})</span>
               <span className="inline-flex items-center gap-1.5"><Icon name="clock" className="w-3.5 h-3.5" />checked {fmt(result.checkedAt)}</span>
               {result.meta?.model && <span className="inline-flex items-center gap-1.5"><Icon name="info" className="w-3.5 h-3.5" />{result.meta.model.replace("anthropic/", "")}</span>}
             </p>
@@ -141,7 +145,7 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
             <PrimaryButton onClick={exportReport} disabled={exporting} data-testid="export">
               {exporting ? <Spinner className="w-4 h-4" color="#fff" /> : <Icon name="download" />} Export report (.xlsx)
             </PrimaryButton>
-            <SecondaryButton onClick={onNewCheck} data-testid="new-check"><Icon name="refresh" /> New check</SecondaryButton>
+            <SecondaryButton onClick={onNewCheck} data-testid="new-check"><Icon name="refresh" /> Check another proposal</SecondaryButton>
           </div>
         </div>
         {exportError && <Notice tone="red" icon="warning" className="mb-4">{exportError}</Notice>}
@@ -210,7 +214,7 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
                     <span className="font-medium min-w-[9rem]">{d.name}</span>
                     <span className="inline-flex items-center gap-1.5"><Dot color={DOC_STATE[d.state]?.color} />{DOC_STATE[d.state]?.label || d.state}</span>
                     <span className="ml-auto tabular" style={{ color: "var(--text-muted)" }}>
-                      {[d.evidencePage ? locLabel(units, "R1", d.evidencePage) : "", d.mentionPage && d.mentionPage !== d.evidencePage ? `referred to on ${locLabel(units, "R1", d.mentionPage)}` : ""].filter(Boolean).join(", ")}
+                      {[d.evidencePage ? locLabel(units, d.evidenceFile || "R1", d.evidencePage) : "", d.mentionPage && (d.mentionPage !== d.evidencePage || d.mentionFile !== d.evidenceFile) ? `referred to on ${locLabel(units, d.mentionFile || "R1", d.mentionPage)}` : ""].filter(Boolean).join(", ")}
                       <span className="ml-2">{d.id}</span>
                     </span>
                   </li>

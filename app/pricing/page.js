@@ -9,6 +9,7 @@ import { LogoFull } from "@/app/components/Logo";
 import { PLANS, PLAN_DISPLAY } from "@/lib/plans";
 import { getUpgradeButtonLabel } from "@/lib/upgradeCopy";
 import WaitlistModal from "@/app/components/WaitlistModal";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
 
 const PAYMENTS_LIVE = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 
@@ -134,7 +135,47 @@ function Check() { return <svg className="w-4 h-4 text-emerald-500" fill="none" 
 function Dash() { return <span className="w-4 text-center text-xs" style={{ color: "var(--text-muted)" }}>—</span>; }
 function CellVal({ v }) { if (v === true) return <Check />; if (v === false) return <Dash />; return <span className="text-[11px] font-medium" style={{ color: "var(--text-secondary)" }}>{v}</span>; }
 
+// With Submission Check switched on there are no paid plans to sell yet: the
+// page says so plainly instead of showing prices and buttons that do not work.
+function BetaAccess() {
+  const { user, loading, logout } = useAuth();
+  const body = (
+    <div className="max-w-[720px] mx-auto px-5 sm:px-6 py-12 space-y-6" data-testid="beta-access">
+      <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.015em]">Beta access</h1>
+      <p className="text-[15px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+        Submission Check is in a closed beta for invited bid, presales and procurement teams. It is free during the beta: there is nothing to buy and no card is needed.
+        We will agree pricing with beta customers before anything is charged.
+      </p>
+      <ul className="text-[14px] leading-relaxed list-disc pl-5 space-y-1" style={{ color: "var(--text-secondary)" }}>
+        <li>Each invited account has a monthly allowance of checks (shown on the Account page).</li>
+        <li>Anyone signed in can try the sample tender, at no cost.</li>
+      </ul>
+      <div className="flex flex-wrap gap-3">
+        <a href="mailto:support@bidlyze.com?subject=Submission%20Check%20beta%20access" className="inline-flex items-center h-10 px-4 rounded-lg text-[14px] font-semibold text-white" style={{ background: "var(--accent)" }}>Request beta access</a>
+        {!user && <Link href="/login" className="inline-flex items-center h-10 px-4 rounded-lg text-[14px] font-medium" style={{ border: "1px solid var(--border-secondary)" }}>Sign in</Link>}
+      </div>
+    </div>
+  );
+  if (loading) return null;
+  if (user) return <AppShell user={user} onLogout={logout} breadcrumbs={[{ label: "Home", href: "/submission-check" }, { label: "Beta access" }]}>{body}</AppShell>;
+  return (
+    <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
+      <header style={{ borderBottom: "1px solid var(--border-primary)" }}>
+        <div className="max-w-[1080px] mx-auto px-5 sm:px-6 h-16 flex items-center">
+          <Link href="/" style={{ color: "var(--ink)" }}><LogoFull size={30} /></Link>
+        </div>
+      </header>
+      {body}
+    </div>
+  );
+}
+
 export default function PricingPage() {
+  if (submissionCheckBetaClient()) return <BetaAccess />;
+  return <LegacyPricing />;
+}
+
+function LegacyPricing() {
   const { user, loading: authLoading, logout } = useAuth();
   const [currentPlan, setCurrentPlan] = useState("free");
   const [usageCount, setUsageCount] = useState(null);

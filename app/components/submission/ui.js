@@ -184,7 +184,7 @@ export function EmptyState({ icon = "doc", title, children, action }) {
  * The five steps of the workflow. `current` is 0-based; steps before it are done.
  * The numbered markers are meaningful here: this is a fixed sequence.
  */
-export const WORKFLOW_STEPS = ["Choose tender", "Upload proposal", "Run check", "Review findings", "Export report"];
+export const WORKFLOW_STEPS = ["Add tender", "Add proposal", "Run check", "Review findings", "Export report"];
 export function Stepper({ current = 0, steps = WORKFLOW_STEPS }) {
   return (
     <ol className="flex items-center gap-2 sm:gap-3 overflow-x-auto max-w-full" aria-label="Submission Check steps" data-testid="stepper">
@@ -218,6 +218,8 @@ export function Stepper({ current = 0, steps = WORKFLOW_STEPS }) {
 
 const PATHS = {
   check: "m4.5 12.75 6 6 9-13.5",
+  plus: "M12 4.5v15m7.5-7.5h-15",
+  trash: "m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0",
   doc: "M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z",
   upload: "M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5",
   shield: "M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z",
@@ -280,14 +282,16 @@ export function ProcessingNote({ open = false }) {
   return (
     <details className="text-[13px] group" style={{ color: "var(--text-secondary)" }} data-testid="processing-note" open={open || undefined}>
       <summary className="cursor-pointer select-none inline-flex items-center gap-1.5 font-medium hover:underline underline-offset-2" style={{ color: "var(--text-primary)" }}>
-        <Icon name="lock" className="w-4 h-4" /> How your proposal is processed and stored
+        <Icon name="lock" className="w-4 h-4" /> How your documents are processed and stored
       </summary>
       <ul className="mt-2 space-y-1.5 list-disc pl-5 leading-relaxed">
-        <li>The file is read in this browser. Only its text is sent to Bidlyze; the file itself is not uploaded.</li>
-        <li>Bidlyze sends the text to an AI model (Anthropic&apos;s Claude, through OpenRouter) to run the check. We ask OpenRouter to use only providers that do not collect user data; providers may still keep requests briefly under their own terms.</li>
-        <li>Bidlyze does not save the file, its text or the results on its servers. Server logs record only the size, duration and cost of each check.</li>
-        <li>Results and your review notes are kept in this browser only, until you start a new check. Export the report to keep or share them.</li>
+        <li>Files are read in this browser. Only their text is sent to Bidlyze; the files themselves are not uploaded or stored.</li>
+        <li>Bidlyze sends the text to an AI model (Anthropic&apos;s Claude) through OpenRouter. We ask OpenRouter to use only providers that do not collect or train on the data; providers may keep requests for a limited time under their own terms (for example to detect abuse).</li>
+        <li>Tender: the requirement list Bidlyze extracts (with short quotes, page numbers and the file names) is saved to your account, so you can check more proposals against it. Delete it any time in History.</li>
+        <li>Proposal: its text and the findings are not saved on Bidlyze&apos;s servers. For beta limits we keep a usage record (date, page count, AI cost); logs hold sizes, timings and costs only.</li>
+        <li>Results and your review notes stay in this browser until you start a new check of the same tender. Export the report to keep or share them.</li>
       </ul>
+      <p className="mt-2"><a href="/privacy#submission-check" target="_blank" rel="noopener" className="underline underline-offset-2" style={{ color: "var(--accent-text)" }}>Privacy policy</a></p>
     </details>
   );
 }

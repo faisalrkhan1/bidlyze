@@ -32,7 +32,7 @@ test("start page lists analysed tenders (new and older) and the sample tender", 
   await expect(page.getByTestId(`tender-${legacy.id}`)).toContainText("No tender quotes");
   await expect(page.getByTestId("tender-demo")).toBeVisible();
   await page.getByTestId(`tender-${ecta.id}`).click();
-  await expect(page).toHaveURL(new RegExp(`${WORKSPACE}$`));
+  await expect(page).toHaveURL(new RegExp(`/submission-check/${ecta.id}$`));
   await expect(page.getByTestId("tender-card")).toContainText("18 with verified tender quotes");
   expect(calls.writes).toEqual([]);
 });
@@ -48,8 +48,10 @@ test("full workflow: upload, run, summary, filters, search, evidence, page viewe
   expect(seen).toHaveLength(1);
   expect(seen[0].auth).toBe("Bearer test-access-token");
   expect(seen[0].body.analysisId).toBe(ecta.id);
-  expect(seen[0].body.response.pages).toHaveLength(6);
-  expect(seen[0].body.response.sha256).toMatch(/^[0-9a-f]{64}$/);
+  expect(seen[0].body.response.files).toHaveLength(1);
+  expect(seen[0].body.response.files[0].pages).toHaveLength(6);
+  expect(seen[0].body.response.files[0].sha256).toMatch(/^[0-9a-f]{64}$/);
+  expect(seen[0].body.requestId).toMatch(/^[0-9a-f-]{36}$/);
   expect(seen[0].raw).not.toContain("%PDF");
 
   // Summary: three groups, human review notice, never "compliant".
@@ -62,7 +64,7 @@ test("full workflow: upload, run, summary, filters, search, evidence, page viewe
   // Documents the tender asks for: what the proposal says, never "missing from the bid".
   await expect(page.getByTestId("document-Q06")).toContainText("No mention found: confirm");
   await expect(page.getByTestId("document-Q01")).toContainText("Described in the proposal");
-  await expect(page.getByTestId("processing-note")).toContainText("How your proposal is processed and stored");
+  await expect(page.getByTestId("processing-note")).toContainText("How your documents are processed and stored");
   await expect(page.getByTestId("human-review-notice")).toContainText("a person must confirm every finding");
   await expect(page.getByTestId("results")).not.toContainText("fully compliant");
 
@@ -182,7 +184,7 @@ test("errors are handled: unsupported file, scanned PDF, AI failure with retry, 
   await page.goto(WORKSPACE);
 
   await page.getByTestId("file-input").setInputFiles({ name: "scan.png", mimeType: "image/png", buffer: Buffer.from([137, 80, 78, 71]) });
-  await expect(page.getByTestId("file-error")).toContainText("not a supported file");
+  await expect(page.getByTestId("file-error")).toContainText("Images cannot be read");
 
   await page.getByTestId("file-input").setInputFiles(SCANNED_PDF);
   await expect(page.getByTestId("file-error")).toContainText("No readable text");

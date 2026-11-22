@@ -11,6 +11,10 @@ import { loadBenchmarkSource } from "@/lib/benchmarks/fetchSource";
 import { BENCHMARKS } from "@/lib/benchmarks/registry";
 import { validateKey } from "@/lib/benchmarks/validateKey";
 import { scoreReadiness } from "@/lib/benchmarks/scoreReadiness";
+import { normaliseDocuments } from "@/lib/submission/documents";
+import { readTenderRequirements } from "@/lib/submission/tender";
+import { normaliseResponse, checkProposalAgainstAnalysis } from "@/lib/submission/service";
+import { summarize } from "@/lib/submission/review";
 
 // Live self-test — PREVIEW DEPLOYMENTS ONLY (404 in production).
 //
@@ -141,6 +145,36 @@ export async function GET(request) {
           extractedItems: sc.items.map((i) => `${i.id}: ${i.status} (ai ${i.aiStatus}) | ${i.gap}`),
           tenderQuotesVerified: `${sc.items.filter((i) => i.tender && i.tender.status !== "unverified").length}/${sc.items.length}`,
           summary: sc.summary, aiUsage: sc.meta.aiUsage, engineMs: sc.meta.durationMs, totalMs: Date.now() - t0,
+        });
+      }
+
+      // The new-check flow exactly as a customer runs it (tender read for its
+      // requirements, then the proposal checked), minus the database: nothing is saved.
+      if (mode === "bench-beta-flow") {
+        const t1 = Date.now();
+        const { files: tFiles } = normaliseDocuments({ files: tenderFiles.map((f) => ({ filename: f.filename, pages: f.pages, scannedPages: f.scannedPages })) }, { kind: "tender" });
+        const tender = await readTenderRequirements({ files: tFiles });
+        const tenderMs = Date.now() - t1;
+        const response = normaliseResponse({ files: [{ filename: bench.response, pages: rp.pages, scannedPages: rp.scannedPages }] });
+        const result = await checkProposalAgainstAnalysis({ analysis: { id: "selftest", name: tender.summary.name, fileName: tFiles[0].filename, analysisData: tender.analysisData }, response });
+        const rs = scoreReadiness(bench, key, tender.analysisData);
+        const byTi = new Map(result.items.map((i) => [i.id, i]));
+        const mapped = { items: key.requirements.map((k) => {
+          const m = rs.match.get(k.id);
+          const base = m && String(m.tiId);
+          const it = base ? byTi.get(base) || result.items.find((x) => String(x.id).startsWith(`${base}.`)) : null;
+          return it ? { ...it, id: k.id, viaTi: it.id } : { id: k.id, status: undefined, aiStatus: undefined, evidence: [] };
+        }) };
+        const groups = summarize(result.items, {}).byGroup;
+        return NextResponse.json({
+          ok: true, model: currentModel(), source: src.meta,
+          tender: { ...tender.summary, ms: tenderMs, aiCostUsd: tender.aiCostUsd, passesRun: ["overview", "requirements"], passesSkipped: tender.analysisData.meta?.passesSkipped, failedPasses: tender.analysisData.meta?.failedPasses, truncatedPasses: tender.analysisData.meta?.truncatedPasses, keyCoverage: rs.summary },
+          check: { requirementsChecked: result.items.length, excluded: result.excluded.length, groups, statuses: result.summary, documents: result.documents.map((d) => `${d.id} ${d.name}: ${d.state}`), quotes: { response: `${result.items.flatMap((i) => i.evidence).filter((e) => e.status !== "unverified").length}/${result.items.flatMap((i) => i.evidence).length}`, tender: `${result.items.filter((i) => i.tender && i.tender.status !== "unverified").length}/${result.items.filter((i) => i.tender).length}` }, ms: result.meta.durationMs, aiCostUsd: result.meta.aiCostUsd },
+          answerKey: scoreSubmission(key, mapped),
+          missedIssues: mapped.items.filter((i) => { const k = key.requirements.find((x) => x.id === i.id); return k && k.expected !== "answered" && (!i.status || i.status === "answered"); }).map((i) => `${i.id}: ${i.status || "not extracted"}`),
+          falseAlarms: mapped.items.filter((i) => { const k = key.requirements.find((x) => x.id === i.id); return k && k.expected === "answered" && i.status && !["answered", "manual"].includes(i.status); }).map((i) => `${i.id} (${i.viaTi}): ${i.status} | ${i.gap}`),
+          totalCostUsd: Math.round(((tender.aiCostUsd || 0) + (result.meta.aiCostUsd || 0)) * 10000) / 10000,
+          fetchMs, totalMs: Date.now() - t0,
         });
       }
 

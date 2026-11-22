@@ -17,15 +17,26 @@ import assert from "node:assert/strict";
 import { readFileSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { createRequire } from "node:module";
+import ExcelJS from "exceljs";
 
 import { extractPages } from "../../lib/readiness/pages.js";
 import { runReadinessAnalysis, runDisqualificationCheck } from "../../lib/readiness/engine.js";
 import { SYSTEM } from "../../lib/readiness/passes.js";
 import { score } from "./score.mjs";
 
-const require = createRequire(import.meta.url);
-const XLSX = require("xlsx");
+
+/** Read a sheet back as objects keyed by its header row (like sheet_to_json). */
+function sheetRows(ws) {
+  const header = ws.getRow(1).values.slice(1).map(String);
+  const rows = [];
+  ws.eachRow((row, n) => {
+    if (n === 1) return;
+    const o = {};
+    row.values.slice(1).forEach((v, i) => { if (v !== null && v !== undefined && v !== "") o[header[i]] = v; });
+    rows.push(o);
+  });
+  return rows;
+}
 
 const HERE = new URL("./", import.meta.url);
 const truth = JSON.parse(readFileSync(new URL("ground_truth.json", HERE)));
@@ -247,24 +258,23 @@ test("stand-alone 'Run check' gives the same cited result as the full analysis",
 });
 
 test("Excel export: the workbook a customer downloads has the right sheets, rows and source checks", async () => {
-  const { exportReadinessWorkbook } = await import("../../app/utils/exportExcel.js");
-  const file = path.join(tmp, "readiness.xlsx");
-  exportReadinessWorkbook({ analysis: result.data, disqualification: result.disqualification, fileName: file });
+  const { buildReadinessSheets, buildMultiSheetWorkbook } = await import("../../app/utils/exportExcel.js");
+  const built = await buildMultiSheetWorkbook(buildReadinessSheets({ analysis: result.data, disqualification: result.disqualification }));
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(await built.xlsx.writeBuffer());
+  assert.deepEqual(wb.worksheets.map((w) => w.name), ["Summary", "Compliance Matrix", "Disqualification Checks", "Clarifications", "Key Dates"]);
 
-  const wb = XLSX.readFile(file);
-  assert.deepEqual(wb.SheetNames, ["Summary", "Compliance Matrix", "Disqualification Checks", "Clarifications", "Key Dates"]);
-
-  const matrix = XLSX.utils.sheet_to_json(wb.Sheets["Compliance Matrix"]);
+  const matrix = sheetRows(wb.getWorksheet("Compliance Matrix"));
   assert.equal(matrix.length, 5);
   const invented = matrix.find((r) => r.Requirement === "24/7 Arabic helpdesk");
   assert.equal(invented["Source Check"], "NOT FOUND - check");
   assert.ok(matrix.every((r) => r.Source), "every row has a page reference");
 
-  const dq = XLSX.utils.sheet_to_json(wb.Sheets["Disqualification Checks"]);
+  const dq = sheetRows(wb.getWorksheet("Disqualification Checks"));
   assert.equal(dq.length, 20 + 2);
   assert.equal(dq.filter((r) => r["Tender Says"] === "REQUIRED").length, 16 + 2);
 
-  const summary = XLSX.utils.sheet_to_json(wb.Sheets["Summary"]);
+  const summary = sheetRows(wb.getWorksheet("Summary"));
   const disclaimer = summary.find((r) => r.Field === "Prepared with");
   assert.match(disclaimer.Value, /verify before submission/);
 });

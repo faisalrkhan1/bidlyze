@@ -12,15 +12,20 @@
  * petrol 500 in dark mode); the wordmark uses currentColor.
  */
 
-import { WORDMARK_PATH, WORDMARK_BOX, HIGHLIGHT } from "./brandPaths";
+import { WORDMARK_PATH, WORDMARK_BOX, HIGHLIGHT, MARK_MASTER, MARK_SMALL } from "./brandPaths";
 
+/**
+ * The mark. At 20 px and below it switches to the pixel-fitted small drawing
+ * (MARK_SMALL), which stays crisp in browser tabs and dense lists.
+ */
 export function LogoMark({ size = 32, className = "", title = "Bidlyze" }) {
+  const m = size <= 20 ? MARK_SMALL : MARK_MASTER;
+  const h = m.highlight;
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" className={`shrink-0 ${className}`} role="img" aria-label={title}>
-      <rect width="64" height="64" rx="15" style={{ fill: "var(--logo-tile, #0E5A6B)" }} />
-      <rect x="17" y="11" width="7.5" height="42" rx="2" fill="#FFFFFF" />
-      <path d="M24 26.75 H37 a9.25 9.25 0 0 1 9.25 9.25 V43 a9.25 9.25 0 0 1 -9.25 9.25 H24" fill="none" stroke="#FFFFFF" strokeWidth="7.5" />
-      <rect x="27.5" y="37.25" width="12.5" height="5.5" rx="1.2" fill={HIGHLIGHT} />
+    <svg width={size} height={size} viewBox={`0 0 ${m.viewBox} ${m.viewBox}`} xmlns="http://www.w3.org/2000/svg" className={`shrink-0 ${className}`} role={title ? "img" : undefined} aria-label={title || undefined} aria-hidden={title ? undefined : true}>
+      <rect width={m.viewBox} height={m.viewBox} rx={m.radius} style={{ fill: "var(--logo-tile, #0E5A6B)" }} />
+      <path fill="#FFFFFF" fillRule="evenodd" d={m.b} />
+      <rect x={h.x} y={h.y} width={h.w} height={h.h} rx={h.rx} fill={HIGHLIGHT} />
     </svg>
   );
 }

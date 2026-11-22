@@ -1,6 +1,6 @@
 # Bidlyze brand (trust upgrade, November 2026)
 
-Status: proposed and applied on the preview branch `feat/submission-check-beta`. Not in production until approved.
+Status: direction and Logo A approved by Faisal on 22 Nov 2026. Applied on the preview branch `feat/submission-check-beta`; not in production until a release is approved.
 
 ## Direction
 Bidlyze should look like the documents bid teams already trust: ink, petrol and paper.
@@ -9,23 +9,60 @@ Bidlyze should look like the documents bid teams already trust: ink, petrol and 
 - **Colour means status.** Red means needs attention, amber means check manually, green means OK. These three colours are not used for anything else.
 - **Quiet chrome.** Sentence case, hairline borders, one panel style. No gradients, glows or capitalised eyebrows.
 
-## Logo: direction A, "Evidence b"
-A lowercase b on a petrol tile; its bowl holds a highlighted line of text.
-- **Components:** `app/components/Logo.js` provides `LogoMark`, `LogoWordmark` and `LogoFull`. The wordmark is outlined Public Sans SemiBold, generated into `brandPaths.js`.
-- **Files:** `public/brand/`
-  - `bidlyze-logo-light.svg` and `-dark.svg`
-  - `bidlyze-mark.svg` and `-dark.svg`
-  - `bidlyze-wordmark-ink.svg` and `-white.svg`
-  - PNG marks at 192 and 512 px
-- **Favicon and app icon:** `app/icon.svg` and `app/apple-icon.png`.
-- **Excel report header:** `lib/submission/reportLogo.js`.
-- **Tile colour:**
-  - petrol 700 `#0E5A6B` on light backgrounds;
-  - petrol 500 `#0F7C8F` on dark backgrounds (the CSS variable `--logo-tile`);
-  - highlight `#FFD84D`.
-- Clear space is half the tile on every side. Minimum size is 16 px for the mark and 20 px high for the lockup.
-- Do not recolour the highlight, put the mark on a photo, or set the wordmark in another font.
-- Directions B ("Matched pages") and C ("Bracketed check") are on the design board as alternatives.
+## Logo A, "Evidence b" (approved 22 Nov 2026, final)
+A lowercase b on a petrol tile; its bowl holds a highlighted line of text, because
+Bidlyze shows the exact words behind every finding.
+
+### Two drawings of one mark
+| Drawing | Use at | Why |
+|---|---|---|
+| **Master** (64-unit grid) | 24 px and up: sidebar, login, landing, report, app icons | Stem and bowl share one baseline; open counter; highlight sits clear of the strokes |
+| **Small** (16-unit grid, pixel-fitted) | 16-20 px: favicon, browser tab, dense lists | Every edge on a whole pixel at 16 and 32 px; the highlight is a single pixel row with petrol above and below, so it still reads as a highlighted line |
+
+`LogoMark` switches to the small drawing automatically at 20 px and below. Both drawings
+are generated from `brand_final.py` into `app/components/brandPaths.js` (do not edit by hand).
+
+### Colour versions
+| Version | Tile | Letter | Highlight | Use |
+|---|---|---|---|---|
+| Light | petrol 700 `#0E5A6B` | white | `#FFD84D` | On white and paper backgrounds |
+| Dark | petrol 500 `#0F7C8F` | white | `#FFD84D` | On ink/navy backgrounds; also the favicon, because it holds contrast in both light (4.9:1) and dark (3.3:1) browser tabs |
+| One colour, ink | ink `#0F1B2D` | white | white | Black-and-white print, fax, stamps |
+| One colour, reversed | white | ink | ink | On a dark photo or dark brand panel where petrol is not possible |
+
+White on petrol 500 is 4.9:1 and on petrol 700 is 7.4:1 (WCAG AA for the letter).
+
+### Lockup
+- Mark plus wordmark. The gap is 1/4 of the mark, and the wordmark cap height is 45% of the mark.
+- The wordmark is Public Sans SemiBold, outlined, ink on light and `#F1F5F9` on dark.
+- Use the mark alone below 20 px lockup height, for example in favicons, avatars and narrow mobile headers.
+- Clear space: half the tile on every side. Minimum sizes: mark 16 px, lockup 20 px high.
+
+### Files (`public/brand/` and `app/`)
+- **Lockups:**
+  - `bidlyze-logo-light.svg` and `-dark.svg`;
+  - `-mono-ink.svg` and `-mono-white.svg`;
+  - PNG versions of the light and dark lockups at 480 px wide.
+- **Marks:**
+  - `bidlyze-mark.svg`, `-dark.svg`, `-mono.svg`;
+  - `-small.svg` (pixel-fitted);
+  - `-maskable.svg` (Android: the b sits inside the central 80%);
+  - PNG versions at 192 and 512 px.
+- **Wordmarks:** `bidlyze-wordmark-ink.svg` and `-white.svg`.
+- **Browser and app icons:**
+  - `app/icon.svg` (small drawing);
+  - `app/favicon.ico` (16 and 32 px small drawing, 48 px master);
+  - `app/apple-icon.png` (180 px, full bleed; iOS rounds the corners);
+  - `app/manifest.js`.
+- **Report:** `lib/submission/reportLogo.js` holds the light lockup PNG, 96 px high, used in the Excel report header.
+
+### Do not
+- Recolour the highlight. Yellow is the only accent in the mark and means "verified words".
+- Put the mark on a photo, add a shadow or glow, outline the tile, or rotate it.
+- Set the wordmark in another font, track it out, or put it in capitals.
+- Use the master drawing below 24 px or the small drawing above 32 px.
+
+Directions B ("Matched pages") and C ("Bracketed check") were not chosen. They remain on the design board for reference.
 
 ## Tokens (`app/globals.css`)
 | Role | Light | Dark |

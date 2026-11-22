@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { LogoFull } from "@/app/components/Logo";
 import LandingPricingCards from "@/app/components/LandingPricingCards";
+import SubmissionCheckLanding from "@/app/components/submission/SubmissionCheckLanding";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
 
 // Pre-launch flag — read once at build time so the banner/chip render
 // statically on the public landing page. To flip back to "live payments"
 // posture, set NEXT_PUBLIC_PAYMENTS_ENABLED=true in Vercel and redeploy.
 const PAYMENTS_LIVE = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 
-export const metadata = {
+const TI_METADATA = {
   title: "Bidlyze",
   description:
     "Upload an RFI, RFQ, RFP or tender package and get a page-cited compliance matrix, a 20-point GCC disqualification check, clarification questions and a bid / no-bid recommendation.",
@@ -67,7 +69,21 @@ const METRICS = [
   { value: "Excel", label: "Compliance matrix export" },
 ];
 
+// With Submission Check switched on (previews now; production only after approval)
+// the public page presents that one product and its closed beta.
+const SC_METADATA = {
+  title: "Bidlyze: check a proposal against every tender requirement",
+  description: "Bidlyze checks a supplier's proposal against every requirement in the tender and quotes both documents, with page numbers, for your team to review. Closed beta.",
+  openGraph: { title: "Bidlyze Submission Check", description: "Find the gaps in a proposal before the buyer does.", type: "website", locale: "en_US", siteName: "Bidlyze" },
+};
+export const metadata = submissionCheckBetaClient() ? SC_METADATA : TI_METADATA;
+
 export default function LandingPage() {
+  if (submissionCheckBetaClient()) return <SubmissionCheckLanding />;
+  return <TenderIntelligenceLanding />;
+}
+
+function TenderIntelligenceLanding() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
       {/* Pre-launch banner — auto-hidden when NEXT_PUBLIC_PAYMENTS_ENABLED=true */}

@@ -24,7 +24,7 @@ export default function TermsPage() {
       {/* Content */}
       <main className="max-w-4xl mx-auto px-6 py-16">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2">Terms of Service</h1>
-        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Last updated: May 16, 2026</p>
+        <p className="text-sm mb-6" style={{ color: "var(--text-muted)" }}>Last updated: November 22, 2026</p>
 
         <div className="mb-10 rounded-2xl px-5 py-4 flex items-start gap-3" style={{ background: "var(--accent-muted)", border: "1px solid var(--accent-border)", color: "var(--accent-text)" }}>
           <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -160,6 +160,18 @@ export default function TermsPage() {
               You are solely responsible for independently verifying all outputs before relying on them for
               any business, legal, or financial decision.
             </p>
+          </section>
+
+          <section id="submission-check">
+            <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>8A. Submission Check (beta)</h2>
+            <p>Submission Check is a beta service offered to invited users. In addition to the rest of these Terms:</p>
+            <ul className="list-disc pl-6 mt-2 space-y-2">
+              <li><strong>An aid, not a certificate.</strong> Submission Check compares a proposal with a tender&apos;s requirements and quotes both documents. Whether a quote meets a requirement is an AI judgement and can be wrong or incomplete; findings can also miss requirements, especially in long, scanned or unusual documents. Results are not legal, procurement or compliance advice and do not certify that a proposal complies with a tender. You are responsible for reviewing every finding and for your submission.</li>
+              <li><strong>Your documents.</strong> You must have the right to process every document you add, including any confidentiality obligations you owe to the buyer or to a supplier. Do not add documents you are not permitted to share with a service provider. You keep all rights in your documents and results.</li>
+              <li><strong>Free during the beta, with limits.</strong> The beta is free of charge. Each account has usage limits (for example a monthly number of checks), which we may change. We will tell you before any charge is introduced; no charge will apply without your agreement.</li>
+              <li><strong>Availability.</strong> The beta may change, be interrupted or end at any time. Results are kept in your browser; export the report to keep a copy.</li>
+              <li><strong>Feedback.</strong> If you send us feedback, we may use it to improve the Service without obligation to you.</li>
+            </ul>
           </section>
 
           <section>

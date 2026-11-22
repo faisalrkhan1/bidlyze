@@ -31,12 +31,34 @@ const USERS = {
   "tok-other": { id: "00000000-0000-4000-8000-000000000002", email: "other@example.com", aud: "authenticated" },
   "tok-busy": { id: "00000000-0000-4000-8000-000000000003", email: "busy@example.com", aud: "authenticated" },
 };
+// Fake usage-limit functions (the real SQL is tested on Postgres in tests/db/).
+const runs = [];
+const BETA_TABLE = new Set(["dbtester@example.com"]);
+function rpcClaim(a) {
+  const ex = runs.find((r) => r.user === a.p_user_id && r.req === a.p_request_id);
+  if (ex) return { allowed: false, code: "duplicate", run_id: ex.id, status: ex.status, kind: ex.kind, analysis_id: null };
+  if (a.p_require_beta && !BETA_TABLE.has(a.p_email)) return { allowed: false, code: "not_in_beta" };
+  const mine = runs.filter((r) => r.user === a.p_user_id);
+  if (mine.some((r) => r.status === "running")) return { allowed: false, code: "busy", retry_after: 60 };
+  if (mine.length >= a.p_limits.per_hour) return { allowed: false, code: "rate", limit: a.p_limits.per_hour, retry_after: 3500 };
+  const id = `run-${runs.length + 1}`;
+  runs.push({ id, user: a.p_user_id, req: a.p_request_id, kind: a.p_kind, status: "running" });
+  return { allowed: true, run_id: id, used: {}, limits: a.p_limits };
+}
 before(() => {
   process.env.OPENROUTER_API_KEY = "test-key";
   process.env.NEXT_PUBLIC_SUPABASE_URL = "http://supabase.test";
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "service";
   globalThis.fetch = async (url, init) => {
     const u = String(url);
+    if (u === "http://supabase.test/rest/v1/rpc/submission_check_claim") return Response.json(rpcClaim(JSON.parse(init.body)));
+    if (u === "http://supabase.test/rest/v1/rpc/submission_check_finish") {
+      const a = JSON.parse(init.body);
+      const r = runs.find((x) => x.id === a.p_run_id && x.user === a.p_user_id && x.status === "running");
+      if (r) Object.assign(r, { status: a.p_status, cost: a.p_cost_usd, error: a.p_error_code });
+      return Response.json(Boolean(r));
+    }
     // Fake Supabase: auth (token -> user) and the analyses table (owner-filtered).
     if (u.startsWith("http://supabase.test/auth/v1/user")) {
       const auth = new Headers(init?.headers).get("authorization") || "";
@@ -125,12 +147,14 @@ test("errors: no requirements, AI failure, partial AI failure", async () => {
 });
 
 // ── API route ───────────────────────────────────────────────────────────────
+let reqSeq = 0;
 async function callRoute(body, { env = {}, headers = {} } = {}) {
   const saved = { ...process.env };
   Object.assign(process.env, env);
   try {
     const { POST } = await import("../../app/api/submission-check/route.js");
-    const req = new Request("http://localhost/api/submission-check", { method: "POST", headers: { "content-type": "application/json", ...headers }, body: typeof body === "string" ? body : JSON.stringify(body) });
+    const withId = typeof body === "string" || body.requestId ? body : { requestId: `test-request-${++reqSeq}`, ...body };
+    const req = new Request("http://localhost/api/submission-check", { method: "POST", headers: { "content-type": "application/json", ...headers }, body: typeof withId === "string" ? withId : JSON.stringify(withId) });
     const res = await POST(req);
     return { status: res.status, json: await res.json() };
   } finally {
@@ -203,12 +227,43 @@ test("API: an allow-listed user can check their own analysis; another user's ana
 test("API: per-user rate limit (429 with Retry-After) stops repeated paid checks", async () => {
   const env = { VERCEL_ENV: "preview" };
   const statuses = [];
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 7; i++) {
     const r = await callRoute({ analysisId: "demo-alton", live: true, response: { filename: "x.pdf", pages } }, { env, headers: auth("tok-busy") });
     statuses.push(r.status);
     if (r.status === 429) assert.match(r.json.error, /in the last hour/);
   }
-  assert.deepEqual(statuses, [200, 200, 200, 200, 200, 429]);
+  assert.deepEqual(statuses, [200, 200, 200, 200, 200, 200, 429]);
+  assert.ok(runs.filter((r) => r.user === USERS["tok-busy"].id).every((r) => r.status === "succeeded"), "every run was recorded as finished");
+});
+
+test("API: the same request id twice is one paid run, not two (double click / network retry)", async () => {
+  const env = { VERCEL_ENV: "preview" };
+  const before = aiCalls;
+  const first = await callRoute({ requestId: "same-request-0001", analysisId: ecta.id, response: { filename: "p.pdf", pages } }, { env, headers: auth("tok-owner") });
+  assert.equal(first.status, 200);
+  const callsForOne = aiCalls - before;
+  const again = await callRoute({ requestId: "same-request-0001", analysisId: ecta.id, response: { filename: "p.pdf", pages } }, { env, headers: auth("tok-owner") });
+  assert.equal(again.status, 409);
+  assert.match(again.json.error, /already processed/);
+  assert.equal(aiCalls - before, callsForOne, "no second AI call");
+});
+
+test("API: production lets in testers from the database beta list (no redeploy needed)", async () => {
+  const env = { VERCEL_ENV: "production", SUBMISSION_CHECK_BETA: "on", SUBMISSION_CHECK_ALLOWED_EMAILS: "" };
+  USERS["tok-db"] = { id: "00000000-0000-4000-8000-000000000004", email: "DBTester@example.com", aud: "authenticated" };
+  const r = await callRoute({ analysisId: "demo-alton", live: true, response: { filename: "x.pdf", pages } }, { env, headers: auth("tok-db") });
+  assert.equal(r.status, 200);
+});
+
+test("API: a tender that does not belong to the user is not found, and the claimed run is closed (not left running)", async () => {
+  const env = { VERCEL_ENV: "preview" };
+  USERS["tok-probe"] = { id: "00000000-0000-4000-8000-000000000005", email: "probe@example.com", aud: "authenticated" };
+  const r = await callRoute({ analysisId: ecta.id, response: { filename: "p.pdf", pages } }, { env, headers: auth("tok-probe") });
+  assert.equal(r.status, 404);
+  const mine = runs.filter((x) => x.user === USERS["tok-probe"].id);
+  assert.equal(mine.length, 1);
+  assert.equal(mine[0].status, "failed");
+  assert.equal(mine[0].error, "tender_not_found");
 });
 
 test("internal recording endpoint is never public: 404 in production even with the beta switched on", async () => {

@@ -12,7 +12,10 @@ export const SCANNED_PDF = new URL("scanned_blank.pdf", FX).pathname;
 const SB = "http://localhost:54321";
 export const USER = { id: ecta.user_id, aud: "authenticated", role: "authenticated", email: "reviewer@example.com", app_metadata: {}, user_metadata: {}, created_at: "2026-01-01T00:00:00Z" };
 
-export async function mockSupabase(page, { analyses = [ecta, legacy] } = {}) {
+export const TENDER_PDF_PATH = new URL("../e2e/ECTA_test_tender.pdf", import.meta.url).pathname;
+
+export async function mockSupabase(page, { analyses = [ecta, legacy], usage = { success: true, tracked: false, environment: "preview" } } = {}) {
+  await page.route("**/api/submission-check/usage", (route) => route.fulfill({ json: usage }));
   await page.addInitScript((user) => {
     const now = Math.floor(Date.now() / 1000);
     window.localStorage.setItem("sb-localhost-auth-token", JSON.stringify({ access_token: "test-access-token", token_type: "bearer", expires_in: 3600, expires_at: now + 3600, refresh_token: "test-refresh", user }));

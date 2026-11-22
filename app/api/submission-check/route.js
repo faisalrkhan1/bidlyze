@@ -1,90 +1,68 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { submissionCheckBetaEnabled } from "@/lib/submission/beta";
 import { normaliseResponse, checkProposalAgainstAnalysis, addDocumentFindings, CheckInputError } from "@/lib/submission/service";
-import { liveCheckAccess, createRateLimiter, limitsFromEnv } from "@/lib/submission/access";
 import { isDeletedAnalysis } from "@/lib/deleteTender";
 import { DEMO_ID, loadDemoAnalysis, loadRecordedDemoResult } from "@/lib/submission/demo";
+import { errJson, readJsonBody, BodyError, userFromRequest, getQuota } from "@/lib/submission/http";
 
-// Submission Check (beta): check a supplier proposal against a saved tender
-// analysis. The proposal's page text is extracted in the browser and sent
-// here; nothing is written to the database or to storage.
+// Submission Check step 2: check a supplier proposal (one or more files)
+// against a tender's requirement list. The proposal's page text is extracted in
+// the browser and sent here; nothing about the proposal is written to the
+// database or to storage (only a usage record: who, when, size, AI cost).
 //
-// Preview deployments and local development only (see lib/submission/beta.js).
-// Live (paid) checks: signed-in users only; in production only the beta
-// allow-list (lib/submission/access.js); per-user rate limits.
+// Paid AI: signed-in users on the beta list only, within the durable usage
+// limits (lib/submission/quota.js). The sample proposal replays a recorded
+// result and costs nothing.
 
 export const maxDuration = 300;
-const MAX_BODY_BYTES = 4_000_000; // Vercel rejects request bodies over 4.5 MB
-const limiter = createRateLimiter(limitsFromEnv());
-
-function err(status, message, headers) {
-  return NextResponse.json({ success: false, error: message }, { status, headers });
-}
-
-async function userFromRequest(request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) return { user: null };
-  const token = authHeader.split(" ")[1];
-  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-  const { data, error } = await client.auth.getUser(token);
-  if (error || !data?.user) return { user: null };
-  return { user: data.user, client };
-}
 
 export async function POST(request) {
-  if (!submissionCheckBetaEnabled()) return err(404, "Not found");
+  if (!submissionCheckBetaEnabled()) return errJson(404, "Not found");
+  let quota;
+  let claim = null;
+  let userId = null;
   try {
-    if (Number(request.headers.get("content-length") || 0) > MAX_BODY_BYTES) {
-      return err(413, "The proposal text is too large to send in one go (over 4 MB of text).");
-    }
-    let body;
-    try {
-      const raw = await request.text();
-      if (raw.length > MAX_BODY_BYTES) return err(413, "The proposal text is too large to send in one go (over 4 MB of text).");
-      body = JSON.parse(raw);
-    } catch {
-      return err(400, "Invalid request.");
-    }
+    const body = await readJsonBody(request);
     const analysisId = String(body?.analysisId || "");
+    // Validate the proposal before anything is counted against the user's allowance.
     const response = normaliseResponse(body?.response);
 
+    const { user, client } = await userFromRequest(request);
+    if (analysisId === DEMO_ID && !body.live) {
+      // The sample proposal has a recorded live result: demos cost nothing and need no account.
+      const rec = await loadRecordedDemoResult();
+      const only = response.files.length === 1 ? response.files[0] : null;
+      if (rec && only?.sha256 && rec.response?.sha256 === only.sha256) {
+        const replay = addDocumentFindings(rec, response);
+        return NextResponse.json({ ...replay, response: { ...rec.response, filename: only.filename }, recorded: { checkedAt: rec.checkedAt } });
+      }
+    }
+    if (!user) return errJson(401, analysisId === DEMO_ID ? "Sign in to run a live check on the sample tender." : "Your session has expired. Sign in again.");
+    if (analysisId !== DEMO_ID && !/^[0-9a-f-]{36}$/i.test(analysisId)) return errJson(400, "Unknown tender.");
+    userId = user.id;
+
+    // Beta list and usage limits first: an account that may not run paid checks
+    // gets its answer before any tender is read from the database.
+    quota = await getQuota();
+    claim = await quota.claim({ user, requestId: body?.requestId, kind: "check" });
+    if (!claim.ok) return errJson(claim.status, claim.reason, { code: claim.code }, claim.retryAfterSec ? { "Retry-After": String(claim.retryAfterSec) } : undefined);
+
     let analysis;
-    let userId = null;
     if (analysisId === DEMO_ID) {
       analysis = await loadDemoAnalysis();
-      // The sample proposal has a recorded live result: demos cost nothing.
-      if (!body.live) {
-        const rec = await loadRecordedDemoResult();
-        if (rec && response.sha256 && rec.response?.sha256 === response.sha256) {
-          const replay = addDocumentFindings(rec, response.pages);
-          return NextResponse.json({ ...replay, response: { ...rec.response, filename: response.filename }, recorded: { checkedAt: rec.checkedAt } });
-        }
-      }
-      // A live AI run (any other file, or a re-run) needs a signed-in, allowed user.
-      const { user } = await userFromRequest(request);
-      if (!user) return err(401, "Sign in to run a live check on the sample tender.");
-      const access = liveCheckAccess(user);
-      if (!access.allowed) return err(access.status, access.reason);
-      userId = user.id;
     } else {
-      const { user, client } = await userFromRequest(request);
-      if (!user) return err(401, "Your session has expired. Sign in again.");
-      const access = liveCheckAccess(user);
-      if (!access.allowed) return err(access.status, access.reason);
-      userId = user.id;
-      if (!/^[0-9a-f-]{36}$/i.test(analysisId)) return err(400, "Unknown tender analysis.");
-      // RLS + explicit owner filter: users can only check against their own analyses.
+      // RLS + explicit owner filter: users can only check against their own tenders.
       const { data, error } = await client
         .from("analyses")
         .select("id, project_name, file_name, analysis_data")
         .eq("id", analysisId)
         .eq("user_id", user.id)
         .single();
-      if (error || !data?.analysis_data) return err(404, "Tender analysis not found.");
-      if (isDeletedAnalysis(data)) return err(410, "This tender has been deleted.");
+      if (error || !data?.analysis_data || isDeletedAnalysis(data)) {
+        await quota.finish(claim, { userId, status: "failed", costUsd: 0, errorCode: "tender_not_found" });
+        claim = null;
+        return data && isDeletedAnalysis(data) ? errJson(410, "This tender has been deleted.") : errJson(404, "Tender not found.");
+      }
       analysis = {
         id: data.id,
         name: data.analysis_data?.summary?.projectName || data.project_name || "Tender",
@@ -93,19 +71,16 @@ export async function POST(request) {
       };
     }
 
-    const slot = limiter.acquire(userId);
-    if (!slot.ok) return err(slot.status, slot.reason, { "Retry-After": String(slot.retryAfterSec) });
-    try {
-      const result = await checkProposalAgainstAnalysis({ analysis, response });
-      // Cost and size only: proposal text and findings are never logged.
-      console.log(`[submission-check] user ${userId.slice(0, 8)} analysis ${String(analysis.id).slice(0, 8)}: ${result.items.length} reqs, ${result.response.pages} pages, ${result.meta.durationMs} ms, $${result.meta.aiCostUsd}`);
-      return NextResponse.json(result);
-    } finally {
-      slot.release();
-    }
+    const result = await checkProposalAgainstAnalysis({ analysis, response });
+    await quota.finish(claim, { userId, status: "succeeded", costUsd: result.meta.aiCostUsd, analysisId: analysis.id === DEMO_ID ? null : analysis.id, pages: result.response.pages, requirements: result.items.length });
+    // Cost and size only: proposal text and findings are never logged.
+    console.log(`[submission-check] user ${userId.slice(0, 8)} tender ${String(analysis.id).slice(0, 8)}: ${result.items.length} reqs, ${response.files.length} file(s), ${result.response.pages} pages, ${result.meta.durationMs} ms, $${result.meta.aiCostUsd} (${claim.store})`);
+    return NextResponse.json(result);
   } catch (e) {
-    if (e instanceof CheckInputError) return err(e.status, e.message);
+    if (claim?.ok && quota) await quota.finish(claim, { userId, status: "failed", costUsd: e?.aiCostUsd ?? 0, errorCode: e?.code || "error" });
+    if (e instanceof BodyError) return errJson(e.status, e.message);
+    if (e instanceof CheckInputError) return errJson(e.status, e.message, { code: e.code });
     console.error("[submission-check] unexpected error:", e);
-    return err(500, "Something went wrong while checking the proposal. Please try again.");
+    return errJson(500, "Something went wrong while checking the proposal. Please try again.");
   }
 }

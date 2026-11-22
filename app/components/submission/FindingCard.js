@@ -39,7 +39,7 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
   if (item.document) {
     notes.push(
       item.documentMention
-        ? `Required document: ${item.document.name}. The proposal refers to it (${locLabel(units, "R1", item.documentMention.page)}: “${item.documentMention.text}”). If it is a separate file, Bidlyze did not see it: confirm it is in your submission pack.`
+        ? `Required document: ${item.document.name}. The proposal refers to it (${locLabel(units, item.documentMention.file || "R1", item.documentMention.page)}: “${item.documentMention.text}”). If it is a separate file, Bidlyze did not see it: confirm it is in your submission pack.`
         : `Required document: ${item.document.name}.${st === "doc_unconfirmed" ? " No mention found in the uploaded file; it may be a separate document. Confirm it is in your submission pack." : " Confirm the document itself is in your submission pack."}`
     );
   }
