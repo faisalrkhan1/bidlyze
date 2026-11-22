@@ -17,6 +17,7 @@ Updated 22 Nov 2026 after the final release-safety review.
 | B2 | **Testers cannot get the Supabase confirmation e-mail** unless custom SMTP is set up. Supabase's built-in sender only delivers to members of your Supabase team. Workaround: create each tester's account yourself. | Faisal | 2 min per tester, section 6B |
 | B3 | **Your own signed-in click-through on the preview.** I cannot sign in for you, so the signed-in journey was proven on a production build of the same code with simulated accounts, not on the preview itself. | Faisal | 10 min, about $0.25, section 6C |
 | B4 | **Approvals:** run the migration, set `SUBMISSION_CHECK_BETA=on` in production, merge. | Faisal | section 2 |
+| B5 | **Password reset is broken in production** until this branch is merged (fixed on the preview, commit `4b6f2c0`). Add the reset addresses to Supabase's Redirect URLs (Step 3b). | Faisal | 3 min |
 
 Not blocking, but do before or during the beta: see section 8.
 
@@ -51,6 +52,17 @@ What the migration does:
 - No limit variables are needed: the recommended limits (section 5) are now the built-in defaults.
 - Optional: `AI_PROVIDER_ONLY` = `anthropic` (section 8). Test it on the preview first.
 
+**Step 3b: Supabase URL Configuration (password reset).** In Supabase, open **Authentication**, then **URL Configuration**.
+- **Site URL:** leave it as it is (`https://app.bidlyze.com`, as Supabase's redirects show).
+- **Redirect URLs:** click **Add URL** and add each of these exactly, then **Save**:
+  - `https://bidlyze.com/reset-password`
+  - `https://www.bidlyze.com/reset-password`
+  - `https://app.bidlyze.com/reset-password`
+  - for testing on the preview only (remove after the merge): `https://bidlyze-app-git-feat-sub-6ca6f0-faisalremaan-gmailcoms-projects.vercel.app/reset-password`
+- In **Authentication**, then **Emails**, open the **Reset Password** template and check its link still uses `{{ .ConfirmationURL }}`. Do not change anything else there.
+
+Why: the reset e-mail returns to `/reset-password` on the site where it was requested. An address that is not on this list is replaced by the Site URL. The new code copes with that too (it forwards the link to the reset page), but listing the addresses keeps people on the domain they started from.
+
 **Step 4: merge.**
 1. On GitHub, open a pull request from `feat/submission-check-beta` to `main`.
 2. Click **Merge pull request**. Vercel deploys production by itself in about 3 minutes, using the Step 3 settings.
@@ -62,6 +74,7 @@ What the migration does:
 4. A non-invited account sees "closed beta" when it tries a real check.
 5. `bidlyze.com/api/selftest` returns 404.
 6. In Vercel, **Logs** shows no new errors.
+7. Password reset: on bidlyze.com/login, click **Forgot password?**, request a link, open the e-mail and set a new password. The "Set a new password" page must open (not the landing page).
 
 Safe order: without Step 1, production refuses all paid checks (fail closed). Turning the beta on without the migration therefore cannot run up AI costs, but checks will not work.
 
