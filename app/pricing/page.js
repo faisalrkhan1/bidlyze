@@ -10,6 +10,7 @@ import { PLANS, PLAN_DISPLAY } from "@/lib/plans";
 import { getUpgradeButtonLabel } from "@/lib/upgradeCopy";
 import WaitlistModal from "@/app/components/WaitlistModal";
 import { submissionCheckBetaClient } from "@/lib/submission/beta";
+import { supportMailto } from "@/lib/contact";
 
 const PAYMENTS_LIVE = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 
@@ -151,7 +152,7 @@ function BetaAccess() {
         <li>Anyone signed in can try the sample tender, at no cost.</li>
       </ul>
       <div className="flex flex-wrap gap-3">
-        <a href="mailto:support@bidlyze.com?subject=Submission%20Check%20beta%20access" className="inline-flex items-center h-10 px-4 rounded-lg text-[14px] font-semibold text-white" style={{ background: "var(--accent)" }}>Request beta access</a>
+        <a href={supportMailto("Submission Check beta access")} className="inline-flex items-center h-10 px-4 rounded-lg text-[14px] font-semibold text-white" style={{ background: "var(--accent)" }}>Request beta access</a>
         {!user && <Link href="/login" className="inline-flex items-center h-10 px-4 rounded-lg text-[14px] font-medium" style={{ border: "1px solid var(--border-secondary)" }}>Sign in</Link>}
       </div>
     </div>

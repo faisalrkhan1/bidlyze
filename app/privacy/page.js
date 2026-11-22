@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoFull } from "@/app/components/Logo";
+import { SUPPORT_EMAIL, supportMailto } from "@/lib/contact";
 
 export const metadata = {
   title: "Privacy Policy — Bidlyze",
@@ -167,7 +168,7 @@ export default function PrivacyPage() {
               third parties only to the extent necessary to provide the Service to you. We may use additional
               service providers and subprocessors to support the operation of the Service. Information about
               relevant subprocessors may be provided upon reasonable request by contacting{" "}
-              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>.
+              <a href={supportMailto()} className="text-emerald-500 hover:underline">{SUPPORT_EMAIL}</a>.
             </p>
           </section>
 
@@ -216,7 +217,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               If you wish to delete your account and associated data, please contact us at{" "}
-              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>.
+              <a href={supportMailto()} className="text-emerald-500 hover:underline">{SUPPORT_EMAIL}</a>.
               We will process deletion requests within 30 days, except where we are required to retain
               certain data for legal or regulatory purposes (such as billing records).
             </p>
@@ -235,7 +236,7 @@ export default function PrivacyPage() {
             </ul>
             <p className="mt-3">
               To exercise any of these rights, please email{" "}
-              <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a>{" "}
+              <a href={supportMailto()} className="text-emerald-500 hover:underline">{SUPPORT_EMAIL}</a>{" "}
               with the subject line &quot;Privacy Request.&quot; We will respond within 30 days. Note that some
               requests are handled manually at this stage, so please allow reasonable time for processing.
             </p>
@@ -263,7 +264,7 @@ export default function PrivacyPage() {
             <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>12. Contact</h2>
             <p>If you have any questions about this Privacy Policy or your personal data, please contact us:</p>
             <ul className="list-none mt-2 space-y-1">
-              <li>Email: <a href="mailto:support@bidlyze.com" className="text-emerald-500 hover:underline">support@bidlyze.com</a></li>
+              <li>Email: <a href={supportMailto()} className="text-emerald-500 hover:underline">{SUPPORT_EMAIL}</a></li>
               <li>Website: <a href="https://bidlyze.com" className="text-emerald-500 hover:underline">bidlyze.com</a></li>
             </ul>
           </section>

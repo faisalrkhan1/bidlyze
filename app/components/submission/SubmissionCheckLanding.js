@@ -3,8 +3,9 @@
 
 import Link from "next/link";
 import { LogoFull } from "@/app/components/Logo";
+import { supportMailto } from "@/lib/contact";
 
-const ACCESS = "mailto:support@bidlyze.com?subject=Submission%20Check%20beta%20access&body=Company%3A%0AYour%20role%3A%0AWhat%20you%20bid%20for%3A";
+const ACCESS = supportMailto("Submission Check beta access", "Company:\nYour role:\nWhat you bid for:\n");
 
 const STEPS = [
   ["Add the tender", "The ITT, RFP or RFQ, with its annexes. Bidlyze lists the requirements it finds and the page each comes from. The list can miss items, so your team checks it."],
@@ -133,7 +134,7 @@ export default function SubmissionCheckLanding() {
           <div className="flex items-center gap-5">
             <Link href="/terms" className="hover:underline underline-offset-4">Terms</Link>
             <Link href="/privacy" className="hover:underline underline-offset-4">Privacy</Link>
-            <a href="mailto:support@bidlyze.com" className="hover:underline underline-offset-4">Support</a>
+            <a href={supportMailto()} className="hover:underline underline-offset-4">Support</a>
           </div>
         </div>
       </footer>

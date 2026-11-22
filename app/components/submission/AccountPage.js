@@ -10,6 +10,7 @@ import AppShell from "@/app/components/AppShell";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import { Card, Icon, Notice, SecondaryButton, Skeleton, Spinner } from "./ui";
 import { fetchUsage, fmtDate } from "./useChecks";
+import { SUPPORT_EMAIL, supportMailto } from "@/lib/contact";
 
 function Row({ label, children, testId }) {
   return (
@@ -61,7 +62,7 @@ export default function AccountPage() {
           <Row label="Signed in as" testId="account-email"><span className="break-all">{user.email}</span></Row>
           <Row label="Plan" testId="account-plan">
             {usage === undefined ? <Skeleton rows={1} className="max-w-xs" /> : usage?.environment === "production" && usage?.inBeta === false
-              ? <span>Not on the beta list yet. <a className="underline underline-offset-2" style={{ color: "var(--accent-text)" }} href="mailto:support@bidlyze.com?subject=Submission%20Check%20beta%20access">Ask for access</a></span>
+              ? <span>Not on the beta list yet. <a className="underline underline-offset-2" style={{ color: "var(--accent-text)" }} href={supportMailto("Submission Check beta access")}>Ask for access</a></span>
               : <span>Submission Check closed beta: free for invited testers{usage?.betaExpiresAt ? `, until ${fmtDate(usage.betaExpiresAt)}` : ""}.</span>}
           </Row>
         </Card>
@@ -96,13 +97,13 @@ export default function AccountPage() {
           <h2 className="text-[16px] font-semibold pb-3">Your data</h2>
           <Row label="Tenders">The requirement lists of your tenders are saved to your account. Delete any of them in <Link href="/submission-check/history" className="underline underline-offset-2" style={{ color: "var(--accent-text)" }}>History</Link>.</Row>
           <Row label="Proposals and results">Not stored on Bidlyze&apos;s servers. Results and review notes are kept in the browser where you ran the check.</Row>
-          <Row label="Delete your account">Email <a href="mailto:support@bidlyze.com?subject=Delete%20my%20Bidlyze%20account" className="underline underline-offset-2" style={{ color: "var(--accent-text)" }}>support@bidlyze.com</a> from this address and we will delete it with all its data.</Row>
+          <Row label="Delete your account">Email <a href={supportMailto("Delete my Bidlyze account")} className="underline underline-offset-2" style={{ color: "var(--accent-text)" }}>{SUPPORT_EMAIL}</a> from this address and we will delete it with all its data.</Row>
           <Row label="Policies"><Link href="/privacy" className="underline underline-offset-2" style={{ color: "var(--accent-text)" }}>Privacy policy</Link><span style={{ color: "var(--text-muted)" }}>, </span><Link href="/terms" className="underline underline-offset-2" style={{ color: "var(--accent-text)" }}>Terms</Link></Row>
         </Card>
 
         <div className="flex items-center gap-3">
           <SecondaryButton onClick={logout} data-testid="account-logout"><Icon name="right" /> Log out</SecondaryButton>
-          <a href="mailto:support@bidlyze.com" className="text-[13px] font-medium hover:underline underline-offset-2" style={{ color: "var(--text-secondary)" }}>Contact support</a>
+          <a href={supportMailto()} className="text-[13px] font-medium hover:underline underline-offset-2" style={{ color: "var(--text-secondary)" }}>Contact support</a>
         </div>
       </div>
     </AppShell>

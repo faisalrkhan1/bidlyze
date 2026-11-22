@@ -6,6 +6,7 @@ import ThemeToggle from "./ThemeToggle";
 import { LogoFull } from "./Logo";
 import { FEATURES } from "@/lib/featureFlags";
 import { submissionCheckBetaClient } from "@/lib/submission/beta";
+import { supportMailto } from "@/lib/contact";
 
 const ICON = (d) => (
   <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -150,7 +151,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
             <div className="flex items-center gap-2">
               <ThemeToggle size="small" />
               <a
-                href="mailto:support@bidlyze.com"
+                href={supportMailto()}
                 className="py-1.5 px-2 rounded-lg text-xs font-medium transition-colors duration-200 flex items-center justify-center"
                 style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}
                 onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
