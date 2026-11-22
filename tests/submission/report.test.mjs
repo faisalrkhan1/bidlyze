@@ -55,8 +55,8 @@ test("action register: concise columns, priority order, AI vs team columns, revi
   assert.deepEqual(head, ["#", "Req. ID", "Priority", "Type", "Bidlyze result", "Classification", "Requirement", "Issue found (AI explanation)", "Recommended action", "Tender ref.", "Proposal ref.", "Owner", "Status", "Reviewer decision", "Final result", "Reviewer note"]);
   assert.equal(head.length, 16, "16 columns instead of 26");
   // Team columns look editable (yellow) and have dropdowns.
-  assert.equal(ws.getRow(2).getCell(13).fill.fgColor.argb, "FFFACC15");
-  assert.equal(ws.getRow(3).getCell(12).fill.fgColor.argb, "FFFEFCE8");
+  assert.equal(ws.getRow(2).getCell(13).fill.fgColor.argb, "FFFFD84D");
+  assert.equal(ws.getRow(3).getCell(12).fill.fgColor.argb, "FFFFFBEB");
   assert.equal(ws.getRow(3).getCell(13).dataValidation.type, "list");
   assert.match(ws.getRow(3).getCell(14).dataValidation.formulae[0], /Override: OK/);
 
@@ -112,7 +112,8 @@ test("evidence sheet: every quote kept in full, both documents, page references"
 test("summary: dashboard counts (automated vs after review), timestamps with time zone, documents, disclaimer", async () => {
   const wb = await roundTrip();
   const s = text(wb.getWorksheet("Summary"));
-  assert.match(s, /Bidlyze Submission Check: compliance review \(beta\)/);
+  assert.match(s, /Submission Check: compliance review \(beta\)/);
+  assert.equal(wb.getWorksheet("Summary").getImages().length, 1, "Bidlyze logo in the report header");
   assert.match(s, /Needs attention \| 10 \| 10/, "Q04 → attention and Q12 → OK cancel out");
   assert.match(s, /Check manually \| 3 \| 3/);
   assert.match(s, /Reviewed by a person \| 3 of 18/);

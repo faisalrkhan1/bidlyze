@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/useAuth";
 import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
-import { LogoMark } from "@/app/components/Logo";
+import { LogoFull } from "@/app/components/Logo";
 import { PLANS, PLAN_DISPLAY } from "@/lib/plans";
 import { getUpgradeButtonLabel } from "@/lib/upgradeCopy";
 import WaitlistModal from "@/app/components/WaitlistModal";
@@ -339,8 +339,7 @@ export default function PricingPage() {
       <header className="sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)", borderBottom: "1px solid var(--border-primary)" }}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <LogoMark size={30} />
-            <span className="text-base font-semibold tracking-tight">Bidlyze</span>
+            <span style={{ color: "var(--ink)" }}><LogoFull size={30} /></span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium transition-colors" style={{ color: "var(--text-secondary)" }}>

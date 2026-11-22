@@ -10,7 +10,7 @@ import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
 import { requirementsFromAnalysis } from "@/lib/submission/fromAnalysis";
 import { isDeletedAnalysis } from "@/lib/deleteTender";
-import { Card, Icon, Pill, Spinner } from "./ui";
+import { Card, EmptyState, Icon, Notice, Pill, PrimaryButton, Skeleton, Spinner, Stepper } from "./ui";
 
 function fmtDate(iso) {
   try {
@@ -63,70 +63,69 @@ export default function SubmissionCheckHome() {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={[{ label: "Dashboard", href: "/dashboard" }, { label: "Submission Check" }]}>
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 space-y-6 animate-fade-in">
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Submission Check</h1>
-            <Pill tone="green">BETA</Pill>
+      <div className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.015em]">Submission Check</h1>
+            <Pill tone="outline">Beta</Pill>
           </div>
-          <p className="text-sm sm:text-base max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-            Before you submit, check the supplier&apos;s technical proposal against every requirement of the tender.
-            Each finding shows the exact wording from both documents, with page numbers, for you to review.
+          <p className="text-[15px] max-w-2xl" style={{ color: "var(--text-secondary)" }}>
+            Before you submit, check the supplier&apos;s proposal against every requirement of the tender. Each finding quotes both documents with page numbers, for your team to review and export.
           </p>
-        </div>
+          <Stepper current={0} />
+        </header>
 
-        <div className="grid sm:grid-cols-3 gap-3 text-center">
+        <div className="grid sm:grid-cols-3 rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "1px solid var(--border-primary)" }}>
           {[
-            ["1", "Choose the analysed tender"],
-            ["2", "Upload the proposal (PDF or Word)"],
-            ["3", "Review findings and export the report"],
-          ].map(([n, t]) => (
-            <div key={n} className="rounded-xl px-4 py-3 text-sm" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
-              <span className="inline-flex w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-bold items-center justify-center mr-2">{n}</span>
-              {t}
+            ["shield", "Evidence you can check", "Every finding quotes the tender and the proposal. Bidlyze confirms each quote appears word for word on the cited page."],
+            ["user", "Your team decides", "Findings are a starting point. Reviewers agree or override each one, and add notes."],
+            ["lock", "Your proposal stays private", "Read in your browser; the file is not uploaded and nothing is stored on Bidlyze's servers."],
+          ].map(([icon, title, body], i) => (
+            <div key={title} className={`p-4 sm:p-5 border-[var(--border-primary)] ${i ? "border-t sm:border-t-0 sm:border-l" : ""}`}>
+              <p className="text-[14px] font-semibold inline-flex items-center gap-2"><span style={{ color: "var(--accent-text)" }}><Icon name={icon} className="w-[18px] h-[18px]" /></span>{title}</p>
+              <p className="text-[13px] mt-1.5 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{body}</p>
             </div>
           ))}
         </div>
 
         <Card className="overflow-hidden">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 px-5 py-4" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-            <h2 className="font-semibold flex-1">Choose a tender</h2>
+            <div className="flex-1">
+              <h2 className="text-[16px] font-semibold">Choose a tender</h2>
+              <p className="text-[13px]" style={{ color: "var(--text-secondary)" }}>Tenders you have analysed in Bidlyze. The proposal is checked against their requirement list.</p>
+            </div>
             <div className="relative sm:w-64">
               <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your tenders" className="w-full text-sm pl-9 pr-3 py-2 rounded-lg focus:outline-none" style={{ background: "var(--bg-input)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }} />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search your tenders" aria-label="Search your tenders" className="w-full h-9 text-[13px] pl-9 pr-3 rounded-lg focus:outline-none" style={{ background: "var(--bg-card)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }} />
             </div>
           </div>
 
           <button
             onClick={() => router.push("/submission-check/demo")}
-            className="w-full text-left px-5 py-4 flex items-center gap-4 transition-colors"
+            className="w-full text-left px-5 py-4 flex items-center gap-4 transition-colors hover:bg-[var(--bg-card-hover)]"
             style={{ borderBottom: "1px solid var(--border-primary)" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--bg-card-hover)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             data-testid="tender-demo"
           >
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center shrink-0"><Icon name="doc" className="w-5 h-5" /></div>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}><Icon name="doc" className="w-5 h-5" /></div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold flex items-center gap-2">Try it with a sample tender <Pill tone="blue">Sample</Pill></p>
-              <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>Alton Town Council CCTV tender (public, UK) with a fictional supplier proposal · no AI cost</p>
+              <p className="text-[14px] font-semibold flex items-center gap-2">Try it with a sample tender <Pill tone="blue">Sample</Pill></p>
+              <p className="text-[13px] truncate" style={{ color: "var(--text-secondary)" }}>Alton Town Council CCTV tender (public, UK) with a fictional supplier proposal. No AI cost.</p>
             </div>
             <Icon name="right" />
           </button>
 
           {rows === null ? (
-            <div className="px-5 py-8 flex items-center justify-center gap-3 text-sm" style={{ color: "var(--text-muted)" }}><Spinner /> Loading your tenders…</div>
+            <div className="px-5 py-5" data-testid="tenders-loading"><Skeleton rows={3} /><span className="sr-only">Loading your tenders</span></div>
           ) : error ? (
-            <p className="px-5 py-6 text-sm text-red-400">{error}</p>
+            <div className="p-5"><Notice tone="red" icon="warning" title="Your tenders could not be loaded">{error}</Notice></div>
           ) : shown.length === 0 ? (
-            <div className="px-5 py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-              {rows.length === 0 ? (
-                <>
-                  No analysed tenders yet.{" "}
-                  <button onClick={() => router.push("/upload")} className="text-emerald-500 font-medium hover:underline">Analyse a tender first</button>
-                  , then come back to check a proposal against it.
-                </>
-              ) : "No tenders match your search."}
-            </div>
+            rows.length === 0 ? (
+              <EmptyState icon="doc" title="No analysed tenders yet" action={<PrimaryButton onClick={() => router.push("/upload")}>Analyse a tender</PrimaryButton>}>
+                Analyse a tender first, then come back to check a proposal against its requirements. Or try the sample tender above.
+              </EmptyState>
+            ) : (
+              <EmptyState icon="search" title="No tenders match your search">Try another word from the tender name or file name.</EmptyState>
+            )
           ) : (
             <ul data-testid="tender-list">
               {shown.map((r) => {
@@ -136,16 +135,15 @@ export default function SubmissionCheckHome() {
                     <button
                       disabled={!usable}
                       onClick={() => router.push(`/analysis/${r.id}/submission-check`)}
-                      className="w-full text-left px-5 py-3.5 flex items-center gap-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      onMouseEnter={(e) => usable && (e.currentTarget.style.background = "var(--bg-card-hover)")}
-                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      className="w-full text-left px-5 py-3.5 flex items-center gap-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed enabled:hover:bg-[var(--bg-card-hover)]"
                       data-testid={`tender-${r.id}`}
                     >
-                      <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center shrink-0"><Icon name="doc" className="w-5 h-5" /></div>
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--st-neutral-bg)", color: "var(--text-secondary)" }}><Icon name="doc" className="w-5 h-5" /></div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold truncate">{r.name}</p>
-                        <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
-                          {r.fileName} · analysed {fmtDate(r.createdAt)} · {usable ? `${r.total} requirements` : "no requirement list (cannot be checked)"}
+                        <p className="text-[14px] font-semibold truncate">{r.name}</p>
+                        <p className="text-[13px] truncate" style={{ color: "var(--text-secondary)" }}>
+                          {usable ? <><span className="tabular">{r.total}</span> requirements</> : "No requirement list (cannot be checked)"}, analysed {fmtDate(r.createdAt)}
+                          <span className="hidden md:inline" style={{ color: "var(--text-muted)" }}>, {r.fileName}</span>
                         </p>
                       </div>
                       {usable && r.cited === 0 && <Pill tone="amber" title="Analysed before page-cited quotes were added">No tender quotes</Pill>}
@@ -158,8 +156,8 @@ export default function SubmissionCheckHome() {
           )}
         </Card>
 
-        <p className="text-[11px] text-center" style={{ color: "var(--text-muted)" }}>
-          Beta: an automated aid for your own review, not a compliance certificate. Proposals are read in your browser and are not stored by Bidlyze.
+        <p className="text-[12px] text-center" style={{ color: "var(--text-muted)" }}>
+          Beta: an aid for your own review, not a compliance certificate.
         </p>
       </div>
     </AppShell>

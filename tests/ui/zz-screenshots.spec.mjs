@@ -1,25 +1,18 @@
 // Screenshot walkthrough for review (local only: skipped unless SCREENSHOTS=1 and
-// the local font + tender cache exist). Not part of `npm run test:ui`.
+// the local tender cache exists). Not part of `npm run test:ui`.
 //   SCREENSHOTS=1 npx playwright test -c tests/ui/playwright.config.mjs zz-screenshots.spec.mjs
 import { test, expect } from "@playwright/test";
 import { readFileSync, existsSync, mkdirSync } from "node:fs";
 import { mockSupabase, ecta } from "./mocks.mjs";
 
 const OUT = process.env.SCREENSHOT_DIR || "/home/claude/screens/";
-const FONT_DIR = "/tmp/fonts/package/files/";
 const CACHE = new URL("../benchmarks/alton-cctv-2026/.cache/tender_pages.json", import.meta.url);
-const ENABLED = process.env.SCREENSHOTS === "1" && existsSync(FONT_DIR) && existsSync(CACHE);
+const ENABLED = process.env.SCREENSHOTS === "1" && existsSync(CACHE);
 test.skip(!ENABLED, "screenshot walkthrough runs only locally with SCREENSHOTS=1");
 if (ENABLED) mkdirSync(OUT, { recursive: true });
 
-// The sandbox build cannot download Google Fonts; load Bidlyze's Outfit font locally for faithful screenshots.
-async function brandFont(page) {
-  const css = [400, 500, 600, 700].map((w) => `@font-face{font-family:"OutfitShot";font-weight:${w};src:url(data:font/woff2;base64,${readFileSync(`${FONT_DIR}outfit-latin-${w}-normal.woff2`).toString("base64")}) format("woff2");}`).join("") + 'body,body *:not(.font-mono){font-family:"OutfitShot",sans-serif !important}';
-  await page.addInitScript((c) => {
-    const add = () => { const st = document.createElement("style"); st.textContent = c; document.head.appendChild(st); };
-    if (document.head) add(); else document.addEventListener("DOMContentLoaded", add);
-  }, css);
-}
+// Brand fonts are bundled with the app (app/fonts), so screenshots use them as users will.
+async function brandFont() {}
 
 async function demoTender(page) {
   // Local sandbox cannot reach alton.gov.uk; serve the same page text the preview fetches live.
@@ -52,18 +45,18 @@ for (const theme of ["dark", "light"]) {
     await page.goto("/submission-check");
     await expect(page.getByTestId("tender-demo")).toBeVisible();
     await page.waitForTimeout(400);
-    if (dark) await s("01-choose-tender");
+    await s("01-choose-tender");
 
     await page.goto("/submission-check/demo");
     await expect(page.getByTestId("dropzone")).toBeVisible();
     await page.waitForTimeout(300);
-    if (dark) await s("02-upload");
+    await s("02-upload");
 
     await page.getByTestId("use-sample").click();
     await expect(page.getByTestId("run-check")).toBeVisible();
     await page.getByTestId("processing-note").locator("summary").click();
     await page.waitForTimeout(200);
-    if (dark) await s("03-ready-to-run-and-privacy");
+    await s("03-ready-to-run-and-privacy");
 
     if (dark) {
       await page.route("**/api/submission-check", async (route) => {

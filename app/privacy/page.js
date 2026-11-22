@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogoMark } from "@/app/components/Logo";
+import { LogoFull } from "@/app/components/Logo";
 
 export const metadata = {
   title: "Privacy Policy — Bidlyze",
@@ -13,8 +13,7 @@ export default function PrivacyPage() {
       <header className="sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)", borderBottom: "1px solid var(--border-primary)" }}>
         <div className="max-w-4xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <LogoMark size={30} />
-            <span className="text-base font-semibold tracking-tight">Bidlyze</span>
+            <span style={{ color: "var(--ink)" }}><LogoFull size={30} /></span>
           </Link>
           <Link href="/login" className="text-sm font-medium transition-colors" style={{ color: "var(--text-secondary)" }}>
             Sign In

@@ -20,7 +20,7 @@ import { proposalContentType, extractProposalPages, sha256Hex, MAX_PROPOSAL_BYTE
 import { isDeletedAnalysis } from "@/lib/deleteTender";
 import ResultsView from "./ResultsView";
 import EvidenceViewer from "./EvidenceViewer";
-import { Card, Icon, Pill, PrimaryButton, SecondaryButton, Spinner, ProcessingNote } from "./ui";
+import { Card, EmptyState, Icon, Notice, Pill, PrimaryButton, ProcessingNote, SecondaryButton, Skeleton, Spinner, Stepper, TextButton } from "./ui";
 import { prepareRequirements } from "@/lib/submission/obligations";
 
 const DEMO_ID = "demo-alton";
@@ -370,67 +370,67 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
 
   return (
     <AppShell user={user} onLogout={logout} breadcrumbs={breadcrumbs}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 animate-fade-in">
-        <header className="flex flex-col sm:flex-row sm:items-end gap-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-2xl font-bold tracking-tight">Submission Check</h1>
-              <Pill tone="green">BETA</Pill>
-              {demo && <Pill tone="blue">Sample data</Pill>}
-            </div>
-            <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-              Check a draft technical proposal against every requirement of the tender, with quotes from both documents.
-            </p>
+      <div className="max-w-[1080px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <header className="space-y-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.015em]">Submission Check</h1>
+            <Pill tone="outline">Beta</Pill>
+            {demo && <Pill tone="blue">Sample data</Pill>}
           </div>
+          <p className="text-[15px] max-w-2xl" style={{ color: "var(--text-secondary)" }}>
+            Check a supplier&apos;s draft proposal against every requirement of the tender. Each finding quotes both documents with page numbers, for your team to review.
+          </p>
+          <Stepper current={!tender ? 0 : phase === "done" ? 3 : proposal ? 2 : 1} />
         </header>
 
         {tenderError ? (
-          <Card className="p-8 text-center">
-            <p className="font-semibold mb-1">{tenderError}</p>
-            <SecondaryButton onClick={() => router.push("/submission-check")} className="mt-3">Choose another tender</SecondaryButton>
+          <Card>
+            <EmptyState icon="warning" title={tenderError} action={<SecondaryButton onClick={() => router.push("/submission-check")}>Choose another tender</SecondaryButton>}>
+              The tender could not be opened. It may have been deleted, or it belongs to another account.
+            </EmptyState>
           </Card>
         ) : !tender ? (
-          <Card className="p-8 flex items-center justify-center gap-3 text-sm" style={{ color: "var(--text-muted)" }}><Spinner /> Loading the tender…</Card>
+          <Card className="p-5" data-testid="tender-loading"><Skeleton rows={2} /><span className="sr-only">Loading the tender</span></Card>
         ) : (
           <>
-            {/* Tender + proposal summary strip */}
+            {/* Tender + proposal */}
             <div className="grid md:grid-cols-2 gap-3">
               <Card className="p-4 flex gap-3 min-w-0" data-testid="tender-card">
-                <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center shrink-0"><Icon name="doc" className="w-5 h-5" /></div>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: "var(--st-neutral-bg)", color: "var(--text-secondary)" }}><Icon name="doc" className="w-5 h-5" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>1 · Tender</p>
-                  <p className="text-sm font-semibold truncate" title={tender.name}>{tender.name}</p>
-                  <p className="text-xs truncate" style={{ color: "var(--text-muted)" }}>
-                    {tender.requirementsTotal} requirements{tender.cited ? `, ${tender.cited} with verified tender quotes` : ""} · {tender.fileName}
+                  <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>Tender</p>
+                  <p className="text-[15px] font-semibold truncate" title={tender.name}>{tender.name}</p>
+                  <p className="text-[13px] truncate" style={{ color: "var(--text-secondary)" }} title={tender.fileName}>
+                    <span className="tabular">{tender.requirementsTotal}</span> requirements{tender.cited ? `, ${tender.cited} with verified tender quotes` : ""}
                   </p>
                   {!tender.demo && tender.cited === 0 && tender.requirementsTotal > 0 && (
-                    <p className="text-[11px] mt-1 text-amber-500">Analysed before page-cited quotes: tender quotes will not be shown.</p>
+                    <p className="text-[12px] mt-1" style={{ color: "var(--st-manual)" }}>Analysed before page-cited quotes: tender quotes will not be shown.</p>
                   )}
                 </div>
                 {phase !== "checking" && (
-                  <button onClick={() => router.push("/submission-check")} className="text-xs font-medium text-emerald-500 hover:underline self-start shrink-0">Change</button>
+                  <TextButton onClick={() => router.push("/submission-check")} className="self-start shrink-0">Change</TextButton>
                 )}
               </Card>
 
               <Card className="p-4 flex gap-3 min-w-0" data-testid="proposal-card">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center shrink-0"><Icon name="clipboard" className="w-5 h-5" /></div>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={proposal ? { background: "var(--accent-muted)", color: "var(--accent-text)" } : { background: "var(--st-neutral-bg)", color: "var(--text-muted)" }}><Icon name="clipboard" className="w-5 h-5" /></div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>2 · Supplier proposal</p>
+                  <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>Supplier proposal</p>
                   {proposal ? (
                     <>
-                      <p className="text-sm font-semibold truncate" title={proposal.filename}>{proposal.filename}</p>
-                      <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                      <p className="text-[15px] font-semibold truncate" title={proposal.filename}>{proposal.filename}</p>
+                      <p className="text-[13px]" style={{ color: "var(--text-secondary)" }}>
                         {proposal.pages ? `${proposal.pages.length} ${proposal.pages[0]?.unit === "page" ? "pages" : "sections"} read` : "Page text not kept on this device"}
-                        {proposal.size ? ` · ${fmtSize(proposal.size)}` : ""}
-                        {proposal.scannedPages?.length ? ` · ${proposal.scannedPages.length} page(s) without text` : ""}
+                        {proposal.size ? `, ${fmtSize(proposal.size)}` : ""}
+                        {proposal.scannedPages?.length ? `, ${proposal.scannedPages.length} page(s) without text` : ""}
                       </p>
                     </>
                   ) : (
-                    <p className="text-sm" style={{ color: "var(--text-muted)" }}>Not selected yet</p>
+                    <p className="text-[15px]" style={{ color: "var(--text-muted)" }}>Not added yet</p>
                   )}
                 </div>
                 {proposal && phase === "setup" && (
-                  <button onClick={() => setProposal(null)} className="text-xs font-medium hover:underline self-start shrink-0" style={{ color: "var(--text-secondary)" }}>Remove</button>
+                  <button onClick={() => setProposal(null)} className="text-[13px] font-medium hover:underline underline-offset-2 self-start shrink-0" style={{ color: "var(--text-secondary)" }}>Remove</button>
                 )}
               </Card>
             </div>
@@ -444,8 +444,12 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
                     onDragLeave={(e) => { e.preventDefault(); setDragActive(false); }}
                     onDrop={onDrop}
                     onClick={() => !reading && fileInput.current?.click()}
-                    className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all duration-200 ${dragActive ? "scale-[1.01]" : ""}`}
-                    style={{ borderColor: dragActive ? "var(--accent)" : "var(--border-secondary)", background: dragActive ? "var(--accent-muted)" : "var(--bg-subtle)" }}
+                    onKeyDown={(e) => { if ((e.key === "Enter" || e.key === " ") && !reading) { e.preventDefault(); fileInput.current?.click(); } }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Upload the supplier's proposal"
+                    className="rounded-xl px-6 py-12 text-center cursor-pointer transition-colors duration-150"
+                    style={{ border: `1.5px dashed ${dragActive ? "var(--accent)" : "var(--border-secondary)"}`, background: dragActive ? "var(--accent-muted)" : "var(--bg-card)" }}
                     data-testid="dropzone"
                   >
                     <input
@@ -457,81 +461,92 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
                       data-testid="file-input"
                     />
                     {reading ? (
-                      <div className="flex flex-col items-center gap-3"><Spinner className="w-7 h-7" /><p className="text-sm font-medium">Reading the proposal in your browser…</p></div>
+                      <div className="flex flex-col items-center gap-3"><Spinner className="w-7 h-7" /><p className="text-[15px] font-medium">Reading the proposal in your browser…</p></div>
                     ) : (
                       <>
-                        <div className="w-14 h-14 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto mb-4"><Icon name="upload" className="w-7 h-7" /></div>
-                        <p className="font-semibold mb-1">Drop the supplier&apos;s technical proposal here, or click to choose</p>
-                        <p className="text-sm" style={{ color: "var(--text-muted)" }}>PDF, Word (.docx) or text · up to 50 MB · scanned PDFs need OCR first</p>
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}><Icon name="upload" className="w-6 h-6" /></div>
+                        <p className="text-[16px] font-semibold mb-1">Drop the supplier&apos;s proposal here, or choose a file</p>
+                        <p className="text-[13px]" style={{ color: "var(--text-secondary)" }}>PDF, Word (.docx) or text, up to 50 MB. Scanned PDFs need OCR first.</p>
+                        <p className="text-[12px] mt-3 inline-flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}><Icon name="lock" className="w-3.5 h-3.5" /> Read in your browser. The file itself is not uploaded.</p>
                       </>
                     )}
                   </div>
                 )}
 
                 {demo && !proposal && !reading && (
-                  <div className="text-center">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+                    <span>No proposal to hand?</span>
                     <SecondaryButton onClick={loadSampleProposal} data-testid="use-sample">Use the sample proposal (fictional supplier)</SecondaryButton>
                   </div>
                 )}
 
-                {fileError && <p className="text-sm px-4 py-3 rounded-xl bg-red-500/10 text-red-400" role="alert" data-testid="file-error">{fileError}</p>}
+                {fileError && <Notice tone="red" icon="warning" title="This file cannot be checked" role="alert" data-testid="file-error">{fileError}</Notice>}
 
                 {proposal && (
-                  <Card className="p-5">
-                    <p className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{ color: "var(--text-muted)" }}>3 · Run the check</p>
+                  <Card className="p-5 space-y-4">
                     {proposal.scannedPages?.length > 0 && (
-                      <p className="text-xs mb-3 px-3 py-2 rounded-lg bg-amber-500/10 text-amber-500">
+                      <Notice tone="amber" icon="warning">
                         {proposal.scannedPages.length} page(s) have no readable text (pages {proposal.scannedPages.slice(0, 10).join(", ")}{proposal.scannedPages.length > 10 ? "…" : ""}). Anything on them will be reported as missing. OCR the file for a complete check.
-                      </p>
+                      </Notice>
                     )}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      <div className="flex-1 text-sm" style={{ color: "var(--text-secondary)" }}>
-                        Checks {tender.checkable ?? tender.requirementsTotal} requirements{tender.notCheckable ? ` (${tender.notCheckable} scoring-guidance item${tender.notCheckable === 1 ? "" : "s"} left out)` : ""} against {proposal.pages?.length} {proposal.pages?.[0]?.unit === "page" ? "pages" : "sections"}. Usually 30–60 seconds.
-                        <ProcessingNote />
+                      <div className="flex-1">
+                        <p className="text-[16px] font-semibold">Ready to check</p>
+                        <p className="text-[14px] mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                          Checks {tender.checkable ?? tender.requirementsTotal} requirements{tender.notCheckable ? ` (${tender.notCheckable} scoring-guidance item${tender.notCheckable === 1 ? "" : "s"} left out)` : ""} against {proposal.pages?.length} {proposal.pages?.[0]?.unit === "page" ? "pages" : "sections"}. Usually 30–60 seconds.
+                        </p>
                       </div>
-                      <div className="flex gap-2">
-                        <PrimaryButton onClick={() => runCheck()} disabled={!proposal.pages} data-testid="run-check">
-                          <Icon name="shield" /> Run Submission Check
-                        </PrimaryButton>
-                      </div>
+                      <PrimaryButton onClick={() => runCheck()} disabled={!proposal.pages} data-testid="run-check" className="sm:self-center">
+                        <Icon name="shield" /> Run Submission Check
+                      </PrimaryButton>
                     </div>
-                    {demo && <p className="text-[11px] mt-3" style={{ color: "var(--text-muted)" }}>The sample proposal returns a recorded live result instantly. Any other file runs a live check.</p>}
+                    <div className="pt-3" style={{ borderTop: "1px solid var(--border-primary)" }}>
+                      <ProcessingNote />
+                    </div>
+                    {demo && <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>The sample proposal replays a recorded live result instantly. Any other file runs a live check.</p>}
                   </Card>
                 )}
 
                 {runError && (
-                  <div className="text-sm px-4 py-3 rounded-xl bg-red-500/10 text-red-400 flex items-start gap-2" role="alert" data-testid="run-error">
-                    <Icon name="warning" className="w-4 h-4 mt-0.5 shrink-0" />
-                    <span className="flex-1">{runError}</span>
-                    {proposal && <button onClick={() => runCheck()} className="font-semibold hover:underline shrink-0">Try again</button>}
-                  </div>
+                  <Notice
+                    tone="red"
+                    icon="warning"
+                    title="The check did not finish"
+                    role="alert"
+                    data-testid="run-error"
+                    action={proposal && <SecondaryButton onClick={() => runCheck()} className="h-8 shrink-0">Try again</SecondaryButton>}
+                  >
+                    {runError}
+                  </Notice>
                 )}
 
-                <p className="text-[11px] text-center" style={{ color: "var(--text-muted)" }}>
-                  Beta: results are an automated aid for your review, not a compliance certificate. Nothing about the proposal is saved to your Bidlyze account.
+                <p className="text-[12px] text-center" style={{ color: "var(--text-muted)" }}>
+                  Beta: results are an aid for your review, not a compliance certificate. Nothing about the proposal is saved to your Bidlyze account.
                 </p>
               </>
             )}
 
             {phase === "checking" && (
-              <Card className="p-8" data-testid="checking">
-                <div className="text-center mb-6">
-                  <Spinner className="w-8 h-8 mx-auto mb-3" />
-                  <h2 className="text-lg font-semibold">Checking the proposal</h2>
-                  <p className="text-sm" style={{ color: "var(--text-muted)" }}>{elapsed}s elapsed · usually 30–60 seconds. Keep this tab open.</p>
+              <Card className="px-6 py-10" data-testid="checking">
+                <div className="max-w-md mx-auto">
+                  <div className="flex items-center gap-3 mb-1">
+                    <Spinner className="w-6 h-6" />
+                    <h2 className="text-[18px] font-semibold">Checking the proposal</h2>
+                  </div>
+                  <p className="text-[13px] mb-6" style={{ color: "var(--text-secondary)" }}><span className="tabular">{elapsed}</span>s elapsed. Usually 30–60 seconds; keep this tab open.</p>
+                  <ol className="space-y-1">
+                    {STAGES.map((s, i) => (
+                      <li key={s.label} className="flex items-center gap-3 text-[14px] py-2 px-3 rounded-lg" style={{ color: i > stageIdx ? "var(--text-muted)" : "var(--text-primary)", background: i === stageIdx ? "var(--bg-card-hover)" : "transparent" }}>
+                        {i < stageIdx ? <Icon name="check" className="w-4 h-4" strokeWidth={2.5} /> : i === stageIdx ? <Spinner className="w-4 h-4" /> : <span className="w-4 h-4 flex items-center justify-center"><span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--border-hover)" }} /></span>}
+                        {s.label}
+                      </li>
+                    ))}
+                  </ol>
                   {elapsed >= 90 && (
-                    <p className="text-xs mt-2 text-amber-500" data-testid="slow-notice">
-                      This is taking longer than usual (large proposals or a busy AI service). It stops automatically after 5 minutes; you can keep waiting.
-                    </p>
+                    <Notice tone="amber" icon="clock" className="mt-5" data-testid="slow-notice">
+                      This is taking longer than usual (a large proposal or a busy AI service). It stops automatically after 5 minutes; you can keep waiting.
+                    </Notice>
                   )}
-                </div>
-                <div className="max-w-md mx-auto space-y-2">
-                  {STAGES.map((s, i) => (
-                    <div key={s.label} className="flex items-center gap-3 text-sm py-1.5 px-3 rounded-lg" style={{ opacity: i > stageIdx ? 0.4 : 1, background: i === stageIdx ? "var(--bg-input)" : "transparent" }}>
-                      {i < stageIdx ? <Icon name="check" className="w-4 h-4 text-emerald-500" strokeWidth={2.5} /> : i === stageIdx ? <Spinner className="w-4 h-4" /> : <span className="w-4 h-4 flex items-center justify-center"><span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--text-muted)" }} /></span>}
-                      {s.label}
-                    </div>
-                  ))}
                 </div>
               </Card>
             )}

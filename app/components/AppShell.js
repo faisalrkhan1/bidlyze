@@ -3,11 +3,21 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
-import { LogoMark } from "./Logo";
+import { LogoFull } from "./Logo";
 import { FEATURES } from "@/lib/featureFlags";
 import { submissionCheckBetaClient } from "@/lib/submission/beta";
 
 const NAV_ITEMS = [
+  {
+    label: "Submission Check",
+    href: "/submission-check",
+    beta: true, // preview deployments only (lib/submission/beta.js)
+    icon: (
+      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+      </svg>
+    ),
+  },
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -23,16 +33,6 @@ const NAV_ITEMS = [
     icon: (
       <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-    ),
-  },
-  {
-    label: "Submission Check",
-    href: "/submission-check",
-    beta: true, // preview deployments only (lib/submission/beta.js)
-    icon: (
-      <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
       </svg>
     ),
   },
@@ -99,11 +99,10 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
         style={{ background: "var(--bg-sidebar)", borderRight: "1px solid var(--border-primary)" }}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2.5 px-5" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-          <LogoMark size={30} />
-          <span className="text-base font-semibold tracking-tight">Bidlyze</span>
-          <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-md" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}>
-            BETA
+        <div className="h-16 flex items-center gap-2.5 px-5" style={{ borderBottom: "1px solid var(--border-primary)", color: "var(--ink)" }}>
+          <LogoFull size={28} />
+          <span className="ml-auto text-[11px] font-medium px-1.5 py-0.5 rounded-md" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}>
+            Beta
           </span>
         </div>
 
@@ -115,17 +114,17 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
               <button
                 key={item.href}
                 onClick={() => { router.push(item.href); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                className={`relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13.5px] font-medium whitespace-nowrap transition-colors duration-150 ${
                   isActive ? "sidebar-active" : "sidebar-item"
                 }`}
+                aria-current={isActive ? "page" : undefined}
               >
+                {isActive && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-emerald-500" aria-hidden="true" />}
                 <span className={isActive ? "text-emerald-500" : ""} style={!isActive ? { color: "var(--text-muted)" } : {}}>
                   {item.icon}
                 </span>
                 {item.label}
-                {item.beta && (
-                  <span className="ml-auto text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}>BETA</span>
-                )}
+
               </button>
             );
           })}
@@ -163,7 +162,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
                 onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
                 onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
               >
-                Log Out
+                Log out
               </button>
             </div>
           </div>
@@ -230,9 +229,8 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
           )}
 
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 ml-auto mr-auto">
-            <LogoMark size={28} />
-            <span className="text-sm font-semibold">Bidlyze</span>
+          <div className="lg:hidden flex items-center ml-auto mr-auto" style={{ color: "var(--ink)" }}>
+            <LogoFull size={26} />
           </div>
 
           {/* Right side - mobile theme toggle */}

@@ -1,64 +1,145 @@
 @import "tailwindcss";
 
+/* ── Bidlyze design tokens (trust upgrade, Nov 2026) ─────────────────────────
+   Ink + petrol + paper. Petrol is the one brand colour (actions, links, the
+   logo tile). Red / amber / green are reserved for review status. Highlighter
+   yellow only marks verbatim evidence. Fonts: Public Sans (interface) and
+   Source Serif 4 (words quoted from tender and proposal documents). */
+
 :root {
-  --font-outfit: "Outfit", sans-serif;
+  --radius-panel: 12px;
+  --radius-control: 8px;
+  --radius-pill: 6px;
+}
+
+/* The existing emerald utility classes are the brand colour: map them to petrol. */
+@theme inline {
+  --color-emerald-300: var(--brand-300);
+  --color-emerald-400: var(--brand-400);
+  --color-emerald-500: var(--brand-500);
+  --color-emerald-600: var(--brand-600);
+  --color-emerald-700: var(--brand-700);
 }
 
 /* Dark theme (default) */
 [data-theme="dark"] {
-  --bg-primary: #08090c;
-  --bg-primary-translucent: rgba(8, 9, 12, 0.85);
-  --bg-sidebar: #0c0d11;
-  --bg-card: #111318;
-  --bg-card-hover: rgba(255, 255, 255, 0.03);
-  --bg-subtle: rgba(255, 255, 255, 0.02);
-  --bg-input: rgba(255, 255, 255, 0.04);
-  --text-primary: #ffffff;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --border-primary: rgba(255, 255, 255, 0.05);
-  --border-secondary: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.2);
-  --accent: #10b981;
-  --accent-hover: #34d399;
-  --accent-muted: rgba(16, 185, 129, 0.1);
-  --accent-border: rgba(16, 185, 129, 0.2);
-  --accent-text: #34d399;
+  --bg-primary: #0b111a;
+  --bg-primary-translucent: rgba(11, 17, 26, 0.86);
+  --bg-sidebar: #0d141f;
+  --bg-card: #121b28;
+  --bg-card-hover: #162131;
+  --bg-subtle: #101824;
+  --bg-input: #0d1520;
+  --text-primary: #e8edf4;
+  --text-secondary: #a6b1c2;
+  --text-muted: #8190a5;
+  --border-primary: #1d2939;
+  --border-secondary: #2a384c;
+  --border-hover: #46566e;
+  --brand-300: #8fd3de;
+  --brand-400: #5cc2d2;
+  --brand-500: #1a8fa2;
+  --brand-600: #157d8f;
+  --brand-700: #0f6b7c;
+  --accent: #1a8fa2;
+  --accent-hover: #24a2b6;
+  --accent-muted: rgba(26, 143, 162, 0.14);
+  --accent-border: rgba(92, 194, 210, 0.3);
+  --accent-text: #6fcbd9;
+  --logo-tile: #0f7c8f;
   --icon-muted: rgba(255, 255, 255, 0.05);
-  --sidebar-active-bg: rgba(16, 185, 129, 0.08);
-  --sidebar-hover-bg: rgba(255, 255, 255, 0.03);
+  --sidebar-active-bg: rgba(26, 143, 162, 0.14);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.04);
+  --ink: #e8edf4;
+  --focus: #5cc2d2;
+  /* Review status */
+  --st-attention: #fb7a6c;
+  --st-attention-bg: rgba(240, 68, 56, 0.12);
+  --st-attention-border: rgba(251, 122, 108, 0.32);
+  --st-manual: #fdb022;
+  --st-manual-bg: rgba(247, 144, 9, 0.12);
+  --st-manual-border: rgba(253, 176, 34, 0.32);
+  --st-ok: #47cd89;
+  --st-ok-bg: rgba(23, 178, 106, 0.12);
+  --st-ok-border: rgba(71, 205, 137, 0.3);
+  --st-neutral-bg: rgba(255, 255, 255, 0.05);
+  /* Verbatim evidence */
+  --highlight: rgba(255, 216, 77, 0.26);
+  --highlight-text: #fde68a;
+  --excerpt-bg: #0e1622;
+  --shadow-overlay: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
 }
 
 /* Light theme */
 [data-theme="light"] {
-  --bg-primary: #fafaf9;
-  --bg-primary-translucent: rgba(250, 250, 249, 0.85);
-  --bg-sidebar: #f5f5f4;
+  --bg-primary: #f5f7fa;
+  --bg-primary-translucent: rgba(245, 247, 250, 0.88);
+  --bg-sidebar: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: rgba(0, 0, 0, 0.02);
-  --bg-subtle: rgba(0, 0, 0, 0.02);
-  --bg-input: rgba(0, 0, 0, 0.03);
-  --text-primary: #1c1917;
-  --text-secondary: #57534e;
-  --text-muted: #a8a29e;
-  --border-primary: #e7e5e4;
-  --border-secondary: #d6d3d1;
-  --border-hover: #a8a29e;
-  --accent: #059669;
-  --accent-hover: #047857;
-  --accent-muted: rgba(5, 150, 105, 0.08);
-  --accent-border: rgba(5, 150, 105, 0.2);
-  --accent-text: #059669;
-  --icon-muted: rgba(0, 0, 0, 0.05);
-  --sidebar-active-bg: rgba(5, 150, 105, 0.06);
-  --sidebar-hover-bg: rgba(0, 0, 0, 0.03);
+  --bg-card-hover: #f8fafc;
+  --bg-subtle: #ffffff;
+  --bg-input: #ffffff;
+  --text-primary: #0f1b2d;
+  --text-secondary: #475467;
+  --text-muted: #5f6b7d;
+  --border-primary: #e3e8ef;
+  --border-secondary: #cfd6e0;
+  --border-hover: #98a2b3;
+  --brand-300: #6fbcc8;
+  --brand-400: #0e6a7b;
+  --brand-500: #0f7c8f;
+  --brand-600: #0b6878;
+  --brand-700: #0e5a6b;
+  --accent: #0f7c8f;
+  --accent-hover: #0b6878;
+  --accent-muted: rgba(15, 124, 143, 0.08);
+  --accent-border: rgba(15, 124, 143, 0.28);
+  --accent-text: #0e6a7b;
+  --logo-tile: #0e5a6b;
+  --icon-muted: #f1f4f8;
+  --sidebar-active-bg: rgba(15, 124, 143, 0.08);
+  --sidebar-hover-bg: #f1f4f8;
+  --ink: #0f1b2d;
+  --focus: #0f7c8f;
+  --st-attention: #b42318;
+  --st-attention-bg: #fef3f2;
+  --st-attention-border: #fecdca;
+  --st-manual: #b54708;
+  --st-manual-bg: #fffaeb;
+  --st-manual-border: #fedf89;
+  --st-ok: #067647;
+  --st-ok-bg: #ecfdf3;
+  --st-ok-border: #abefc6;
+  --st-neutral-bg: #f2f4f7;
+  --highlight: #ffe58a;
+  --highlight-text: #0f1b2d;
+  --excerpt-bg: #fbfcfd;
+  --shadow-overlay: 0 24px 48px -12px rgba(16, 24, 40, 0.18);
 }
 
 body {
-  font-family: var(--font-outfit);
+  /* next/font sets --font-sans / --font-serif on <body>, so the stacks are defined here too. */
+  --font-sans-stack: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif-stack: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-family: var(--font-sans-stack);
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s, color 0.3s;
+}
+
+/* Words quoted from a tender or a proposal: set like a printed document. */
+.font-document {
+  font-family: var(--font-serif-stack);
+  font-optical-sizing: auto;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+mark.evidence {
+  background: var(--highlight);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
 }
 
 /* Sidebar nav items */
@@ -81,7 +162,7 @@ html {
 
 /* Focus styles for accessibility */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus, var(--accent));
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -133,4 +214,11 @@ html {
   * {
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Highlighter stroke on verbatim evidence (lower half of each line). */
+.evidence-stroke {
+  background-image: linear-gradient(transparent 58%, var(--highlight) 58%, var(--highlight) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }

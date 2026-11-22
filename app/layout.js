@@ -1,11 +1,11 @@
-import { Outfit } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-});
+// Public Sans (interface) and Source Serif 4 (quoted document text), both SIL OFL,
+// served from the app itself (no Google Fonts request).
+const sans = localFont({ src: "./fonts/PublicSans-Variable.woff2", variable: "--font-sans", weight: "100 900", display: "swap" });
+const serif = localFont({ src: "./fonts/SourceSerif4-Variable.woff2", variable: "--font-serif", weight: "200 900", display: "swap" });
 
 export const metadata = {
   title: {
@@ -49,14 +49,14 @@ export const metadata = {
   },
   icons: {
     icon: "/icon.svg",
-    apple: "/apple-icon.svg",
+    apple: "/apple-icon.png",
   },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${outfit.variable} font-[family-name:var(--font-outfit)] antialiased`}>
+      <body className={`${sans.variable} ${serif.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

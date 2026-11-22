@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogoMark } from "@/app/components/Logo";
+import { LogoFull } from "@/app/components/Logo";
 import LandingPricingCards from "@/app/components/LandingPricingCards";
 
 // Pre-launch flag — read once at build time so the banner/chip render
@@ -84,9 +84,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <header className="sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)", borderBottom: "1px solid var(--border-primary)" }}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <LogoMark size={30} />
-            <span className="text-base font-semibold tracking-tight">Bidlyze</span>
+          <div className="flex items-center" style={{ color: "var(--ink)" }}>
+            <LogoFull size={30} />
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm" style={{ color: "var(--text-secondary)" }}>
             <a href="#features" className="hover:text-emerald-500 transition-colors">Features</a>
@@ -359,9 +358,8 @@ export default function LandingPage() {
       <footer style={{ borderTop: "1px solid var(--border-primary)" }}>
         <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <LogoMark size={26} />
-              <span className="text-sm font-semibold">Bidlyze</span>
+            <div className="flex items-center" style={{ color: "var(--ink)" }}>
+              <LogoFull size={24} />
             </div>
             <div className="flex items-center gap-6 text-xs" style={{ color: "var(--text-muted)" }}>
               <a href="#pricing" className="hover:text-emerald-500 transition-colors">Pricing</a>

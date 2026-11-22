@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { getLoginRedirectTarget } from "@/lib/auth-redirect";
-import { LogoMark } from "@/app/components/Logo";
+import { LogoFull, LogoMark, LogoWordmark } from "@/app/components/Logo";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import { PLANS } from "@/lib/plans";
 
@@ -188,15 +188,11 @@ export default function LoginPageClient() {
 
       {/* Left Panel - Product Highlights */}
       <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] flex-col justify-between p-10 relative overflow-hidden" style={{ background: "var(--bg-sidebar)", borderRight: "1px solid var(--border-primary)" }}>
-        {/* Decorative gradient */}
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #10b981, transparent 70%)" }} />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #10b981, transparent 70%)" }} />
 
         <div className="relative">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-12">
-            <LogoMark size={38} />
-            <span className="text-xl font-semibold tracking-tight">Bidlyze</span>
+          <div className="flex items-center mb-12" style={{ color: "var(--ink)" }}>
+            <LogoFull size={36} />
           </div>
 
           {/* Headline */}
@@ -243,7 +239,7 @@ export default function LoginPageClient() {
           {/* Mobile logo + trust */}
           <div className="flex flex-col items-center mb-10 lg:hidden">
             <div className="mb-4"><LogoMark size={52} /></div>
-            <span className="text-2xl font-semibold tracking-tight">Bidlyze</span>
+            <span style={{ color: "var(--ink)" }}><LogoWordmark capHeight={20} /></span>
             <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>AI RFx & Tender Intelligence</p>
             <div className="flex items-center gap-4 mt-4 flex-wrap justify-center">
               {["No credit card required", `${FREE_ANALYSES} free analyses`, "Results in minutes"].map((t) => (

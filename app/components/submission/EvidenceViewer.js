@@ -48,13 +48,13 @@ export default function EvidenceViewer({ open, onClose, side, title, pages, load
 
   return (
     <div className="fixed inset-0 z-50 flex items-stretch justify-end" role="dialog" aria-modal="true" aria-label={`${side === "tender" ? "Tender" : "Proposal"} ${label(current)}`}>
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative w-full max-w-2xl h-full flex flex-col shadow-2xl animate-fade-in" style={{ background: "var(--bg-card)", borderLeft: "1px solid var(--border-secondary)" }}>
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative w-full max-w-2xl h-full flex flex-col animate-fade-in" style={{ background: "var(--bg-card)", borderLeft: "1px solid var(--border-secondary)", boxShadow: "var(--shadow-overlay)" }}>
         <div className="flex items-center gap-3 px-5 h-14 shrink-0" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-          <span className={`px-2 py-0.5 rounded-md text-[11px] font-semibold ${side === "tender" ? "bg-violet-500/10 text-violet-400" : "bg-emerald-500/10 text-emerald-500"}`}>
+          <span className="h-[22px] px-2 inline-flex items-center rounded-md text-[12px] font-semibold" style={side === "tender" ? { border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" } : { background: "var(--accent-muted)", color: "var(--accent-text)", border: "1px solid var(--accent-border)" }}>
             {side === "tender" ? "Tender" : "Proposal"}
           </span>
-          <span className="text-sm font-medium truncate" title={title}>{title}</span>
+          <span className="text-[14px] font-medium truncate" title={title}>{title}</span>
           <button onClick={onClose} className="ml-auto w-8 h-8 rounded-lg flex items-center justify-center" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }} aria-label="Close">
             <Icon name="x" />
           </button>
@@ -64,13 +64,13 @@ export default function EvidenceViewer({ open, onClose, side, title, pages, load
           <button disabled={idx <= 0} onClick={() => setCurrent(list[idx - 1].n)} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30" style={{ border: "1px solid var(--border-secondary)" }} aria-label="Previous page">
             <Icon name="left" />
           </button>
-          <span className="text-sm font-semibold w-28 text-center" data-testid="viewer-page">{label(current)}{list.length ? <span className="font-normal" style={{ color: "var(--text-muted)" }}> / {list.length}</span> : null}</span>
+          <span className="text-[14px] font-semibold w-28 text-center tabular" data-testid="viewer-page">{label(current)}{list.length ? <span className="font-normal" style={{ color: "var(--text-muted)" }}> / {list.length}</span> : null}</span>
           <button disabled={idx < 0 || idx >= list.length - 1} onClick={() => setCurrent(list[idx + 1].n)} className="w-8 h-8 rounded-lg flex items-center justify-center disabled:opacity-30" style={{ border: "1px solid var(--border-secondary)" }} aria-label="Next page">
             <Icon name="right" />
           </button>
           {current === page && status && <QuoteCheckPill status={status} />}
           {originalUrl && (
-            <a href={`${originalUrl}#page=${current}`} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1.5 text-xs font-medium text-emerald-500 hover:underline">
+            <a href={`${originalUrl}#page=${current}`} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1.5 text-[13px] font-medium hover:underline underline-offset-2" style={{ color: "var(--accent-text)" }}>
               Open original at this page <Icon name="external" className="w-3.5 h-3.5" />
             </a>
           )}
@@ -86,15 +86,15 @@ export default function EvidenceViewer({ open, onClose, side, title, pages, load
           ) : (
             <>
               {current === page && quote && !hit && (
-                <p className="text-xs mb-3 px-3 py-2 rounded-lg bg-amber-500/10 text-amber-500">
+                <p className="text-[13px] mb-3 px-3 py-2 rounded-lg" style={{ background: "var(--st-manual-bg)", color: "var(--st-manual)", border: "1px solid var(--st-manual-border)" }}>
                   The quote could not be highlighted on this page{status === "unverified" ? " (it was not found in the document)." : " (spacing in the document differs). Search the page for it."}
                 </p>
               )}
-              <pre className="whitespace-pre-wrap font-sans text-[13px] leading-relaxed" style={{ color: "var(--text-secondary)" }} data-testid="viewer-text">
+              <pre className="whitespace-pre-wrap font-document text-[15px] leading-[1.65]" style={{ color: "var(--text-secondary)" }} data-testid="viewer-text">
                 {hit ? (
                   <>
                     {pageObj.text.slice(0, hit.start)}
-                    <mark data-testid="viewer-highlight" className="rounded px-0.5" style={{ background: "rgba(16,185,129,0.25)", color: "var(--text-primary)" }}>
+                    <mark data-testid="viewer-highlight" className="evidence" style={{ color: "var(--text-primary)" }}>
                       {pageObj.text.slice(hit.start, hit.end)}
                     </mark>
                     {pageObj.text.slice(hit.end)}
@@ -106,7 +106,7 @@ export default function EvidenceViewer({ open, onClose, side, title, pages, load
             </>
           )}
         </div>
-        <div className="px-6 py-3 text-[11px] shrink-0" style={{ borderTop: "1px solid var(--border-primary)", color: "var(--text-muted)" }}>
+        <div className="px-6 py-3 text-[12px] shrink-0" style={{ borderTop: "1px solid var(--border-primary)", color: "var(--text-muted)" }}>
           Text as Bidlyze read it from the document. Layout, tables and images are shown in the original.
         </div>
       </div>

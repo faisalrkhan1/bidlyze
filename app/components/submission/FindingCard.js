@@ -6,7 +6,11 @@
 
 import { STATUS, GROUPS, TYPES, displayStatus, groupOf, effectiveGroup, contradiction, locLabel, typeOf } from "@/lib/submission/review";
 import { recommendedAction, priorityOf } from "@/lib/submission/actions";
-import { Pill, StatusPill, GroupPill, TypePill, Quote, Icon, GROUP_BAR } from "./ui";
+import { Notice, Pill, StatusPill, GroupPill, TypePill, Quote, Icon, GROUP_BAR } from "./ui";
+
+function SectionLabel({ children, className = "" }) {
+  return <p className={`text-[13px] font-semibold mb-2 ${className}`} style={{ color: "var(--text-secondary)" }}>{children}</p>;
+}
 
 const VERDICTS = [
   { value: "agree", label: "Agree with result" },
@@ -14,7 +18,7 @@ const VERDICTS = [
   { value: "attention", label: "Override: needs attention" },
 ];
 
-export default function FindingCard({ item, review = {}, onReview, open, onToggle, onView, units }) {
+export default function FindingCard({ item, review = {}, onReview, open, onToggle, onView, units, first = false }) {
   const st = displayStatus(item);
   const autoGroup = groupOf(item);
   const group = effectiveGroup(item, review);
@@ -42,65 +46,67 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
 
   return (
     <article
-      className="rounded-xl overflow-hidden transition-colors"
-      style={{ background: "var(--bg-card)", border: "1px solid var(--border-primary)", borderLeft: `3px solid ${GROUP_BAR[group]}` }}
+      className="relative transition-colors"
+      style={{ borderTop: first ? "none" : "1px solid var(--border-primary)", background: open ? "var(--bg-card-hover)" : "transparent" }}
       data-testid={`finding-${item.id}`}
       data-group={group}
       data-status={st}
     >
-      <button type="button" onClick={onToggle} className="w-full text-left px-4 py-3 flex items-start gap-3" aria-expanded={open}>
-        <span className="text-[11px] font-mono pt-0.5 w-9 shrink-0" style={{ color: "var(--text-muted)" }}>{item.id}</span>
+      <span className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: GROUP_BAR[group] }} aria-hidden="true" />
+      <button type="button" onClick={onToggle} className="w-full text-left pl-5 pr-4 py-3.5 flex items-start gap-3 hover:bg-[var(--bg-card-hover)] transition-colors" aria-expanded={open}>
+        <span className="text-[12px] font-medium pt-0.5 w-11 shrink-0 tabular" style={{ color: "var(--text-muted)" }}>{item.id}</span>
         <span className="flex-1 min-w-0">
-          <span className={`block text-sm leading-snug ${open ? "" : "line-clamp-2"}`}>{item.requirement}</span>
-          <span className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <StatusPill status={st} muted={notObligation} />
+          <span className={`block text-[14px] leading-snug ${open ? "font-medium" : "line-clamp-2"}`}>{item.requirement}</span>
+          <span className="flex flex-wrap items-center gap-1.5 mt-2">
+            <StatusPill status={st} group={autoGroup} muted={notObligation} />
             {type !== "mandatory" && <TypePill type={type} />}
-            {item.document && <Pill tone="gray" title="A document the tender asks you to hand in"><Icon name="doc" className="w-3 h-3" /> {item.document.name}</Pill>}
-            {group !== autoGroup && <Pill tone="gray" title="A reviewer changed this result">Reviewer: {GROUPS[group].label}</Pill>}
+            {item.document && <Pill tone="outline" title="A document the tender asks you to hand in"><Icon name="doc" className="w-3 h-3" /> {item.document.name}</Pill>}
+            {group !== autoGroup && <Pill tone="blue" title="A reviewer changed this result"><Icon name="user" className="w-3 h-3" /> Reviewer: {GROUPS[group].label}</Pill>}
             {contra && <Pill tone="red"><Icon name="arrows" className="w-3 h-3" /> Contradiction</Pill>}
-            {!open && item.gap && <span className="text-[12px] line-clamp-2 sm:line-clamp-1 basis-full sm:basis-auto sm:flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{item.gap}</span>}
+            {!open && item.gap && <span className="text-[13px] line-clamp-2 sm:line-clamp-1 basis-full sm:basis-auto sm:flex-1 min-w-0 sm:ml-1" style={{ color: "var(--text-secondary)" }}>{item.gap}</span>}
           </span>
         </span>
-        <span className="hidden sm:flex flex-col items-end gap-1 shrink-0 text-[11px]" style={{ color: "var(--text-muted)" }}>
+        <span className="hidden sm:flex flex-col items-end gap-1 shrink-0 text-[12px] tabular" style={{ color: "var(--text-muted)" }}>
           {tenderLoc && <span>{tenderLoc}</span>}
           {pagesUsed.length > 0 && <span>Proposal {pagesUsed.join(", ")}</span>}
         </span>
         {review.reviewed && (
-          <span className="shrink-0 w-5 h-5 rounded-full bg-emerald-500/15 text-emerald-500 flex items-center justify-center" title="Reviewed">
-            <Icon name="check" className="w-3 h-3" strokeWidth={2.5} />
+          <span className="shrink-0 w-5 h-5 mt-0.5 rounded-full flex items-center justify-center" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }} title="Reviewed">
+            <Icon name="check" className="w-3 h-3" strokeWidth={2.6} />
           </span>
         )}
-        <Icon name="chevron" className={`w-4 h-4 shrink-0 mt-0.5 transition-transform ${open ? "rotate-180" : ""}`} />
+        <Icon name="chevron" className={`w-4 h-4 shrink-0 mt-1 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="px-4 pb-4 pt-1 space-y-4" style={{ borderTop: "1px solid var(--border-primary)" }}>
-          <p className="text-xs pt-3" style={{ color: "var(--text-secondary)" }}>
-            <GroupPill group={autoGroup} /> <span className="ml-1">{notObligation && st !== "answered" ? TYPES[type].help : STATUS[st].help}</span>
-          </p>
+        <div className="pl-5 pr-4 pb-5 sm:pl-[4.75rem] space-y-5">
+          <div className="flex flex-wrap items-start gap-2 text-[13px]" style={{ color: "var(--text-secondary)" }}>
+            <GroupPill group={autoGroup} />
+            <span className="flex-1 min-w-[14rem] pt-0.5">{notObligation && st !== "answered" ? TYPES[type].help : STATUS[st].help}</span>
+          </div>
 
           {notes.length > 0 && (
-            <ul className="text-xs space-y-1 px-3 py-2 rounded-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)", color: "var(--text-secondary)" }} data-testid={`notes-${item.id}`}>
-              {notes.map((n, i) => <li key={i}>{n}</li>)}
+            <ul className="text-[13px] space-y-1 px-3 py-2.5 rounded-lg leading-relaxed" style={{ background: "var(--st-neutral-bg)", color: "var(--text-secondary)" }} data-testid={`notes-${item.id}`}>
+              {notes.map((n, i) => <li key={i} className="flex gap-2"><Icon name="info" className="w-4 h-4 shrink-0 mt-0.5" /><span>{n}</span></li>)}
             </ul>
           )}
 
           <div className="grid md:grid-cols-2 gap-4">
             <section>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2 text-violet-400">Tender requirement</p>
+              <SectionLabel>Tender requirement</SectionLabel>
               {item.tender?.quote ? (
                 <Quote
                   text={item.tender.quote}
                   location={item.tender.page ? `Tender p.${item.tender.page}` : "Tender"}
                   status={item.tender.status}
-                  accent="#a78bfa"
+                  accent="var(--border-hover)"
                   onView={item.tender.page ? () => onView({ side: "tender", file: item.tender.file || "F1", fileName: item.tender.fileName, page: item.tender.page, quote: item.tender.quote, status: item.tender.status }) : undefined}
                   testId={`tender-quote-${item.id}`}
                 />
               ) : (
-                <div className="rounded-xl p-3 text-[13px]" style={{ background: "var(--bg-card)", border: "1px dashed var(--border-secondary)", color: "var(--text-secondary)" }}>
+                <div className="rounded-lg p-3 text-[14px]" style={{ border: "1px dashed var(--border-secondary)", color: "var(--text-secondary)" }}>
                   {item.requirement}
-                  <p className="text-[11px] mt-2" style={{ color: "var(--text-muted)" }}>
+                  <p className="text-[12px] mt-2" style={{ color: "var(--text-muted)" }}>
                     No verified tender quote for this requirement{item.sourceRef ? ` (source: ${item.sourceRef})` : ""}. Check the wording in the tender.
                   </p>
                 </div>
@@ -108,16 +114,14 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
             </section>
 
             <section>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2 text-emerald-500">
-                {contra ? "Proposal: statements that need to be read together" : "Proposal evidence"}
-              </p>
+              <SectionLabel>{contra ? "Proposal: statements to read together" : "Proposal evidence"}</SectionLabel>
               {contra && (
-                <p className="text-xs mb-2 px-3 py-2 rounded-lg bg-red-500/10 text-red-400" data-testid={`contradiction-${item.id}`}>
+                <Notice tone="red" icon="arrows" className="mb-2 !py-2" data-testid={`contradiction-${item.id}`}>
                   The proposal says different things in different places. Both statements are shown; decide which one is meant and fix the other.
-                </p>
+                </Notice>
               )}
               {evidence.length === 0 ? (
-                <div className="rounded-xl p-3 text-[13px]" style={{ background: "var(--bg-card)", border: "1px dashed var(--border-secondary)", color: "var(--text-muted)" }}>
+                <div className="rounded-lg p-3 text-[14px]" style={{ border: "1px dashed var(--border-secondary)", color: "var(--text-secondary)" }}>
                   {st === "doc_unconfirmed"
                     ? "Not found in the uploaded file. If it is a separate document, confirm it is in your submission pack."
                     : st === "manual" || type === "submission"
@@ -132,9 +136,9 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
                     <Quote
                       key={i}
                       text={e.quote}
-                      location={`${contra ? `Statement ${String.fromCharCode(65 + i)} · ` : ""}Proposal ${locLabel(units, e.file, e.page)}`}
+                      location={`${contra ? `Statement ${String.fromCharCode(65 + i)}, ` : ""}Proposal ${locLabel(units, e.file, e.page)}`}
                       status={e.status}
-                      accent={contra ? "#f87171" : "#10b981"}
+                      accent={contra ? "var(--st-attention)" : "var(--accent)"}
                       onView={e.status !== "unverified" ? () => onView({ side: "proposal", file: e.file, page: e.page, quote: e.quote, status: e.status }) : undefined}
                       testId={`evidence-${item.id}-${i}`}
                     />
@@ -144,45 +148,44 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
             </section>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-2 gap-4">
             {item.gap ? (
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Why (AI explanation)</p>
-                <p className="text-[13px] leading-relaxed">{item.gap}</p>
+                <SectionLabel className="!mb-1">Why (AI explanation)</SectionLabel>
+                <p className="text-[14px] leading-relaxed">{item.gap}</p>
               </div>
             ) : <div className="hidden sm:block" />}
             <div data-testid={`action-${item.id}`}>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
-                Suggested action{priority !== "None" ? ` · ${priority} priority` : ""}
-              </p>
-              <p className="text-[13px] leading-relaxed">{recommendedAction(item, units)}</p>
+              <SectionLabel className="!mb-1">Suggested action{priority !== "None" ? `, ${priority.toLowerCase()} priority` : ""}</SectionLabel>
+              <p className="text-[14px] leading-relaxed">{recommendedAction(item, units)}</p>
             </div>
           </div>
 
           {(valueChecks.length > 0 || (item.flags || []).length > 0) && (
             <div className="grid sm:grid-cols-2 gap-3">
               {valueChecks.length > 0 && (
-                <div className="rounded-lg px-3 py-2" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)" }}>
-                  <p className="text-[11px] font-semibold mb-1" style={{ color: "var(--text-muted)" }}>Checked by Bidlyze&apos;s code</p>
-                  {valueChecks.map((c, i) => <p key={i} className="text-xs" style={{ color: "var(--text-secondary)" }}><span className="capitalize font-medium">{c.type}</span>: {c.result}</p>)}
+                <div className="rounded-lg px-3 py-2.5" style={{ border: "1px solid var(--border-primary)" }}>
+                  <p className="text-[12px] font-semibold mb-1" style={{ color: "var(--text-secondary)" }}>Checked by Bidlyze&apos;s code</p>
+                  {valueChecks.map((c, i) => <p key={i} className="text-[13px] tabular" style={{ color: "var(--text-secondary)" }}><span className="capitalize font-medium">{c.type}</span>: {c.result}</p>)}
                 </div>
               )}
               {(item.flags || []).length > 0 && (
-                <div className="rounded-lg px-3 py-2 bg-amber-500/5" style={{ border: "1px solid rgba(245,158,11,0.2)" }}>
-                  <p className="text-[11px] font-semibold mb-1 text-amber-500">Notes for the reviewer</p>
-                  {item.flags.map((f, i) => <p key={i} className="text-xs" style={{ color: "var(--text-secondary)" }}>{f}</p>)}
+                <div className="rounded-lg px-3 py-2.5" style={{ background: "var(--st-manual-bg)", border: "1px solid var(--st-manual-border)" }}>
+                  <p className="text-[12px] font-semibold mb-1" style={{ color: "var(--st-manual)" }}>Notes for the reviewer</p>
+                  {item.flags.map((f, i) => <p key={i} className="text-[13px]" style={{ color: "var(--text-secondary)" }}>{f}</p>)}
                 </div>
               )}
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-3" style={{ borderTop: "1px solid var(--border-primary)" }}>
-            <label className="inline-flex items-center gap-2 text-xs font-medium cursor-pointer select-none">
+          <div className="rounded-lg p-3 flex flex-col sm:flex-row sm:items-center gap-2.5" style={{ background: "var(--bg-card)", border: "1px solid var(--border-primary)" }}>
+            <span className="text-[13px] font-semibold inline-flex items-center gap-1.5 shrink-0" style={{ color: "var(--text-secondary)" }}><Icon name="user" className="w-4 h-4" /> Your review</span>
+            <label className="inline-flex items-center gap-2 text-[13px] font-medium cursor-pointer select-none shrink-0">
               <input
                 type="checkbox"
                 checked={!!review.reviewed}
                 onChange={(e) => onReview({ reviewed: e.target.checked })}
-                className="w-4 h-4 accent-emerald-500"
+                className="w-4 h-4 accent-[var(--accent)]"
                 data-testid={`reviewed-${item.id}`}
               />
               Reviewed
@@ -190,8 +193,8 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
             <select
               value={review.verdict || "agree"}
               onChange={(e) => onReview({ verdict: e.target.value, reviewed: true })}
-              className="text-xs px-2 py-1.5 rounded-lg focus:outline-none"
-              style={{ background: "var(--bg-input)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }}
+              className="h-9 text-[13px] px-2 rounded-lg focus:outline-none shrink-0"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }}
               aria-label="Reviewer decision"
               data-testid={`verdict-${item.id}`}
             >
@@ -202,8 +205,9 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
               value={review.note || ""}
               onChange={(e) => onReview({ note: e.target.value })}
               placeholder="Reviewer note (included in the export)"
-              className="flex-1 text-xs px-3 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
-              style={{ background: "var(--bg-input)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }}
+              aria-label="Reviewer note"
+              className="flex-1 h-9 text-[13px] px-3 rounded-lg focus:outline-none"
+              style={{ background: "var(--bg-card)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }}
               data-testid={`note-${item.id}`}
             />
           </div>
