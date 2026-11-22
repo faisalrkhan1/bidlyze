@@ -8,6 +8,7 @@ import { LogoFull, LogoMark, LogoWordmark } from "@/app/components/Logo";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import { PLANS } from "@/lib/plans";
 import { submissionCheckBetaClient } from "@/lib/submission/beta";
+import { resetRedirectUrl, resetRequestError } from "@/lib/auth-recovery";
 
 // With Submission Check switched on, this page speaks about that one product and its closed beta.
 const PRODUCT = submissionCheckBetaClient();
@@ -174,21 +175,22 @@ export default function LoginPageClient() {
     setLoading(true);
 
     try {
-      const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
+      // The link in the e-mail comes back to the dedicated Set New Password page.
+      const { error } = await getSupabase().auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: resetRedirectUrl(window.location.origin),
       });
 
       if (error) {
-        setError(error.message);
+        setError(resetRequestError(error));
         setLoading(false);
         return;
       }
 
-      setMessage("Password reset link sent. Check your email.");
+      setMessage(`If an account exists for ${email.trim()}, a password reset link is on its way. Open the newest e-mail and use the link soon: each link works once and expires. Check your spam folder too.`);
       setForgotMode(false);
       setLoading(false);
     } catch (err) {
-      setError(err.message || "Failed to send reset email. Please try again.");
+      setError(resetRequestError(err));
       setLoading(false);
     }
   }

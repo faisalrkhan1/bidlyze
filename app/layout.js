@@ -1,6 +1,7 @@
 import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
+import { RECOVERY_FORWARD_SCRIPT } from "@/lib/auth-recovery";
 
 // Public Sans (interface) and Source Serif 4 (quoted document text), both SIL OFL,
 // served from the app itself (no Google Fonts request).
@@ -56,6 +57,12 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* A password-reset link that lands on another page (Supabase falls back to the
+            Site URL when the reset address is not allowed) is handed to /reset-password
+            before that page's own code can use up the one-time tokens. */}
+        <script dangerouslySetInnerHTML={{ __html: RECOVERY_FORWARD_SCRIPT }} />
+      </head>
       <body className={`${sans.variable} ${serif.variable} antialiased`}>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
