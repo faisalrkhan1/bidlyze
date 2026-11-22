@@ -3,7 +3,7 @@
 // Small shared building blocks for the Submission Check beta screens.
 // Uses the app's theme variables (globals.css), so light and dark both work.
 
-import { STATUS, GROUPS, QUOTE_CHECK } from "@/lib/submission/review";
+import { STATUS, GROUPS, QUOTE_CHECK, TYPES } from "@/lib/submission/review";
 
 const TONE_CLASS = {
   red: "bg-red-500/10 text-red-500 border-red-500/25",
@@ -13,7 +13,7 @@ const TONE_CLASS = {
   gray: "",
 };
 
-export const STATUS_TONE = { conflict: "red", missing: "red", partial: "amber", unproven: "amber", not_checked: "gray", manual: "blue", answered: "green" };
+export const STATUS_TONE = { conflict: "red", missing: "red", partial: "amber", unproven: "amber", not_checked: "gray", doc_unconfirmed: "blue", manual: "blue", answered: "green" };
 export const GROUP_TONE = { attention: "red", manual: "blue", ok: "green" };
 export const GROUP_BAR = { attention: "#ef4444", manual: "#0ea5e9", ok: "#10b981" };
 
@@ -30,8 +30,14 @@ export function Pill({ tone = "gray", children, title, className = "" }) {
   );
 }
 
-export function StatusPill({ status }) {
-  return <Pill tone={STATUS_TONE[status]} title={STATUS[status]?.help}>{STATUS[status]?.label || status}</Pill>;
+export function StatusPill({ status, muted = false }) {
+  return <Pill tone={muted && status !== "answered" ? "gray" : STATUS_TONE[status]} title={STATUS[status]?.help}>{STATUS[status]?.label || status}</Pill>;
+}
+
+export function TypePill({ type }) {
+  const t = TYPES[type];
+  if (!t) return null;
+  return <Pill tone={type === "mandatory" ? "gray" : type === "conditional" ? "amber" : "blue"} title={t.help}>{t.label}</Pill>;
 }
 
 export function GroupPill({ group }) {
@@ -147,3 +153,19 @@ export function Quote({ text, location, status, onView, accent = "var(--border-s
     </figure>
   );
 }
+
+/** What happens to the proposal: shown before every live check (and in the results footer). */
+export function ProcessingNote() {
+  return (
+    <details className="text-xs mt-1 group" style={{ color: "var(--text-muted)" }} data-testid="processing-note">
+      <summary className="cursor-pointer select-none hover:underline">How your proposal is processed and stored</summary>
+      <ul className="mt-2 space-y-1 list-disc pl-4" style={{ color: "var(--text-secondary)" }}>
+        <li>The file is read in this browser. Only its text is sent to Bidlyze; the file itself is not uploaded.</li>
+        <li>Bidlyze sends the text to an AI model (Anthropic&apos;s Claude, through OpenRouter) to run the check. We ask OpenRouter to use only providers that do not collect user data; providers may still keep requests briefly under their own terms.</li>
+        <li>Bidlyze does not save the file, its text or the results on its servers. Server logs record only the size, duration and cost of each check.</li>
+        <li>Results and your review notes are kept in this browser only, until you start a new check. Export the report to keep or share them.</li>
+      </ul>
+    </details>
+  );
+}
+

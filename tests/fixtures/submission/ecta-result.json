@@ -54,7 +54,13 @@
    "category": "Financial",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.2"
+   "sourceRef": "p.2",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Bid bond / tender security"
+   },
+   "documentMention": null
   },
   {
    "id": "Q02",
@@ -93,7 +99,9 @@
    "category": "Technical",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.2"
+   "sourceRef": "p.2",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q03",
@@ -126,9 +134,11 @@
     "checkedBy": "analysis"
    },
    "category": "Administrative",
-   "mandatory": true,
+   "mandatory": false,
    "priority": "HIGH",
-   "sourceRef": "p.2"
+   "sourceRef": "p.2",
+   "type": "submission",
+   "typeReason": "How, when or where to submit (or conduct during the tender). A proposal cannot prove it."
   },
   {
    "id": "Q04",
@@ -163,7 +173,9 @@
    "category": "Financial",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.2"
+   "sourceRef": "p.2",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q05",
@@ -198,7 +210,9 @@
    "category": "Technical",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.3"
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q06",
@@ -226,7 +240,13 @@
    "category": "Administrative",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.3"
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "In-Country Value (ICV) certificate"
+   },
+   "documentMention": null
   },
   {
    "id": "Q07",
@@ -265,7 +285,16 @@
    "category": "Financial",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.3"
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Completion certificates"
+   },
+   "documentMention": {
+    "page": 2,
+    "text": "1.2 We provide two completion certificates for smart parking projects delivered in Dubai (2023) and Sharjah (2024), see Annex 3."
+   }
   },
   {
    "id": "Q08",
@@ -302,7 +331,16 @@
    "category": "Technical",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.3"
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Audited financial statements"
+   },
+   "documentMention": {
+    "page": 2,
+    "text": "1.3 Audited financial statements for 2023, 2024 and 2025 are provided in Annex 4."
+   }
   },
   {
    "id": "Q09",
@@ -330,7 +368,9 @@
    "category": "Administrative",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.4"
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q10",
@@ -369,7 +409,9 @@
    "category": "Financial",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.4"
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q11",
@@ -404,7 +446,16 @@
    "category": "Technical",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.4"
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Manufacturer authorisation letter"
+   },
+   "documentMention": {
+    "page": 4,
+    "text": "3.3 A Manufacturer Authorisation Letter from our distributor, Gulf Sensors Trading LLC, is attached in Annex 5."
+   }
   },
   {
    "id": "Q12",
@@ -443,7 +494,9 @@
    "category": "Administrative",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.4"
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q13",
@@ -478,7 +531,9 @@
    "category": "Financial",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.4"
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q14",
@@ -513,7 +568,9 @@
    "category": "Technical",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.5"
+   "sourceRef": "p.5",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q15",
@@ -548,7 +605,9 @@
    "category": "Administrative",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.6"
+   "sourceRef": "p.6",
+   "type": "mandatory",
+   "typeReason": ""
   },
   {
    "id": "Q16",
@@ -583,7 +642,16 @@
    "category": "Financial",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.6"
+   "sourceRef": "p.6",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Commercial forms"
+   },
+   "documentMention": {
+    "page": 5,
+    "text": "SECTION 4 - SUBMISSION FORMS 4.1 All Annex B forms are signed by our authorised signatory, Mr."
+   }
   },
   {
    "id": "Q17",
@@ -611,7 +679,13 @@
    "category": "Technical",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.6"
+   "sourceRef": "p.6",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Compliance statement"
+   },
+   "documentMention": null
   },
   {
    "id": "Q18",
@@ -650,9 +724,19 @@
    "category": "Administrative",
    "mandatory": true,
    "priority": "HIGH",
-   "sourceRef": "p.8"
+   "sourceRef": "p.8",
+   "type": "mandatory",
+   "typeReason": ""
   }
  ],
+ "excluded": [],
+ "prep": {
+  "merged": [],
+  "narrowed": [],
+  "split": [],
+  "excluded": [],
+  "overLimit": 0
+ },
  "summary": {
   "total": 18,
   "answered": 6,
@@ -665,12 +749,70 @@
  },
  "meta": {
   "model": "fixture (no AI)",
-  "durationMs": 9,
+  "durationMs": 7,
   "failedBatches": [],
   "truncatedBatches": [],
   "skipped": [],
   "aiCostUsd": 0
  },
  "truncated": false,
- "legacy": false
+ "legacy": false,
+ "documents": [
+  {
+   "id": "Q01",
+   "name": "Bid bond / tender security",
+   "state": "described",
+   "evidencePage": 4,
+   "mentionPage": null,
+   "mentionText": ""
+  },
+  {
+   "id": "Q06",
+   "name": "In-Country Value (ICV) certificate",
+   "state": "not_found",
+   "evidencePage": null,
+   "mentionPage": null,
+   "mentionText": ""
+  },
+  {
+   "id": "Q07",
+   "name": "Completion certificates",
+   "state": "described",
+   "evidencePage": 2,
+   "mentionPage": 2,
+   "mentionText": "1.2 We provide two completion certificates for smart parking projects delivered in Dubai (2023) and Sharjah (2024), see Annex 3."
+  },
+  {
+   "id": "Q08",
+   "name": "Audited financial statements",
+   "state": "described",
+   "evidencePage": 2,
+   "mentionPage": 2,
+   "mentionText": "1.3 Audited financial statements for 2023, 2024 and 2025 are provided in Annex 4."
+  },
+  {
+   "id": "Q11",
+   "name": "Manufacturer authorisation letter",
+   "state": "described",
+   "evidencePage": 4,
+   "mentionPage": 4,
+   "mentionText": "3.3 A Manufacturer Authorisation Letter from our distributor, Gulf Sensors Trading LLC, is attached in Annex 5."
+  },
+  {
+   "id": "Q16",
+   "name": "Commercial forms",
+   "state": "described",
+   "evidencePage": 5,
+   "mentionPage": 5,
+   "mentionText": "SECTION 4 - SUBMISSION FORMS 4.1 All Annex B forms are signed by our authorised signatory, Mr."
+  },
+  {
+   "id": "Q17",
+   "name": "Compliance statement",
+   "state": "not_found",
+   "evidencePage": null,
+   "mentionPage": null,
+   "mentionText": ""
+  }
+ ]
 }

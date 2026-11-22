@@ -4,8 +4,9 @@
 // proposal evidence (both sides of a contradiction when there is one), the
 // AI's explanation, the code checks, and the reviewer's decision.
 
-import { STATUS, GROUPS, displayStatus, groupOf, effectiveGroup, contradiction, locLabel } from "@/lib/submission/review";
-import { Pill, StatusPill, GroupPill, Quote, Icon, GROUP_BAR } from "./ui";
+import { STATUS, GROUPS, TYPES, displayStatus, groupOf, effectiveGroup, contradiction, locLabel, typeOf } from "@/lib/submission/review";
+import { recommendedAction, priorityOf } from "@/lib/submission/actions";
+import { Pill, StatusPill, GroupPill, TypePill, Quote, Icon, GROUP_BAR } from "./ui";
 
 const VERDICTS = [
   { value: "agree", label: "Agree with result" },
@@ -22,6 +23,21 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
   const valueChecks = (item.checks || []).filter((c) => c.type !== "evidence");
   const pagesUsed = [...new Set(evidence.filter((e) => e.status !== "unverified").map((e) => locLabel(units, e.file, e.page)))];
   const tenderLoc = item.tender?.page ? `Tender p.${item.tender.page}` : item.sourceRef ? `Tender ${item.sourceRef}` : "";
+  const type = typeOf(item);
+  const notObligation = ["optional", "recommendation", "evaluation", "submission"].includes(type) && autoGroup !== "attention";
+  const priority = priorityOf(item);
+  const notes = [];
+  if (type !== "mandatory") notes.push(`${TYPES[type].label}: ${item.typeReason || TYPES[type].help}`);
+  if (item.splitFrom) notes.push(`Split from ${item.splitFrom.id}: the tender sentence for ${item.splitFrom.id} contains separate obligations, so each is checked on its own.`);
+  if (item.narrowed?.length) notes.push(...item.narrowed.map((n) => `The part “${n.part}” is checked under ${n.checkedUnder}, so the same obligation is not counted twice.`));
+  if (item.duplicates?.length) notes.push(`Also listed in the analysis as ${item.duplicates.join(", ")} (same tender wording): checked once.`);
+  if (item.document) {
+    notes.push(
+      item.documentMention
+        ? `Required document: ${item.document.name}. The proposal refers to it (${locLabel(units, "R1", item.documentMention.page)}: “${item.documentMention.text}”). If it is a separate file, Bidlyze did not see it: confirm it is in your submission pack.`
+        : `Required document: ${item.document.name}.${st === "doc_unconfirmed" ? " No mention found in the uploaded file; it may be a separate document. Confirm it is in your submission pack." : " Confirm the document itself is in your submission pack."}`
+    );
+  }
 
   return (
     <article
@@ -36,10 +52,11 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
         <span className="flex-1 min-w-0">
           <span className={`block text-sm leading-snug ${open ? "" : "line-clamp-2"}`}>{item.requirement}</span>
           <span className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <StatusPill status={st} />
+            <StatusPill status={st} muted={notObligation} />
+            {type !== "mandatory" && <TypePill type={type} />}
+            {item.document && <Pill tone="gray" title="A document the tender asks you to hand in"><Icon name="doc" className="w-3 h-3" /> {item.document.name}</Pill>}
             {group !== autoGroup && <Pill tone="gray" title="A reviewer changed this result">Reviewer: {GROUPS[group].label}</Pill>}
             {contra && <Pill tone="red"><Icon name="arrows" className="w-3 h-3" /> Contradiction</Pill>}
-            {item.mandatory === false && <Pill tone="gray">Optional</Pill>}
             {!open && item.gap && <span className="text-[12px] line-clamp-2 sm:line-clamp-1 basis-full sm:basis-auto sm:flex-1 min-w-0" style={{ color: "var(--text-muted)" }}>{item.gap}</span>}
           </span>
         </span>
@@ -58,8 +75,14 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-4" style={{ borderTop: "1px solid var(--border-primary)" }}>
           <p className="text-xs pt-3" style={{ color: "var(--text-secondary)" }}>
-            <GroupPill group={autoGroup} /> <span className="ml-1">{STATUS[st].help}</span>
+            <GroupPill group={autoGroup} /> <span className="ml-1">{notObligation && st !== "answered" ? TYPES[type].help : STATUS[st].help}</span>
           </p>
+
+          {notes.length > 0 && (
+            <ul className="text-xs space-y-1 px-3 py-2 rounded-lg" style={{ background: "var(--bg-subtle)", border: "1px solid var(--border-primary)", color: "var(--text-secondary)" }} data-testid={`notes-${item.id}`}>
+              {notes.map((n, i) => <li key={i}>{n}</li>)}
+            </ul>
+          )}
 
           <div className="grid md:grid-cols-2 gap-4">
             <section>
@@ -94,7 +117,9 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
               )}
               {evidence.length === 0 ? (
                 <div className="rounded-xl p-3 text-[13px]" style={{ background: "var(--bg-card)", border: "1px dashed var(--border-secondary)", color: "var(--text-muted)" }}>
-                  {st === "manual"
+                  {st === "doc_unconfirmed"
+                    ? "Not found in the uploaded file. If it is a separate document, confirm it is in your submission pack."
+                    : st === "manual" || type === "submission"
                     ? "Nothing to quote: this is about how or when the bid is submitted."
                     : st === "not_checked"
                     ? "Not checked because of a processing error."
@@ -118,12 +143,20 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
             </section>
           </div>
 
-          {item.gap && (
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Why (AI explanation)</p>
-              <p className="text-[13px] leading-relaxed">{item.gap}</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {item.gap ? (
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>Why (AI explanation)</p>
+                <p className="text-[13px] leading-relaxed">{item.gap}</p>
+              </div>
+            ) : <div className="hidden sm:block" />}
+            <div data-testid={`action-${item.id}`}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--text-muted)" }}>
+                Suggested action{priority !== "None" ? ` · ${priority} priority` : ""}
+              </p>
+              <p className="text-[13px] leading-relaxed">{recommendedAction(item, units)}</p>
             </div>
-          )}
+          </div>
 
           {(valueChecks.length > 0 || (item.flags || []).length > 0) && (
             <div className="grid sm:grid-cols-2 gap-3">

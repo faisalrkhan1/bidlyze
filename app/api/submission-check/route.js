@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { submissionCheckBetaEnabled } from "@/lib/submission/beta";
-import { normaliseResponse, checkProposalAgainstAnalysis, CheckInputError } from "@/lib/submission/service";
+import { normaliseResponse, checkProposalAgainstAnalysis, addDocumentFindings, CheckInputError } from "@/lib/submission/service";
+import { liveCheckAccess, createRateLimiter, limitsFromEnv } from "@/lib/submission/access";
 import { isDeletedAnalysis } from "@/lib/deleteTender";
 import { DEMO_ID, loadDemoAnalysis, loadRecordedDemoResult } from "@/lib/submission/demo";
 
@@ -10,12 +11,15 @@ import { DEMO_ID, loadDemoAnalysis, loadRecordedDemoResult } from "@/lib/submiss
 // here; nothing is written to the database or to storage.
 //
 // Preview deployments and local development only (see lib/submission/beta.js).
+// Live (paid) checks: signed-in users only; in production only the beta
+// allow-list (lib/submission/access.js); per-user rate limits.
 
 export const maxDuration = 300;
 const MAX_BODY_BYTES = 4_000_000; // Vercel rejects request bodies over 4.5 MB
+const limiter = createRateLimiter(limitsFromEnv());
 
-function err(status, message) {
-  return NextResponse.json({ success: false, error: message }, { status });
+function err(status, message, headers) {
+  return NextResponse.json({ success: false, error: message }, { status, headers });
 }
 
 async function userFromRequest(request) {
@@ -38,7 +42,9 @@ export async function POST(request) {
     }
     let body;
     try {
-      body = await request.json();
+      const raw = await request.text();
+      if (raw.length > MAX_BODY_BYTES) return err(413, "The proposal text is too large to send in one go (over 4 MB of text).");
+      body = JSON.parse(raw);
     } catch {
       return err(400, "Invalid request.");
     }
@@ -46,21 +52,29 @@ export async function POST(request) {
     const response = normaliseResponse(body?.response);
 
     let analysis;
+    let userId = null;
     if (analysisId === DEMO_ID) {
       analysis = await loadDemoAnalysis();
       // The sample proposal has a recorded live result: demos cost nothing.
       if (!body.live) {
         const rec = await loadRecordedDemoResult();
         if (rec && response.sha256 && rec.response?.sha256 === response.sha256) {
-          return NextResponse.json({ ...rec, response: { ...rec.response, filename: response.filename }, recorded: { checkedAt: rec.checkedAt } });
+          const replay = addDocumentFindings(rec, response.pages);
+          return NextResponse.json({ ...replay, response: { ...rec.response, filename: response.filename }, recorded: { checkedAt: rec.checkedAt } });
         }
       }
-      // A live AI run (any other file, or a re-run) needs a signed-in user.
+      // A live AI run (any other file, or a re-run) needs a signed-in, allowed user.
       const { user } = await userFromRequest(request);
       if (!user) return err(401, "Sign in to run a live check on the sample tender.");
+      const access = liveCheckAccess(user);
+      if (!access.allowed) return err(access.status, access.reason);
+      userId = user.id;
     } else {
       const { user, client } = await userFromRequest(request);
       if (!user) return err(401, "Your session has expired. Sign in again.");
+      const access = liveCheckAccess(user);
+      if (!access.allowed) return err(access.status, access.reason);
+      userId = user.id;
       if (!/^[0-9a-f-]{36}$/i.test(analysisId)) return err(400, "Unknown tender analysis.");
       // RLS + explicit owner filter: users can only check against their own analyses.
       const { data, error } = await client
@@ -79,9 +93,16 @@ export async function POST(request) {
       };
     }
 
-    const result = await checkProposalAgainstAnalysis({ analysis, response });
-    console.log(`[submission-check] ${analysis.id}: ${result.items.length} reqs, ${result.response.pages} pages, ${result.meta.durationMs} ms, $${result.meta.aiCostUsd}`);
-    return NextResponse.json(result);
+    const slot = limiter.acquire(userId);
+    if (!slot.ok) return err(slot.status, slot.reason, { "Retry-After": String(slot.retryAfterSec) });
+    try {
+      const result = await checkProposalAgainstAnalysis({ analysis, response });
+      // Cost and size only: proposal text and findings are never logged.
+      console.log(`[submission-check] user ${userId.slice(0, 8)} analysis ${String(analysis.id).slice(0, 8)}: ${result.items.length} reqs, ${result.response.pages} pages, ${result.meta.durationMs} ms, $${result.meta.aiCostUsd}`);
+      return NextResponse.json(result);
+    } finally {
+      slot.release();
+    }
   } catch (e) {
     if (e instanceof CheckInputError) return err(e.status, e.message);
     console.error("[submission-check] unexpected error:", e);

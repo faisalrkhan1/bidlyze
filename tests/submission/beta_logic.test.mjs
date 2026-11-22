@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 
 import { submissionCheckBetaEnabled } from "../../lib/submission/beta.js";
 import { requirementsFromAnalysis, MAX_CHECK_REQUIREMENTS } from "../../lib/submission/fromAnalysis.js";
-import { STATUS, displayStatus, groupOf, effectiveGroup, summarize, headline, filterItems, sortItems, contradiction, locLabel } from "../../lib/submission/review.js";
+import { STATUS, displayStatus, groupOf, effectiveGroup, summarize, headline, filterItems, sortItems, contradiction, locLabel, TYPES } from "../../lib/submission/review.js";
 import { loadDemoAnalysis } from "../../lib/submission/demo.js";
 
 const FX = new URL("../fixtures/submission/", import.meta.url);
@@ -78,14 +78,18 @@ test("wording: no screen or report sentence calls a proposal compliant", () => {
   assert.match(headline(all), /not a confirmation of compliance/);
   assert.doesNotMatch(headline(all), /\bis compliant|fully compliant/i);
   const mixed = summarize(result.items);
-  assert.equal(headline(mixed), "Of 18 requirements: 12 need attention, 6 OK.");
+  assert.equal(headline(mixed), "Of 18 requirements: 10 need attention, 3 to check manually, 5 OK.");
   for (const s of Object.values(STATUS)) assert.doesNotMatch(`${s.label} ${s.help}`, /\bcompliant\b/i);
+  for (const t of Object.values(TYPES)) assert.doesNotMatch(`${t.label} ${t.help}`, /\bcompliant\b/i);
 });
 
 test("summary counts, reviewed progress and overrides", () => {
   const reviews = { Q01: { reviewed: true, verdict: "agree" }, Q03: { reviewed: true, verdict: "attention" } };
   const s = summarize(result.items, reviews);
-  assert.deepEqual(s.byGroup, { attention: 13, manual: 0, ok: 5 });
+  // Q03 (portal submission) is a submission step: "Check manually" until the reviewer overrides it.
+  assert.deepEqual(s.byGroup, { attention: 11, manual: 2, ok: 5 });
+  assert.deepEqual(summarize(result.items).byGroup, { attention: 10, manual: 3, ok: 5 });
+  assert.equal(s.byType.submission, 1);
   assert.equal(s.byStatus.conflict, 4);
   assert.equal(s.reviewed, 2);
   assert.equal(s.overridden, 1);
@@ -93,8 +97,12 @@ test("summary counts, reviewed progress and overrides", () => {
 
 test("filters: group, classification, search (requirement, quotes, explanation) and unreviewed only", () => {
   const items = result.items;
-  assert.equal(filterItems(items, { group: "attention" }).length, 12);
-  assert.equal(filterItems(items, { group: "ok" }).length, 6);
+  assert.equal(filterItems(items, { group: "attention" }).length, 10);
+  assert.equal(filterItems(items, { group: "ok" }).length, 5);
+  assert.deepEqual(filterItems(items, { group: "manual" }).map((i) => i.id), ["Q03", "Q06", "Q17"]);
+  assert.deepEqual(filterItems(items, { status: "doc_unconfirmed" }).map((i) => i.id), ["Q06", "Q17"]);
+  assert.deepEqual(filterItems(items, { type: "submission" }).map((i) => i.id), ["Q03"]);
+  assert.deepEqual(filterItems(items, { query: "ICV certificate" }).map((i) => i.id), ["Q06"], "searches document names");
   assert.equal(filterItems(items, { status: "conflict" }).length, 4);
   assert.deepEqual(filterItems(items, { query: "bid bond" }).map((i) => i.id), ["Q01"]);
   assert.deepEqual(filterItems(items, { query: "gulf sensors" }).map((i) => i.id), ["Q11"], "searches proposal quotes");

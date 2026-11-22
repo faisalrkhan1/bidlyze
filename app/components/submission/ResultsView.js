@@ -4,10 +4,11 @@
 // search, the findings list and the export.
 
 import { useMemo, useState } from "react";
-import { GROUPS, GROUP_ORDER, STATUS, summarize, headline, filterItems, sortItems } from "@/lib/submission/review";
+import { GROUPS, GROUP_ORDER, STATUS, TYPES, TYPE_ORDER, summarize, headline, filterItems, sortItems, locLabel } from "@/lib/submission/review";
 import { buildReportWorkbook, reportFileName } from "@/lib/submission/report";
+import { formatTimestamp } from "@/lib/submission/actions";
 import FindingCard from "./FindingCard";
-import { Card, Icon, PrimaryButton, SecondaryButton, Spinner } from "./ui";
+import { Card, Icon, Pill, PrimaryButton, SecondaryButton, Spinner, ProcessingNote } from "./ui";
 
 const TILE = {
   attention: { ring: "rgba(239,68,68,0.35)", num: "text-red-500", bg: "rgba(239,68,68,0.06)" },
@@ -15,16 +16,18 @@ const TILE = {
   ok: { ring: "rgba(16,185,129,0.35)", num: "text-emerald-500", bg: "rgba(16,185,129,0.06)" },
 };
 
-function fmt(iso) {
-  try {
-    return new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return "";
-  }
-}
+const fmt = (iso) => formatTimestamp(iso);
 
-export default function ResultsView({ result, reviews, onReview, onView, onNewCheck, restored, demo }) {
-  const [filters, setFilters] = useState({ group: "all", status: "all", query: "", unreviewedOnly: false });
+const DOC_STATE = {
+  described: { label: "Described in the proposal", tone: "green" },
+  separate: { label: "Referred to as a separate document", tone: "blue" },
+  not_found: { label: "No mention found: confirm", tone: "blue" },
+  not_checked: { label: "Not checked", tone: "gray" },
+};
+
+export default function ResultsView({ result, reviews, onReview, onView, onNewCheck, restored, saveFailed, demo }) {
+  const [filters, setFilters] = useState({ group: "all", status: "all", type: "all", query: "", unreviewedOnly: false });
+  const [showExcluded, setShowExcluded] = useState(false);
   const [openIds, setOpenIds] = useState(() => new Set());
   const [exporting, setExporting] = useState(false);
   const [exportError, setExportError] = useState("");
@@ -50,10 +53,18 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
     setExporting(true);
     setExportError("");
     try {
-      const mod = await import("xlsx");
-      const XLSX = mod.default || mod;
-      const wb = buildReportWorkbook(XLSX, result, reviews);
-      XLSX.writeFile(wb, reportFileName(result));
+      const mod = await import("exceljs");
+      const ExcelJS = mod.default || mod;
+      const wb = buildReportWorkbook(ExcelJS, result, reviews);
+      const buf = await wb.xlsx.writeBuffer();
+      const url = URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = reportFileName(result);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } catch (e) {
       console.error(e);
       setExportError("The report could not be created. Please try again.");
@@ -61,6 +72,12 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
       setExporting(false);
     }
   }
+
+  const prep = result.prep || {};
+  const adjustments = [];
+  if (prep.narrowed?.length) adjustments.push(...prep.narrowed.map((n) => `${n.id} was narrowed: “${n.moved.map((m) => m.clause).join("; ")}” is checked under ${n.moved.map((m) => m.to).join(", ")}, so it is not counted twice.`));
+  if (prep.split?.length) adjustments.push(...prep.split.map((x) => `${x.id} was split into ${x.into.join(" and ")}: its tender wording has separate obligations.`));
+  if (prep.merged?.length) adjustments.push(...prep.merged.map((m) => `${m.removed} duplicates ${m.kept} and was checked once.`));
 
   const warnings = [];
   if (result.meta?.failedBatches?.length) warnings.push("Some requirements could not be checked because of a processing error. They are listed as “Not checked”; run the check again or review them yourself.");
@@ -89,8 +106,13 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
         </p>
       )}
       {restored && (
-        <p className="text-xs px-4 py-2 rounded-lg" style={{ background: "var(--bg-input)", color: "var(--text-secondary)" }}>
+        <p className="text-xs px-4 py-2 rounded-lg" style={{ background: "var(--bg-input)", color: "var(--text-secondary)" }} data-testid="restored-notice">
           Restored from this browser. Results and review notes are saved only on this device until you start a new check.
+        </p>
+      )}
+      {saveFailed && (
+        <p className="text-xs px-4 py-2 rounded-lg bg-amber-500/10 text-amber-500" data-testid="save-failed">
+          This browser could not save the results (storage is full or blocked). They will be lost if you close the tab: export the report to keep your review.
         </p>
       )}
 
@@ -134,7 +156,7 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
         </div>
 
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-4 text-xs" style={{ color: "var(--text-secondary)" }}>
-          {["conflict", "missing", "partial", "unproven", "not_checked", "manual", "answered"].filter((k) => statusCounts[k] > 0).map((k) => (
+          {["conflict", "missing", "partial", "unproven", "not_checked", "doc_unconfirmed", "manual", "answered"].filter((k) => statusCounts[k] > 0).map((k) => (
             <span key={k}><span className="font-semibold">{statusCounts[k]}</span> {STATUS[k].label.toLowerCase()}</span>
           ))}
           <span className="ml-auto flex items-center gap-2" data-testid="reviewed-progress">
@@ -145,6 +167,56 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
           </span>
         </div>
       </Card>
+
+      {(result.documents?.length > 0 || result.excluded?.length > 0 || adjustments.length > 0) && (
+        <div className="grid lg:grid-cols-2 gap-3">
+          {result.documents?.length > 0 && (
+            <Card className="p-4" data-testid="documents">
+              <p className="text-sm font-semibold mb-1">Documents the tender asks for</p>
+              <p className="text-[11px] mb-3" style={{ color: "var(--text-muted)" }}>
+                Bidlyze read only the file you uploaded. It shows what the proposal says about each document; confirm every document is actually in your submission pack.
+              </p>
+              <ul className="space-y-1.5">
+                {result.documents.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center gap-2 text-xs" data-testid={`document-${d.id}`}>
+                    <span className="font-medium">{d.name}</span>
+                    <span className="font-mono text-[10px]" style={{ color: "var(--text-muted)" }}>{d.id}</span>
+                    <Pill tone={DOC_STATE[d.state]?.tone}>{DOC_STATE[d.state]?.label || d.state}</Pill>
+                    <span style={{ color: "var(--text-muted)" }}>
+                      {[d.evidencePage ? locLabel(units, "R1", d.evidencePage) : "", d.mentionPage && d.mentionPage !== d.evidencePage ? `referred to on ${locLabel(units, "R1", d.mentionPage)}` : ""].filter(Boolean).join(" · ")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+          {(result.excluded?.length > 0 || adjustments.length > 0) && (
+            <Card className="p-4" data-testid="excluded">
+              <p className="text-sm font-semibold mb-1">How the requirement list was prepared</p>
+              <ul className="text-xs space-y-1 list-disc pl-4" style={{ color: "var(--text-secondary)" }}>
+                {adjustments.map((a, i) => <li key={i}>{a}</li>)}
+                {result.excluded?.length > 0 && (
+                  <li>
+                    {result.excluded.length} scoring or evaluation-guidance item{result.excluded.length === 1 ? " was" : "s were"} left out: a proposal cannot comply or fail to comply with them.{" "}
+                    <button className="font-semibold hover:underline" onClick={() => setShowExcluded((v) => !v)} data-testid="toggle-excluded">{showExcluded ? "Hide" : "Show"}</button>
+                  </li>
+                )}
+              </ul>
+              {showExcluded && (
+                <ul className="mt-2 space-y-2">
+                  {result.excluded.map((e) => (
+                    <li key={e.id} className="text-xs rounded-lg px-3 py-2" style={{ background: "var(--bg-card)", border: "1px solid var(--border-primary)" }} data-testid={`excluded-${e.id}`}>
+                      <span className="font-mono text-[10px] mr-1.5" style={{ color: "var(--text-muted)" }}>{e.id}</span>
+                      {e.tender?.quote ? `“${e.tender.quote}”` : e.requirement}
+                      {e.tender?.page ? <span style={{ color: "var(--text-muted)" }}> · tender p.{e.tender.page}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
+        </div>
+      )}
 
       {warnings.map((w, i) => (
         <p key={i} className="text-xs px-4 py-2.5 rounded-lg bg-amber-500/10 text-amber-500 flex gap-2" data-testid="warning"><Icon name="warning" className="w-4 h-4 shrink-0" /> {w}</p>
@@ -177,6 +249,17 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
         >
           <option value="all">All classifications</option>
           {Object.entries(STATUS).filter(([k]) => statusCounts[k] > 0).map(([k, s]) => <option key={k} value={k}>{s.label} ({statusCounts[k]})</option>)}
+        </select>
+        <select
+          value={filters.type}
+          onChange={(e) => setF({ type: e.target.value })}
+          className="text-xs px-2.5 py-2 rounded-lg focus:outline-none"
+          style={{ background: "var(--bg-input)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }}
+          aria-label="Filter by requirement type"
+          data-testid="type-filter"
+        >
+          <option value="all">All types</option>
+          {TYPE_ORDER.filter((k) => summary.byType[k] > 0).map((k) => <option key={k} value={k}>{TYPES[k].label} ({summary.byType[k]})</option>)}
         </select>
         <div className="relative flex-1">
           <Icon name="search" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -221,6 +304,10 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
           <Card className="p-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>No requirements match these filters.</Card>
         )}
       </div>
+
+      <Card className="px-4 py-3">
+        <ProcessingNote />
+      </Card>
 
       {demo && (
         <p className="text-[11px] text-center" style={{ color: "var(--text-muted)" }}>

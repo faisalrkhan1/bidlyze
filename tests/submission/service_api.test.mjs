@@ -24,10 +24,30 @@ const analysisOf = (row) => ({ id: row.id, name: row.analysis_data.summary.proje
 // Fake OpenRouter: the "good reviewer", answering whatever ids it is asked about.
 const realFetch = globalThis.fetch;
 let aiCalls = 0;
+const dbReads = [];
+// Test users: the ECTA analysis belongs to "owner".
+const USERS = {
+  "tok-owner": { id: "00000000-0000-4000-8000-000000000001", email: "owner@example.com", aud: "authenticated" },
+  "tok-other": { id: "00000000-0000-4000-8000-000000000002", email: "other@example.com", aud: "authenticated" },
+  "tok-busy": { id: "00000000-0000-4000-8000-000000000003", email: "busy@example.com", aud: "authenticated" },
+};
 before(() => {
   process.env.OPENROUTER_API_KEY = "test-key";
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://supabase.test";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon";
   globalThis.fetch = async (url, init) => {
-    if (!String(url).includes("openrouter")) throw new Error(`unexpected network call: ${url}`);
+    const u = String(url);
+    // Fake Supabase: auth (token -> user) and the analyses table (owner-filtered).
+    if (u.startsWith("http://supabase.test/auth/v1/user")) {
+      const auth = new Headers(init?.headers).get("authorization") || "";
+      const user = USERS[auth.replace("Bearer ", "")];
+      return user ? Response.json(user) : Response.json({ msg: "invalid JWT" }, { status: 401 });
+    }
+    if (u.startsWith("http://supabase.test/rest/v1/analyses")) {
+      dbReads.push(u);
+      return u.includes(`user_id=eq.${ecta.user_id}`) && u.includes(`id=eq.${ecta.id}`) ? Response.json(ecta) : Response.json({ code: "PGRST116", message: "no rows" }, { status: 406 });
+    }
+    if (!u.includes("openrouter")) throw new Error(`unexpected network call: ${url}`);
     aiCalls += 1;
     const body = JSON.parse(init.body);
     const ids = JSON.parse(body.messages[1].content.at(-1).text.split("\n")[1]).map((r) => r.id);
@@ -35,6 +55,7 @@ before(() => {
     const asked = JSON.parse(body.messages[1].content.at(-1).text.split("\n")[1]);
     const results = asked.map((r) => {
       const t = byReq.get(r.requirement);
+      if (!t) return { id: r.id, status: "missing", evidence: [], gap: "(test stub: unknown requirement)" };
       return { id: r.id, status: t.expected, evidence: quotes[t.id] ? [{ quote: quotes[t.id][0], file: "R1", page: quotes[t.id][1] }] : [], gap: t.expected === "answered" ? "" : t.trap };
     });
     assert.equal(ids.length, results.length);
@@ -150,4 +171,58 @@ test("API: the sample proposal returns the recorded live result instantly, with 
   assert.ok(r.json.recorded?.checkedAt);
   assert.equal(r.json.items.length, rec.items.length);
   assert.equal(aiCalls, before);
+});
+
+// ── Access control and cost limits ──────────────────────────────────────────
+const auth = (t) => ({ authorization: `Bearer ${t}` });
+
+test("API: production is a closed beta — unlisted (e.g. free) accounts get 403 before any AI call or database read", async () => {
+  const beforeAi = aiCalls;
+  const beforeDb = dbReads.length;
+  const env = { VERCEL_ENV: "production", SUBMISSION_CHECK_BETA: "on", SUBMISSION_CHECK_ALLOWED_EMAILS: "" };
+  const r = await callRoute({ analysisId: ecta.id, response: { pages } }, { env, headers: auth("tok-owner") });
+  assert.equal(r.status, 403);
+  assert.match(r.json.error, /closed beta/);
+  const demoLive = await callRoute({ analysisId: "demo-alton", live: true, response: { filename: "x.pdf", pages } }, { env, headers: auth("tok-owner") });
+  assert.equal(demoLive.status, 403);
+  assert.equal(aiCalls, beforeAi);
+  assert.equal(dbReads.length, beforeDb);
+});
+
+test("API: an allow-listed user can check their own analysis; another user's analysis is not found", async () => {
+  const env = { VERCEL_ENV: "production", SUBMISSION_CHECK_BETA: "on", SUBMISSION_CHECK_ALLOWED_EMAILS: "owner@example.com,other@example.com" };
+  const ok = await callRoute({ analysisId: ecta.id, response: { filename: "p.pdf", pages } }, { env, headers: auth("tok-owner") });
+  assert.equal(ok.status, 200, JSON.stringify(ok.json).slice(0, 200));
+  assert.equal(ok.json.items.length, 18);
+  assert.ok(ok.json.items.every((i) => i.type), "every item has a requirement type");
+  assert.ok(Array.isArray(ok.json.documents) && ok.json.documents.length > 0);
+  const theirs = await callRoute({ analysisId: ecta.id, response: { filename: "p.pdf", pages } }, { env, headers: auth("tok-other") });
+  assert.equal(theirs.status, 404);
+});
+
+test("API: per-user rate limit (429 with Retry-After) stops repeated paid checks", async () => {
+  const env = { VERCEL_ENV: "preview" };
+  const statuses = [];
+  for (let i = 0; i < 6; i++) {
+    const r = await callRoute({ analysisId: "demo-alton", live: true, response: { filename: "x.pdf", pages } }, { env, headers: auth("tok-busy") });
+    statuses.push(r.status);
+    if (r.status === 429) assert.match(r.json.error, /in the last hour/);
+  }
+  assert.deepEqual(statuses, [200, 200, 200, 200, 200, 429]);
+});
+
+test("internal recording endpoint is never public: 404 in production even with the beta switched on", async () => {
+  const saved = { ...process.env };
+  Object.assign(process.env, { VERCEL_ENV: "production", SUBMISSION_CHECK_BETA: "on" });
+  try {
+    const before = aiCalls;
+    const { GET } = await import("../../app/api/submission-check/demo/route.js");
+    const res = await GET(new Request("http://localhost/api/submission-check/demo?part=record&confirm=1"));
+    assert.equal(res.status, 404);
+    const st = await import("../../app/api/selftest/route.js");
+    assert.equal((await st.GET(new Request("http://localhost/api/selftest?mode=submission"))).status, 404);
+    assert.equal(aiCalls, before);
+  } finally {
+    for (const k of ["VERCEL_ENV", "SUBMISSION_CHECK_BETA"]) if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k];
+  }
 });

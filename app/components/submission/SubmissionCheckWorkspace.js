@@ -20,7 +20,8 @@ import { proposalContentType, extractProposalPages, sha256Hex, MAX_PROPOSAL_BYTE
 import { isDeletedAnalysis } from "@/lib/deleteTender";
 import ResultsView from "./ResultsView";
 import EvidenceViewer from "./EvidenceViewer";
-import { Card, Icon, Pill, PrimaryButton, SecondaryButton, Spinner } from "./ui";
+import { Card, Icon, Pill, PrimaryButton, SecondaryButton, Spinner, ProcessingNote } from "./ui";
+import { prepareRequirements } from "@/lib/submission/obligations";
 
 const DEMO_ID = "demo-alton";
 const STORE_PREFIX = "bidlyze.submissionCheck.v1.";
@@ -41,10 +42,14 @@ function saveStored(id, value) {
   try {
     if (value) window.localStorage.setItem(storeKey(id), JSON.stringify(value));
     else window.localStorage.removeItem(storeKey(id));
+    return true;
   } catch {
-    // Storage full or blocked: results stay on screen for this session only.
+    // Storage full or blocked: results stay on screen for this session only (the UI says so).
+    return false;
   }
 }
+
+const CLIENT_TIMEOUT_MS = 310_000; // a little over the server's 300 s limit
 
 function fmtSize(bytes) {
   return bytes > 1024 * 1024 ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -78,6 +83,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
   const [result, setResult] = useState(null);
   const [reviews, setReviews] = useState({});
   const [restored, setRestored] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [viewer, setViewer] = useState(null);
 
   // ── Load the tender ────────────────────────────────────────────────────
@@ -91,7 +97,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
           if (!res.ok) throw new Error("The sample tender is not available right now.");
           const d = await res.json();
           if (cancelled) return;
-          setTender({ id: DEMO_ID, name: d.analysis.name, fileName: d.analysis.fileName, requirementsTotal: d.analysis.requirementsTotal, cited: d.analysis.requirementsTotal, demo: true, files: [] });
+          setTender({ id: DEMO_ID, name: d.analysis.name, fileName: d.analysis.fileName, requirementsTotal: d.analysis.requirementsTotal, checkable: d.analysis.checkable, notCheckable: d.analysis.notCheckable, cited: d.analysis.requirementsTotal, demo: true, files: [] });
           setTenderPagesByFile({ F1: d.pages ? { pages: d.pages } : { error: "The tender text could not be loaded from the Council's website right now." } });
         } else {
           const sb = getSupabase();
@@ -110,7 +116,8 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
             name: data.analysis_data?.summary?.projectName || data.project_name || "Tender",
             fileName: data.file_name,
             requirementsTotal: total,
-            checkable: requirements.length,
+            checkable: prepareRequirements(requirements).checked.length,
+            notCheckable: prepareRequirements(requirements).excluded.length,
             cited,
             files: ordered,
           });
@@ -142,7 +149,10 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
     const storedProposal = proposal
       ? { filename: proposal.filename, contentType: proposal.contentType, sha256: proposal.sha256, size: proposal.size, scannedPages: proposal.scannedPages, pages: pagesChars <= MAX_STORED_PAGE_CHARS ? proposal.pages : null }
       : null;
-    saveStored(id, { v: 1, savedAt: new Date().toISOString(), result, reviews, proposal: storedProposal });
+    let ok = saveStored(id, { v: 1, savedAt: new Date().toISOString(), result, reviews, proposal: storedProposal });
+    // If the page text does not fit, keep at least the results and the review notes.
+    if (!ok && storedProposal?.pages) ok = saveStored(id, { v: 1, savedAt: new Date().toISOString(), result, reviews, proposal: { ...storedProposal, pages: null } });
+    setSaveFailed(!ok);
   }, [phase, result, reviews, proposal, id]);
 
   // ── Elapsed timer while checking ───────────────────────────────────────
@@ -225,9 +235,14 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
     if (!proposal?.pages) return;
     setRunError("");
     setPhase("checking");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
     try {
       const { data: { session } } = await getSupabase().auth.getSession();
-      const res = await fetch("/api/submission-check", {
+      let res;
+      try {
+        res = await fetch("/api/submission-check", {
+        signal: controller.signal,
         method: "POST",
         headers: { "Content-Type": "application/json", ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}) },
         body: JSON.stringify({
@@ -241,7 +256,14 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
             pages: proposal.pages.map((p) => ({ unit: p.unit, n: p.n, text: p.text })),
           },
         }),
-      });
+        });
+      } catch (netErr) {
+        throw new Error(
+          netErr?.name === "AbortError"
+            ? "The check took too long and was stopped. Try again; if it keeps happening, the proposal may be too long for the beta."
+            : "Bidlyze could not be reached (network problem). Check your connection and try again."
+        );
+      }
       let data = null;
       try {
         data = await res.json();
@@ -252,6 +274,8 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
         const msg =
           res.status === 401 ? data?.error || "Your session has expired. Sign in again."
           : res.status === 413 ? data?.error || "The proposal is too large for the beta."
+          : res.status === 403 ? data?.error || "Your account cannot run live checks in this beta."
+          : res.status === 429 ? data?.error || "Too many checks in a short time. Please wait and try again."
           : res.status === 504 ? "The check took too long and was stopped. Try again; if it keeps happening, the proposal may be too long for the beta."
           : data?.error || "The check could not be completed. Please try again in a few minutes.";
         throw new Error(msg);
@@ -263,6 +287,8 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
     } catch (e) {
       setRunError(e.message || "The check could not be completed.");
       setPhase("setup");
+    } finally {
+      clearTimeout(timer);
     }
   }
 
@@ -460,10 +486,8 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
                     )}
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex-1 text-sm" style={{ color: "var(--text-secondary)" }}>
-                        Checks {tender.checkable ?? tender.requirementsTotal} requirements against {proposal.pages?.length} {proposal.pages?.[0]?.unit === "page" ? "pages" : "sections"}. Usually 30–60 seconds.
-                        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-                          The proposal text is sent to the AI model for this check (provider data retention denied) and is not stored by Bidlyze.
-                        </p>
+                        Checks {tender.checkable ?? tender.requirementsTotal} requirements{tender.notCheckable ? ` (${tender.notCheckable} scoring-guidance item${tender.notCheckable === 1 ? "" : "s"} left out)` : ""} against {proposal.pages?.length} {proposal.pages?.[0]?.unit === "page" ? "pages" : "sections"}. Usually 30–60 seconds.
+                        <ProcessingNote />
                       </div>
                       <div className="flex gap-2">
                         <PrimaryButton onClick={() => runCheck()} disabled={!proposal.pages} data-testid="run-check">
@@ -495,6 +519,11 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
                   <Spinner className="w-8 h-8 mx-auto mb-3" />
                   <h2 className="text-lg font-semibold">Checking the proposal</h2>
                   <p className="text-sm" style={{ color: "var(--text-muted)" }}>{elapsed}s elapsed · usually 30–60 seconds. Keep this tab open.</p>
+                  {elapsed >= 90 && (
+                    <p className="text-xs mt-2 text-amber-500" data-testid="slow-notice">
+                      This is taking longer than usual (large proposals or a busy AI service). It stops automatically after 5 minutes; you can keep waiting.
+                    </p>
+                  )}
                 </div>
                 <div className="max-w-md mx-auto space-y-2">
                   {STAGES.map((s, i) => (
@@ -515,6 +544,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false }) {
                 onView={onView}
                 onNewCheck={newCheck}
                 restored={restored}
+                saveFailed={saveFailed}
                 demo={demo}
               />
             )}

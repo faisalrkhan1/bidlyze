@@ -19,6 +19,7 @@ const config = {
   },
   webServer: {
     command: "npx next start -p 3100",
+    cwd: "../..",
     url: "http://127.0.0.1:3100/login",
     reuseExistingServer: true,
     timeout: 120_000,
