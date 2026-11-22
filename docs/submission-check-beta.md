@@ -7,6 +7,13 @@ analysed tender, with the exact wording from both documents and page numbers.
 404 unless `SUBMISSION_CHECK_BETA=on` is set in production (needs Faisal's
 approval). Branch: `feat/submission-check-beta`.
 
+> **22 Nov 2026 update (controlled beta):** the workflow below is now one
+> screen, *New check*: add the tender (its requirements are read automatically
+> when the check runs; no separate Tender Intelligence step), add one or more
+> proposal files, run, review, export. Menu: Home, New check, History, Account.
+> Durable usage limits, deployment and rollback: see `docs/beta-launch.md`.
+> The steps below still describe checking against a saved tender.
+
 ## User workflow
 
 1. **Choose the tender:** Sidebar → *Submission Check* (BETA), or the
