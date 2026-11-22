@@ -1,23 +1,44 @@
 # Submission Check: controlled beta launch pack
 
-Updated 22 Nov 2026 after the final release-safety review.
+Updated 22 Nov 2026, 15:20 Dubai, after Faisal's hands-on test on the preview.
 
-**Status:** built and tested on the preview branch `feat/submission-check-beta` (latest commit `75e0f65`, preview deployment `dpl_JB3M1MEP519U8gNYKDiF6S9tap8g`, READY). **Nothing is merged or deployed to production. The migration has not been run. No production setting, database record or secret was changed.** Each production step below needs Faisal's approval.
+**Status:** pull request #11 (`feat/submission-check-beta` into `main`) is open as a **draft**. Latest commit `ea592fc`, preview deployment `dpl_8iBGzY9qu4gZKZE6fBjCnG9jGfZA` (READY). **Nothing is merged or deployed to production.** Each production step below needs Faisal's approval.
 
 - Preview: https://bidlyze-app-git-feat-sub-6ca6f0-faisalremaan-gmailcoms-projects.vercel.app (Vercel sign-in required)
 - Production now (rollback target): `dpl_AoWgzYJW64ZpTyroq9p9k3hrq8Wn` (main at `68f2979`)
 
 ## 0. Go / No-Go
 
-**Decision: GO for an invited beta of 5 testers, once the four blockers below are cleared. NO-GO for a public beta.**
+**Decision: GO for an invited beta of 5 testers once the open items below are cleared. NO-GO for a public beta.**
 
-| # | Blocker | Who | How long |
-|---|---|---|---|
-| B1 | **support@bidlyze.com cannot receive mail.** bidlyze.com has no MX record (checked 22 Nov). Every "Request beta access" and "Support" link goes there. | Faisal | 15 min, section 6A |
-| B2 | **Testers cannot get the Supabase confirmation e-mail** unless custom SMTP is set up. Supabase's built-in sender only delivers to members of your Supabase team. Workaround: create each tester's account yourself. | Faisal | 2 min per tester, section 6B |
-| B3 | **Your own signed-in click-through on the preview.** I cannot sign in for you, so the signed-in journey was proven on a production build of the same code with simulated accounts, not on the preview itself. | Faisal | 10 min, about $0.25, section 6C |
-| B4 | **Approvals:** run the migration, set `SUBMISSION_CHECK_BETA=on` in production, merge. | Faisal | section 2 |
-| B5 | **Password reset is broken in production** until this branch is merged (fixed on the preview, commit `4b6f2c0`). Add the reset addresses to Supabase's Redirect URLs (Step 3b). | Faisal | 3 min |
+### Done
+| Item | Result |
+|---|---|
+| Supabase migration | Applied by Faisal on 22 Nov. PART A and PART B passed: 30 users, 53 analyses and 30 subscriptions unchanged; 2 tables and 3 functions added; security checks passed. **Do not run it again.** |
+| Hands-on test on the preview (was B3) | **Completed by Faisal, 22 Nov.** See "Hands-on test" below. |
+| OpenRouter key limit incident | The key's $5 total limit was reached (403 "Key limit exceeded"). Faisal raised it. Clear error messages added in `ea592fc`. |
+| Password reset fix | Included in PR #11 (`4b6f2c0`). Faisal reset his own password with it on the preview. |
+| Release review of PR #11 | Merges cleanly; no secrets in the diff; no `supabase/` changes, so nothing runs on the database when it is merged. `npm audit`: 0. Tests: 169 unit and API, 25 browser, 45 quota database checks and 8 migration-safety checks, all passing. Preview-only endpoints return 404 in production. |
+
+### Hands-on test (Faisal, preview, 22 Nov)
+| Step | Result |
+|---|---|
+| Sign in after the password reset | Passed |
+| Read the ECTA tender (8 pages) | Passed at 14:18: 26 requirements, 26 tender quotes verified, 2 AI requests, 38 s, $0.1068 |
+| Check the ECTA proposal (6 pages) | Passed at 15:10. 25 requirements checked (1 scoring-guidance item left out). The saved tender was reused with no second reading. 1 AI request, 9.4 s, $0.0271. |
+| Review findings, evidence viewer, reviewer decisions, Excel export | Passed (reported by Faisal) |
+| Total AI cost of the test | $0.13 |
+| Problems met | 3 tender readings at 14:04–14:06 failed on the OpenRouter key limit ($0 each). They then used 3 of the 4 hourly runs, which delayed the check until 15:05. The hourly rule is unchanged for now; a change is planned after launch. |
+
+### Open (all Faisal)
+| # | Item | Status |
+|---|---|---|
+| B1 | **Support e-mail.** bidlyze.com still has no MX record (checked 15:12), so mail to support@bidlyze.com is lost. | Open: section 6A |
+| B2 | **OpenRouter headroom.** Suggested: key limit $30 with a monthly reset; account balance of at least $20. | To confirm |
+| B3 | **Owner on the beta list.** Your e-mail must be in `submission_check_beta_users` with `enabled = true`. | To confirm |
+| B4 | **Production settings.** `SUBMISSION_CHECK_BETA=on` (Production) is **not set yet**, and must be set before the merge. Supabase reset Redirect URLs (Step 3b) need confirming. | Open |
+| B5 | **Merge approval** for PR #11. | After B1 to B4 |
+| B6 | **Tester accounts** (before inviting, not before merging). Supabase's built-in sender only e-mails your Supabase team, so create each tester's account yourself (section 6B). | Before invites |
 
 Not blocking, but do before or during the beta: see section 8.
 
@@ -32,7 +53,7 @@ Not blocking, but do before or during the beta: see section 8.
 
 ## 2. Deployment plan (in this order; each step needs your yes)
 
-**Step 1: database migration (Supabase project "bidlyze").**
+**Step 1: database migration (Supabase project "bidlyze").** ✅ **Done by Faisal on 22 Nov (PART A and PART B passed). Do not run it again.**
 1. In Supabase, open the project, then **SQL Editor**, then **New query**.
 2. Paste **PART A** of `docs/proposals/2026-11-22_preflight_postflight_READ_ONLY.sql` (everything from `── PART A` down to `── PART B`) and click **Run**. It only reads. Write down the three numbers (users, analyses, subscriptions). Every `..._must_be_...` column must show what its name says (`0` or `true`). If not, stop and send me the result.
 3. New query. Paste the whole file `docs/proposals/2026-11-22_submission_check_beta_quota.sql` and click **Run**. Expect "Success. No rows returned".
@@ -123,7 +144,7 @@ Limit: this is a faithful copy of the schema, not the live database (which I can
 | Sign in, sample, tender plus 2 proposal files, run, review, reviewer notes and overrides, Excel export (file opened and checked), History, Account | 15 browser tests on a production build of the same commit, simulated accounts and AI | Pass |
 | Errors: unsupported, old-format, archive, image and scanned files, more than 5 files, over-long proposal, AI failure, time-out, rate limit, allowance used up, lost connection, retry | Same browser tests plus 154 unit and API tests | Pass |
 | Real AI run through the same server code | Live preview, earlier today ($0.24) | Pass (section 7) |
-| **Signed-in click-through on the real preview** | **Not done: needs your sign-in** | Blocker B3 |
+| **Signed-in click-through on the real preview** | Faisal, 22 Nov: tender read, proposal checked, review and export | Passed |
 
 ### 4.4 Landing page: no claim of complete coverage or guaranteed accuracy
 Changed and verified on the live preview:
@@ -238,7 +259,7 @@ Send me any step that fails, with a screenshot.
 
 **Tests now:** 154 unit and API tests (`npm test`), 15 browser tests (`npm run test:ui`), 45 quota database checks, 8 migration-safety checks.
 
-**AI spend:** about $0.72 of the $5 allowance in total. This review round used none.
+**AI spend:** the OpenRouter key's lifetime total reached its $5.00 limit on 22 Nov ($5.09, including earlier development and the live site). Faisal raised the limit. The hands-on ECTA test cost $0.13.
 
 ## 8. Not blocking, but plan for them
 1. **Legal review** of the privacy policy and terms. They match how the code behaves, but they are not legal advice.
