@@ -1,51 +1,71 @@
-// Screenshot walkthrough (local only; not part of the test suite).
+// Screenshot walkthrough for review (local only: skipped unless SCREENSHOTS=1 and
+// the local font + tender cache exist). Not part of `npm run test:ui`.
+//   SCREENSHOTS=1 npx playwright test -c tests/ui/playwright.config.mjs zz-screenshots.spec.mjs
 import { test, expect } from "@playwright/test";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync } from "node:fs";
 import { mockSupabase, ecta } from "./mocks.mjs";
 
-const OUT = "/home/claude/screens/";
+const OUT = process.env.SCREENSHOT_DIR || "/home/claude/screens/";
+const FONT_DIR = "/tmp/fonts/package/files/";
+const CACHE = new URL("../benchmarks/alton-cctv-2026/.cache/tender_pages.json", import.meta.url);
+const ENABLED = process.env.SCREENSHOTS === "1" && existsSync(FONT_DIR) && existsSync(CACHE);
+test.skip(!ENABLED, "screenshot walkthrough runs only locally with SCREENSHOTS=1");
+if (ENABLED) mkdirSync(OUT, { recursive: true });
+
 // The sandbox build cannot download Google Fonts; load Bidlyze's Outfit font locally for faithful screenshots.
-const FONT_CSS = [400, 500, 600, 700].map((w) => `@font-face{font-family:"OutfitShot";font-weight:${w};src:url(data:font/woff2;base64,${readFileSync(`/tmp/fonts/package/files/outfit-latin-${w}-normal.woff2`).toString("base64")}) format("woff2");}`).join("") + 'body,body *:not(.font-mono){font-family:"OutfitShot",sans-serif !important}';
 async function brandFont(page) {
-  await page.addInitScript((css) => {
-    const add = () => { const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st); };
+  const css = [400, 500, 600, 700].map((w) => `@font-face{font-family:"OutfitShot";font-weight:${w};src:url(data:font/woff2;base64,${readFileSync(`${FONT_DIR}outfit-latin-${w}-normal.woff2`).toString("base64")}) format("woff2");}`).join("") + 'body,body *:not(.font-mono){font-family:"OutfitShot",sans-serif !important}';
+  await page.addInitScript((c) => {
+    const add = () => { const st = document.createElement("style"); st.textContent = c; document.head.appendChild(st); };
     if (document.head) add(); else document.addEventListener("DOMContentLoaded", add);
-  }, FONT_CSS);
+  }, css);
 }
-const CACHE = "/home/claude/bidlyze/tests/benchmarks/alton-cctv-2026/.cache/tender_pages.json";
 
 async function demoTender(page) {
   // Local sandbox cannot reach alton.gov.uk; serve the same page text the preview fetches live.
-  if (!existsSync(CACHE)) return;
   const pages = JSON.parse(readFileSync(CACHE)).pages.map((p) => ({ unit: "page", ...p }));
-  await page.route("**/api/submission-check/demo?part=tender", (r) => r.fulfill({ json: { analysis: { id: "demo-alton", name: "Alton Town Council: CCTV review, installation and 3-year maintenance (sample)", fileName: "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf", requirementsTotal: 39 }, pages } }));
+  await page.route("**/api/submission-check/demo?part=tender", (r) => r.fulfill({ json: { analysis: { id: "demo-alton", name: "Alton Town Council: CCTV review, installation and 3-year maintenance (sample)", fileName: "Alton-Town-Council-Invitation-to-Tender-CCTV-system.pdf", requirementsTotal: 39, checkable: 38, notCheckable: 2 }, pages } }));
+}
+
+async function scrollTo(page, testId, offset = 140) {
+  await page.getByTestId(testId).evaluate((el, o) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - o), offset);
+  await page.waitForTimeout(300);
+}
+
+async function openFinding(page, id) {
+  const f = page.getByTestId(`finding-${id}`);
+  const btn = f.getByRole("button", { expanded: false });
+  if (await btn.count()) await btn.first().click();
+  return f;
 }
 
 for (const theme of ["dark", "light"]) {
   test(`walkthrough (${theme})`, async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     await page.addInitScript((t) => localStorage.setItem("bidlyze-theme", t), theme);
     await mockSupabase(page);
     await brandFont(page);
     await demoTender(page);
     const s = (name) => page.screenshot({ path: `${OUT}${theme}-${name}.png` });
+    const dark = theme === "dark";
 
     await page.goto("/submission-check");
     await expect(page.getByTestId("tender-demo")).toBeVisible();
     await page.waitForTimeout(400);
-    if (theme === "dark") await s("01-choose-tender");
+    if (dark) await s("01-choose-tender");
 
     await page.goto("/submission-check/demo");
     await expect(page.getByTestId("dropzone")).toBeVisible();
     await page.waitForTimeout(300);
-    if (theme === "dark") await s("02-upload");
+    if (dark) await s("02-upload");
 
     await page.getByTestId("use-sample").click();
     await expect(page.getByTestId("run-check")).toBeVisible();
-    if (theme === "dark") await s("03-ready-to-run");
+    await page.getByTestId("processing-note").locator("summary").click();
+    await page.waitForTimeout(200);
+    if (dark) await s("03-ready-to-run-and-privacy");
 
-    // Hold the response briefly to capture the progress screen.
-    if (theme === "dark") {
+    if (dark) {
       await page.route("**/api/submission-check", async (route) => {
         const res = await route.fetch();
         await new Promise((r) => setTimeout(r, 6000));
@@ -53,7 +73,7 @@ for (const theme of ["dark", "light"]) {
       });
     }
     await page.getByTestId("run-check").click();
-    if (theme === "dark") {
+    if (dark) {
       await expect(page.getByTestId("checking")).toBeVisible();
       await page.waitForTimeout(4500);
       await s("04-checking");
@@ -61,63 +81,102 @@ for (const theme of ["dark", "light"]) {
     await expect(page.getByTestId("results")).toBeVisible({ timeout: 30_000 });
     await page.waitForTimeout(300);
     await s("05-results-summary");
+    await page.getByTestId("toggle-excluded").click();
+    await scrollTo(page, "documents", 90);
+    await s("06-documents-and-requirement-list");
 
     await page.getByTestId("tab-attention").click();
-    const r14 = page.getByTestId("finding-R14");
-    await r14.getByRole("button", { expanded: false }).click();
-    await r14.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 140));
-    await page.waitForTimeout(300);
-    await s("06-contradiction-both-sides");
+    await openFinding(page, "R14");
+    await scrollTo(page, "finding-R14");
+    await s("07-contradiction-both-sides");
 
-    if (theme === "dark") {
+    if (dark) {
       await page.getByTestId("evidence-R14-1").getByRole("button", { name: "View page" }).click();
       await expect(page.getByTestId("viewer-highlight")).toBeVisible();
       await page.waitForTimeout(700);
-      await s("07-proposal-page-viewer");
+      await s("08-proposal-page-viewer");
       await page.keyboard.press("Escape");
       await page.getByTestId("tender-quote-R14").getByRole("button", { name: "View page" }).click();
       await expect(page.getByTestId("viewer-highlight")).toBeVisible();
       await page.waitForTimeout(700);
-      await s("08-tender-page-viewer");
+      await s("09-tender-page-viewer");
       await page.keyboard.press("Escape");
 
+      // R6/R7: no double counting; R7 is conditional.
+      await page.getByTestId("tab-all").click();
+      await page.getByTestId("search").fill("image quality");
+      await openFinding(page, "R6");
+      await scrollTo(page, "finding-R6", 120);
+      await s("10-R6-no-double-counting");
+      await page.getByTestId("search").fill("");
+      await page.getByTestId("type-filter").selectOption("conditional");
+      await openFinding(page, "R7");
+      await scrollTo(page, "finding-R7", 120);
+      await s("10b-R7-conditional");
+      await page.getByTestId("type-filter").selectOption("all");
+
+      // R16 split into two obligations.
+      await page.getByTestId("search").fill("ISO");
+      await openFinding(page, "R16.2");
+      await scrollTo(page, "findings", 120);
+      await s("11-R16-split");
+
+      // Price schedule: separate document, described in the proposal.
+      await page.getByTestId("search").fill("price");
+      await openFinding(page, "R31");
+      await scrollTo(page, "finding-R31", 120);
+      await s("12-R31-price-schedule-document");
+
+      // Review: note + decision.
       await page.getByTestId("search").fill("insurance");
-      const r20 = page.getByTestId("finding-R20");
-      await r20.getByRole("button", { expanded: false }).click();
+      await openFinding(page, "R20");
       await page.getByTestId("note-R20").fill("Ask the broker for a £10m PI certificate before submission.");
       await page.getByTestId("reviewed-R20").check();
-      await r20.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 140));
-      await page.waitForTimeout(300);
-      await s("09-search-and-review");
+      await scrollTo(page, "finding-R20");
+      await s("13-search-and-review");
 
+      // Check manually: recommendation (R5), submission steps.
       await page.getByTestId("search").fill("");
       await page.getByTestId("tab-manual").click();
+      await openFinding(page, "R5");
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForTimeout(300);
-      await s("10-check-manually");
+      await scrollTo(page, "finding-R5", 200);
+      await s("14-check-manually-R5-recommendation");
+
+      // Optional item R27 and the type filter.
+      await page.getByTestId("tab-all").click();
+      await page.getByTestId("type-filter").selectOption("optional");
+      await openFinding(page, "R27");
+      await scrollTo(page, "finding-R27", 200);
+      await s("15-R27-optional");
+      await page.getByTestId("type-filter").selectOption("all");
 
       const [dl] = await Promise.all([page.waitForEvent("download"), page.getByTestId("export").click()]);
       await dl.saveAs(`${OUT}${dl.suggestedFilename()}`);
-
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByTestId("tab-attention").click();
-      await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForTimeout(400);
-      await page.screenshot({ path: `${OUT}${theme}-11-mobile.png`, fullPage: false });
-      const r14m = page.getByTestId("finding-R14");
-      await r14m.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 70));
-      await page.waitForTimeout(300);
-      await page.screenshot({ path: `${OUT}${theme}-12-mobile-finding.png`, fullPage: false });
     }
+
+    // Mobile
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByTestId("search").fill("");
+    await page.getByTestId("tab-all").click();
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(400);
+    await page.screenshot({ path: `${OUT}${theme}-16-mobile.png` });
+    await page.getByTestId("tab-attention").click();
+    await openFinding(page, "R14");
+    await scrollTo(page, "finding-R14", 70);
+    await page.screenshot({ path: `${OUT}${theme}-17-mobile-finding.png` });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
   });
 }
 
-test("existing dashboard still renders (AppShell layout change)", async ({ page }) => {
+test("dashboard (no NaN average)", async ({ page }) => {
   await mockSupabase(page);
   await brandFont(page);
   await page.goto("/dashboard");
-  await page.waitForTimeout(2500);
-  await page.screenshot({ path: `${OUT}dark-zz-dashboard-unchanged.png` });
+  await expect(page.getByTestId("stat-avg")).toHaveText("--");
+  await page.waitForTimeout(1500);
+  await page.screenshot({ path: `${OUT}dark-18-dashboard.png` });
 });
 
 test("analysis page entry point", async ({ page }) => {

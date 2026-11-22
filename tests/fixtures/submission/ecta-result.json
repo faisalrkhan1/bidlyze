@@ -749,7 +749,7 @@
  },
  "meta": {
   "model": "fixture (no AI)",
-  "durationMs": 7,
+  "durationMs": 6,
   "failedBatches": [],
   "truncatedBatches": [],
   "skipped": [],

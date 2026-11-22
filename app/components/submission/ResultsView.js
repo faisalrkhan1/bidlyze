@@ -267,7 +267,7 @@ export default function ResultsView({ result, reviews, onReview, onView, onNewCh
             type="search"
             value={filters.query}
             onChange={(e) => setF({ query: e.target.value })}
-            placeholder="Search requirements, quotes and explanations"
+            placeholder="Search findings and quotes"
             className="w-full text-sm pl-9 pr-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500/30"
             style={{ background: "var(--bg-input)", border: "1px solid var(--border-secondary)", color: "var(--text-primary)" }}
             data-testid="search"

@@ -252,8 +252,26 @@ test("sample tender: the sample proposal gives the recorded live result (no AI) 
   await expect(page.getByTestId("tender-card")).toContainText("39 requirements");
   await page.getByTestId("use-sample").click();
   await expect(page.getByTestId("proposal-card")).toContainText("10 pages read");
+  await expect(page.getByTestId("run-check")).toBeVisible();
+  await expect(page.locator("body")).toContainText("Checks 38 requirements (2 scoring-guidance items left out)");
   await page.getByTestId("run-check").click();
   await expect(page.getByTestId("recorded-notice")).toBeVisible();
+  await expect(page.getByTestId("headline")).toHaveText("Of 38 requirements: 18 need attention, 6 to check manually, 14 OK.");
+  // The four problems Faisal reported on the Alton sample.
+  await expect(page.getByTestId("finding-R5")).toHaveAttribute("data-group", "manual");
+  await expect(page.getByTestId("finding-R5")).toContainText("Recommendation");
+  await expect(page.getByTestId("finding-R27")).toHaveAttribute("data-group", "ok");
+  await expect(page.getByTestId("finding-R27")).toContainText("Optional");
+  await expect(page.getByTestId("finding-R6")).toHaveAttribute("data-status", "answered");
+  await expect(page.getByTestId("finding-R7")).toContainText("Conditional");
+  await expect(page.getByTestId("excluded")).toContainText("R6 was narrowed");
+  await expect(page.getByTestId("excluded")).toContainText("R16 was split into R16.1 and R16.2");
+  await page.getByTestId("toggle-excluded").click();
+  await expect(page.getByTestId("excluded-R36")).toContainText("to achieve the highest scores");
+  await expect(page.getByTestId("finding-R36")).toHaveCount(0);
+  // Missing-document handling: the price schedule is a separate document (Document 2).
+  await expect(page.getByTestId("document-R31")).toContainText("Described in the proposal");
+  await expect(page.getByTestId("document-R31")).toContainText("referred to on p.1");
   await page.getByTestId("search").fill("31 days");
   const card = page.getByTestId("findings").locator("article").first();
   await card.getByRole("button", { expanded: false }).click();

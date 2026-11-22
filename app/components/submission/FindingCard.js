@@ -27,7 +27,8 @@ export default function FindingCard({ item, review = {}, onReview, open, onToggl
   const notObligation = ["optional", "recommendation", "evaluation", "submission"].includes(type) && autoGroup !== "attention";
   const priority = priorityOf(item);
   const notes = [];
-  if (type !== "mandatory") notes.push(`${TYPES[type].label}: ${item.typeReason || TYPES[type].help}`);
+  // The type's explanation is already the headline help for optional/recommended/scored items that are not answered.
+  if (type !== "mandatory" && !(notObligation && st !== "answered")) notes.push(`${TYPES[type].label}: ${item.typeReason || TYPES[type].help}`);
   if (item.splitFrom) notes.push(`Split from ${item.splitFrom.id}: the tender sentence for ${item.splitFrom.id} contains separate obligations, so each is checked on its own.`);
   if (item.narrowed?.length) notes.push(...item.narrowed.map((n) => `The part “${n.part}” is checked under ${n.checkedUnder}, so the same obligation is not counted twice.`));
   if (item.duplicates?.length) notes.push(`Also listed in the analysis as ${item.duplicates.join(", ")} (same tender wording): checked once.`);
