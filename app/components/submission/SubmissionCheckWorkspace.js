@@ -29,6 +29,8 @@ import ResultsView from "./ResultsView";
 import EvidenceViewer from "./EvidenceViewer";
 import { Card, EmptyState, Icon, Notice, Pill, PrimaryButton, ProcessingNote, SecondaryButton, Skeleton, Spinner, Stepper, TextButton } from "./ui";
 import { prepareRequirements } from "@/lib/submission/obligations";
+import { AI_SERVICE_PROBLEMS } from "@/lib/readiness/ai";
+import { supportMailto } from "@/lib/contact";
 
 const DEMO_ID = "demo-alton";
 const STORE_PREFIX = "bidlyze.submissionCheck.v1.";
@@ -207,6 +209,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
   const [phase, setPhase] = useState("setup"); // setup | checking | done
   const [stage, setStage] = useState("check"); // tender | check
   const [runError, setRunError] = useState("");
+  const [runErrorCode, setRunErrorCode] = useState("");
   const [elapsed, setElapsed] = useState(0);
   const [result, setResult] = useState(null);
   const [reviews, setReviews] = useState({});
@@ -407,7 +410,7 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
         clearTimeout(timer);
         if (!res.ok || !data?.success) {
           if (res.status !== 409) tenderRequestId.current = null; // a definite answer: next try is a new request
-          throw new Error(apiError(res, data, "reading of the tender"));
+          throw Object.assign(new Error(apiError(res, data, "reading of the tender")), { code: data?.code });
         }
         tenderRequestId.current = null;
         id = data.analysisId;
@@ -426,13 +429,15 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
       timer = setTimeout(() => ctl.abort(), CLIENT_TIMEOUT_MS);
       const { res, data } = await postJson("/api/submission-check", { requestId: newRequestId(), analysisId: id, live, response: { files: proposals.map(pagesForSend) } }, ctl.signal);
       clearTimeout(timer);
-      if (!res.ok || !data?.success) throw new Error(apiError(res, data, "check"));
+      if (!res.ok || !data?.success) throw Object.assign(new Error(apiError(res, data, "check")), { code: data?.code });
       setResult({ ...data, tender: { ...data.tender, name: tender?.name || data.tender?.name } });
       setReviews({});
       setRestored(false);
       setPhase("done");
     } catch (e) {
       setRunError(e.message || "The check could not be completed.");
+      // A problem on Bidlyze's side (for example its AI usage limit): retrying cannot help.
+      setRunErrorCode(e.code || "");
       setPhase("setup");
     } finally {
       clearTimeout(timer);
@@ -734,7 +739,15 @@ export default function SubmissionCheckWorkspace({ analysisId, demo = false, sta
                 title={tender ? "The check did not finish" : "The tender could not be read"}
                 role="alert"
                 data-testid="run-error"
-                action={proposals.length > 0 && <SecondaryButton onClick={() => runCheck()} className="h-8 shrink-0">Try again</SecondaryButton>}
+                action={
+                  AI_SERVICE_PROBLEMS.has(runErrorCode) ? (
+                    <a href={supportMailto("Submission Check could not run", `Error code: ${runErrorCode}`)} className="inline-flex items-center h-8 px-3 rounded-lg text-[13px] font-medium shrink-0" style={{ border: "1px solid var(--border-secondary)" }} data-testid="contact-support">
+                      Contact support
+                    </a>
+                  ) : (
+                    proposals.length > 0 && <SecondaryButton onClick={() => runCheck()} className="h-8 shrink-0">Try again</SecondaryButton>
+                  )
+                }
               >
                 {runError}
                 {tender?.justRead ? " The tender's requirements were read and saved, so trying again only re-runs the check." : ""}

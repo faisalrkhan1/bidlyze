@@ -112,6 +112,25 @@ test("tender reading fails, then a retry: a clear message, and a new request onl
   expect(ids[2]).toBe(ids[1]); // after a lost connection: the same request, so it is never read (or charged) twice
 });
 
+test("Bidlyze's AI spending limit is used up: the reason is explained and the user is pointed to support, not to retry", async ({ page }) => {
+  await mockSupabase(page);
+  const message =
+    "Bidlyze has reached its AI usage limit, so it cannot read this tender right now. This is a problem on Bidlyze's side, not with your documents, and it does not use up your monthly allowance. Trying again will not help until the Bidlyze team raises the limit; please contact support.";
+  const seen = await mockApis(page, { tender: () => ({ status: 503, json: { success: false, code: "ai_key_limit", error: message } }) });
+  await page.goto("/submission-check/new");
+  await page.getByTestId("tender-file-input").setInputFiles(TENDER_PDF_PATH);
+  await page.getByTestId("file-input").setInputFiles(RESPONSE_PDF);
+  await page.getByTestId("run-check").click();
+  const notice = page.getByTestId("run-error");
+  await expect(notice).toContainText("The tender could not be read");
+  await expect(notice).toContainText("reached its AI usage limit");
+  await expect(notice).toContainText("not with your documents");
+  await expect(notice.getByRole("button", { name: "Try again" })).toHaveCount(0);
+  await expect(notice.getByTestId("contact-support")).toHaveAttribute("href", /^mailto:.*Error%20code%3A%20ai_key_limit/);
+  expect(seen.tender).toHaveLength(1);
+  expect(seen.check).toHaveLength(0);
+});
+
 test("the check fails after the tender was read: retry re-runs only the check", async ({ page }) => {
   await mockSupabase(page);
   let fail = true;

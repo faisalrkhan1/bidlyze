@@ -5,7 +5,7 @@ import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { normaliseDocuments, DOC_LIMITS, DocumentInputError } from "../../lib/submission/documents.js";
 import { createQuota, refusalMessage, isMissingSchema, estimateRunCostUsd, DEFAULT_QUOTA } from "../../lib/submission/quota.js";
-import { askJSON } from "../../lib/readiness/ai.js";
+import { askJSON, classifyAiHttpError, aiErrorMessage, aiFailureStatus, redactForLog, pickAiErrorCode } from "../../lib/readiness/ai.js";
 import { OVERVIEW_TASK, REQUIREMENTS_TASK } from "../../lib/readiness/passes.js";
 
 const TENDER_PAGES = [
@@ -21,7 +21,17 @@ const USERS = {
 
 let rpcMode = "db"; // "db" | "missing" | "error"
 let aiCalls = [];
-let aiFail = null; // null | "requirements" | "all"
+let aiFail = null; // null | "requirements" | "all" | "key_limit"
+// OpenRouter's answer when the API key's spending limit is used up (as seen on the preview,
+// 22 Nov 2026), with a made-up key identifier.
+const FAKE_KEY_ID = "0123456789abcdef".repeat(4);
+const KEY_LIMIT_BODY = JSON.stringify({
+  error: {
+    message: `Key limit exceeded (total limit). Manage it using https://openrouter.ai/workspaces/default/keys/${FAKE_KEY_ID} $5.09 of $5.00 used; does not reset.`,
+    code: 403,
+    metadata: { limit_source: "openrouter_key_limit", remedy_hint: "Raise or remove this API key's usage limit at https://openrouter.ai/settings/keys, or use a key without a limit.", scope: "key_limit", limit_usd: 5, spend_usd: 5.090951969, resets_at: null },
+  },
+});
 const saved = new Map(); // analysis id -> row
 const runs = [];
 let inserts = 0;
@@ -88,6 +98,7 @@ before(() => {
     const task = body.messages[1].content.at(-1).text;
     const kind = task === OVERVIEW_TASK ? "overview" : task === REQUIREMENTS_TASK ? "requirements" : "other";
     aiCalls.push(kind);
+    if (aiFail === "key_limit") return new Response(KEY_LIMIT_BODY, { status: 403, headers: { "content-type": "application/json" } });
     if (aiFail === "all" || aiFail === kind) return new Response("upstream error", { status: 503 });
     const answer = kind === "overview"
       ? { summary: { projectName: "Riverside Library CCTV Upgrade", tenderReference: "RL-2026-04", issuingAuthority: "The Council", submissionDeadline: "12:00, 15 January 2027", citation: { quote: "Tenders must be received by 12:00 on 15 January 2027", file: "F1", page: 1 } }, keyDates: [] }
@@ -369,4 +380,104 @@ test("conservative defaults for the five-person beta", () => {
 test("privacy: every AI request asks OpenRouter for providers that do not collect data", () => {
   assert.ok(providerSeen.length >= 4, "AI calls were made in these tests");
   assert.ok(providerSeen.every((p) => p?.data_collection === "deny"), JSON.stringify(providerSeen.slice(0, 2)));
+});
+
+// ── Regression (22 Nov 2026): the OpenRouter key's spending limit was used up ──
+// Every AI call answered 403 "Key limit exceeded"; users saw "The AI service could
+// not analyse this tender. Please try again in a few minutes", which was wrong on
+// both counts: retrying could not help, and the documents were fine.
+function captureConsole() {
+  const lines = [];
+  const orig = { error: console.error, warn: console.warn, log: console.log };
+  for (const k of Object.keys(orig)) console[k] = (...a) => lines.push(a.map(String).join(" "));
+  return { lines, restore: () => Object.assign(console, orig) };
+}
+
+test("AI errors are classified: spending limit, credits, key, provider, model, size, moderation, busy, down", () => {
+  assert.equal(classifyAiHttpError(403, KEY_LIMIT_BODY).code, "ai_key_limit");
+  assert.equal(classifyAiHttpError(403, KEY_LIMIT_BODY).retry, false);
+  assert.equal(classifyAiHttpError(402, JSON.stringify({ error: { code: 402, message: "Insufficient credits" } })).code, "ai_credits");
+  assert.equal(classifyAiHttpError(401, JSON.stringify({ error: { code: 401, message: "No auth credentials found" } })).code, "ai_auth");
+  assert.equal(classifyAiHttpError(403, JSON.stringify({ error: { code: 403, message: "Your input was flagged", metadata: { reasons: ["x"] } } })).code, "ai_refused");
+  assert.equal(classifyAiHttpError(404, JSON.stringify({ error: { code: 404, message: "No endpoints found matching your data policy" } })).code, "ai_no_provider");
+  assert.equal(classifyAiHttpError(404, JSON.stringify({ error: { code: 404, message: "Model not found" } })).code, "ai_model_unavailable");
+  assert.equal(classifyAiHttpError(413, "too large").code, "ai_too_large");
+  assert.deepEqual([classifyAiHttpError(429, "slow down").code, classifyAiHttpError(429, "").retry], ["ai_rate_limited", true]);
+  assert.deepEqual([classifyAiHttpError(503, "upstream error").code, classifyAiHttpError(503, "").retry], ["ai_unavailable", true]);
+  // Status codes for the browser: Bidlyze-side problems are 503, not "bad gateway".
+  assert.equal(aiFailureStatus("ai_key_limit"), 503);
+  assert.equal(aiFailureStatus("ai_credits"), 503);
+  assert.equal(aiFailureStatus("ai_unavailable"), 502);
+  assert.equal(aiFailureStatus("ai_too_large"), 413);
+  assert.equal(aiFailureStatus("anything", true), 504);
+  assert.equal(pickAiErrorCode([{ aiCode: "ai_unavailable" }, { aiCode: "ai_key_limit" }, {}]), "ai_key_limit");
+  assert.equal(pickAiErrorCode([{}]), null);
+});
+
+test("AI error logs keep the reason but drop links, key identifiers and anything shaped like a key", () => {
+  const info = classifyAiHttpError(403, KEY_LIMIT_BODY);
+  assert.match(info.message, /Key limit exceeded/);
+  assert.match(info.message, /\$5\.09 of \$5\.00 used/);
+  assert.doesNotMatch(info.message, /openrouter\.ai\/workspaces|https?:/);
+  assert.ok(!info.message.includes(FAKE_KEY_ID));
+  assert.equal(redactForLog("token sk-or-v1-abcdef0123456789 here"), "token [key removed] here");
+});
+
+test("AI: a used-up key limit is not retried and the log names the fix without exposing the key", async () => {
+  let calls = 0;
+  const fetchImpl = async () => { calls += 1; return new Response(KEY_LIMIT_BODY, { status: 403 }); };
+  const out = captureConsole();
+  try {
+    await assert.rejects(() => askJSON({ system: "s", task: "t", fetchImpl, label: "pass:overview" }), (e) => e.aiCode === "ai_key_limit" && e.status === 403 && e.noRetry === true);
+  } finally {
+    out.restore();
+  }
+  assert.equal(calls, 1, "no second paid attempt");
+  const logged = out.lines.join("\n");
+  assert.match(logged, /AI error 403 ai_key_limit: Key limit exceeded/);
+  assert.match(logged, /ACTION NEEDED .*spending limit/);
+  assert.doesNotMatch(logged, /https?:\/\//);
+  assert.ok(!logged.includes(FAKE_KEY_ID) && !logged.includes("test-key"), "no key or key identifier in the logs");
+});
+
+test("tender: when Bidlyze's AI spending limit is used up, the user is told so (503, ai_key_limit), nothing is saved and the run is recorded with that reason", async () => {
+  aiFail = "key_limit";
+  const insertsBefore = inserts;
+  const out = captureConsole();
+  let r;
+  try {
+    r = await post("/tender", tenderBody(), { token: "tok-b" });
+  } finally {
+    out.restore();
+  }
+  assert.equal(r.status, 503);
+  assert.equal(r.json.code, "ai_key_limit");
+  assert.equal(r.json.error, aiErrorMessage("ai_key_limit", "tender"));
+  assert.match(r.json.error, /AI usage limit/);
+  assert.match(r.json.error, /not with your documents/);
+  assert.match(r.json.error, /does not use up your monthly allowance/);
+  assert.doesNotMatch(r.json.error, /try again in a few minutes/i);
+  assert.deepEqual([...aiCalls].sort(), ["overview", "requirements"], "one call per pass, no retries");
+  assert.equal(inserts, insertsBefore, "nothing saved");
+  const run = runs.filter((x) => x.user === USERS["tok-b"].id).at(-1);
+  assert.deepEqual([run.status, run.error, run.cost], ["failed", "ai_key_limit", 0]);
+  assert.ok(!out.lines.join("\n").includes(FAKE_KEY_ID));
+});
+
+test("check: the same spending-limit problem while checking a proposal gets the same clear answer", async () => {
+  const t = await post("/tender", tenderBody(), { token: "tok-b" });
+  assert.equal(t.status, 200);
+  aiFail = "key_limit";
+  const out = captureConsole();
+  let c;
+  try {
+    c = await post("", { analysisId: t.json.analysisId, response: { files: [{ filename: "Technical.pdf", pages: PROPOSAL_PAGES }] } }, { token: "tok-b" });
+  } finally {
+    out.restore();
+  }
+  assert.equal(c.status, 503);
+  assert.equal(c.json.code, "ai_key_limit");
+  assert.match(c.json.error, /cannot check this proposal right now/);
+  const run = runs.filter((x) => x.user === USERS["tok-b"].id).at(-1);
+  assert.deepEqual([run.status, run.error], ["failed", "ai_key_limit"]);
 });
