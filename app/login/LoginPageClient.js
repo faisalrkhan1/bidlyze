@@ -4,9 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getSupabase } from "@/lib/supabase";
 import { getLoginRedirectTarget } from "@/lib/auth-redirect";
-import { LogoMark } from "@/app/components/Logo";
+import { LogoFull, LogoMark, LogoWordmark } from "@/app/components/Logo";
 import ThemeToggle from "@/app/components/ThemeToggle";
 import { PLANS } from "@/lib/plans";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
+import { resetRedirectUrl, resetRequestError } from "@/lib/auth-recovery";
+
+// With Submission Check switched on, this page speaks about that one product and its closed beta.
+const PRODUCT = submissionCheckBetaClient();
 
 // Free allowance shown to new users: pre-launch tier until payments go live.
 const FREE_ANALYSES =
@@ -50,6 +55,16 @@ const FEATURES = [
     description: "Draft questions for the buyer, each tied to its page",
   },
 ];
+
+const SC_COPY = {
+  features: [
+    { title: "Requirements listed, then checked", description: "Bidlyze lists the tender's requirements and checks the proposal against each one, quoting both documents." },
+    { title: "Quotes verified word for word", description: "Bidlyze confirms each quote is on the page it cites. Your team decides what the findings mean." },
+    { title: "Files stay with you", description: "Documents are read in your browser; only their text is sent for the check." },
+  ],
+  chips: ["Closed beta for invited teams", "Free during the beta", "Files read in your browser"],
+  tagline: "Submission Check",
+};
 
 export default function LoginPageClient() {
   const [tab, setTab] = useState("signin");
@@ -160,21 +175,22 @@ export default function LoginPageClient() {
     setLoading(true);
 
     try {
-      const { error } = await getSupabase().auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/login`,
+      // The link in the e-mail comes back to the dedicated Set New Password page.
+      const { error } = await getSupabase().auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: resetRedirectUrl(window.location.origin),
       });
 
       if (error) {
-        setError(error.message);
+        setError(resetRequestError(error));
         setLoading(false);
         return;
       }
 
-      setMessage("Password reset link sent. Check your email.");
+      setMessage(`If an account exists for ${email.trim()}, a password reset link is on its way. Open the newest e-mail and use the link soon: each link works once and expires. Check your spam folder too.`);
       setForgotMode(false);
       setLoading(false);
     } catch (err) {
-      setError(err.message || "Failed to send reset email. Please try again.");
+      setError(resetRequestError(err));
       setLoading(false);
     }
   }
@@ -188,29 +204,36 @@ export default function LoginPageClient() {
 
       {/* Left Panel - Product Highlights */}
       <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] flex-col justify-between p-10 relative overflow-hidden" style={{ background: "var(--bg-sidebar)", borderRight: "1px solid var(--border-primary)" }}>
-        {/* Decorative gradient */}
-        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full opacity-20" style={{ background: "radial-gradient(circle, #10b981, transparent 70%)" }} />
-        <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full opacity-10" style={{ background: "radial-gradient(circle, #10b981, transparent 70%)" }} />
 
         <div className="relative">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-12">
-            <LogoMark size={38} />
-            <span className="text-xl font-semibold tracking-tight">Bidlyze</span>
+          <div className="flex items-center mb-12" style={{ color: "var(--ink)" }}>
+            <LogoFull size={36} />
           </div>
 
           {/* Headline */}
-          <h1 className="text-3xl xl:text-4xl font-bold tracking-tight leading-tight mb-4">
-            From raw RFx documents<br />to structured bid<br />
-            <span className="text-emerald-500">intelligence</span>
-          </h1>
-          <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: "var(--text-secondary)" }}>
-            Upload an RFI, RFQ, RFP or tender package and get a page-cited readiness report: requirements, GCC disqualification checks and clarification questions.
-          </p>
+          {PRODUCT ? (
+            <>
+              <h1 className="text-3xl xl:text-4xl font-semibold tracking-[-0.02em] leading-tight mb-4">Find the gaps in a proposal before the buyer does.</h1>
+              <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: "var(--text-secondary)" }}>
+                Check a supplier&apos;s proposal against the tender&apos;s requirements, with both documents quoted and page numbers, for your team to review.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-3xl xl:text-4xl font-bold tracking-tight leading-tight mb-4">
+                From raw RFx documents<br />to structured bid<br />
+                <span className="text-emerald-500">intelligence</span>
+              </h1>
+              <p className="text-sm leading-relaxed mb-10 max-w-sm" style={{ color: "var(--text-secondary)" }}>
+                Upload an RFI, RFQ, RFP or tender package and get a page-cited readiness report: requirements, GCC disqualification checks and clarification questions.
+              </p>
+            </>
+          )}
 
           {/* Feature list */}
           <div className="space-y-4">
-            {FEATURES.map((f) => (
+            {(PRODUCT ? SC_COPY.features.map((f, i) => ({ ...f, icon: FEATURES[i % FEATURES.length].icon })) : FEATURES).map((f) => (
               <div key={f.title} className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                   {f.icon}
@@ -227,7 +250,7 @@ export default function LoginPageClient() {
         {/* Social proof */}
         <div className="relative mt-8 pt-6" style={{ borderTop: "1px solid var(--border-primary)" }}>
           <div className="flex items-center gap-4 flex-wrap">
-            {["No credit card required", `${FREE_ANALYSES} free analyses per month`, "Data encrypted at rest"].map((t) => (
+            {(PRODUCT ? SC_COPY.chips : ["No credit card required", `${FREE_ANALYSES} free analyses per month`, "Data encrypted at rest"]).map((t) => (
               <span key={t} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                 <svg className="w-3 h-3 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                 {t}
@@ -243,10 +266,10 @@ export default function LoginPageClient() {
           {/* Mobile logo + trust */}
           <div className="flex flex-col items-center mb-10 lg:hidden">
             <div className="mb-4"><LogoMark size={52} /></div>
-            <span className="text-2xl font-semibold tracking-tight">Bidlyze</span>
-            <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>AI RFx & Tender Intelligence</p>
+            <span style={{ color: "var(--ink)" }}><LogoWordmark capHeight={20} /></span>
+            <p className="text-sm mt-2" style={{ color: "var(--text-muted)" }}>{PRODUCT ? SC_COPY.tagline : "AI RFx & Tender Intelligence"}</p>
             <div className="flex items-center gap-4 mt-4 flex-wrap justify-center">
-              {["No credit card required", `${FREE_ANALYSES} free analyses`, "Results in minutes"].map((t) => (
+              {(PRODUCT ? SC_COPY.chips : ["No credit card required", `${FREE_ANALYSES} free analyses`, "Results in minutes"]).map((t) => (
                 <span key={t} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-muted)" }}>
                   <svg className="w-3 h-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                   {t}
@@ -265,6 +288,8 @@ export default function LoginPageClient() {
                 ? "Enter your email and we'll send you a reset link"
                 : tab === "signin"
                 ? "Sign in to continue to Bidlyze"
+                : PRODUCT
+                ? "Anyone can try the sample tender. Invited teams can check their own documents."
                 : `${FREE_ANALYSES} free analyses per month. No credit card required.`}
             </p>
           </div>

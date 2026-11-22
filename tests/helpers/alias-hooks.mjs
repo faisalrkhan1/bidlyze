@@ -12,5 +12,7 @@ export async function resolve(specifier, context, nextResolve) {
     }
     return nextResolve(url.href, context);
   }
+  // Next.js resolves these subpaths itself; plain Node needs the file name.
+  if (specifier === "next/server" || specifier === "next/navigation") return nextResolve(`${specifier}.js`, context);
   return nextResolve(specifier, context);
 }

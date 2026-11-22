@@ -1,0 +1,21 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "deployment": "dpl_4EvgXH1qHnrtLAP2RWxT817EHDmW",
+ "commit": "f33c7bd",
+ "date": "2026-11-21T18:08Z",
+ "note": "final build",
+ "mode": "submission (ECTA regression)",
+ "run": "regress4",
+ "final": {
+  "exact": "18/18",
+  "issuesFlagged": "12/12",
+  "falseAlarms": "0/6"
+ },
+ "usage": {
+  "promptTokens": 3347,
+  "completionTokens": 1571,
+  "cachedTokens": 1962,
+  "costUsd": 0.0187
+ },
+ "engineMs": 8315
+}

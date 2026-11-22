@@ -1,0 +1,36 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "deployment": "dpl_QnX7noSjBe3Qg35ctkNa21Xg3EM2",
+ "commit": "4e3faf0",
+ "date": "2026-11-21T18:05Z",
+ "note": "with 'manual' status (first wording)",
+ "mode": "bench-chained-fixture",
+ "fixture": "ti-run3",
+ "extractedScore": {
+  "exact": "37/39",
+  "processItemsMarkedManual": "6/8",
+  "issuesFlagged": "19/19",
+  "falseAlarms": "0/12",
+  "wrong": [
+   "R5: expected manual, got partial (response mentions a site survey)",
+   "R34: expected manual, got conflict ('submit a compliant tender' judged against all deviations)"
+  ]
+ },
+ "mappedToAnswerKey": {
+  "exact": "29/38",
+  "note": "merge/matcher artefacts as before"
+ },
+ "evidence": {
+  "responseQuotesFound": "39/39",
+  "tenderQuotesVerified": "39/39",
+  "contradictionsBothSidesCited": "4/4"
+ },
+ "usage": {
+  "calls": 1,
+  "promptTokens": 8179,
+  "completionTokens": 8401,
+  "cachedTokens": 0,
+  "costUsd": 0.1027
+ },
+ "engineMs": 47025
+}

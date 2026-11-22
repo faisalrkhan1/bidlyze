@@ -1,0 +1,33 @@
+{
+ "deployment": "dpl_GEejFxErGSqLXJ6FZp29PGs4pXSF",
+ "commit": "18f2661",
+ "date": "2026-11-21T17:44Z",
+ "extracted": 39,
+ "citations": {
+  "verified": 38,
+  "relocated": 1,
+  "note": "R25 HERS: AI cited the wrong page; code relocated it to p.4"
+ },
+ "matcherFound": "34/38",
+ "handReview": "36/38 (A01 in R2, A07 in R5); A31 summary only; A37 evaluation criteria only",
+ "onCorrectPage": "34/34 matched",
+ "extraNotInKey": 9,
+ "keyDates": "5/5",
+ "evaluationWeights": "4/4",
+ "clarifications": 15,
+ "dynamicFindings": 15,
+ "fixedChecklistRequired": 2,
+ "bidScore": "58 CONDITIONAL BID",
+ "usage": {
+  "calls": 5,
+  "promptTokens": 21964,
+  "completionTokens": 29503,
+  "cachedTokens": 14624,
+  "costUsd": 0.3112
+ },
+ "durationMs": 70115,
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5",
+ "mode": "bench-readiness"
+}

@@ -1,0 +1,34 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "deployment": "dpl_4EvgXH1qHnrtLAP2RWxT817EHDmW",
+ "commit": "f33c7bd",
+ "date": "2026-11-21T18:08Z",
+ "note": "final build",
+ "mode": "bench-submission",
+ "bench": "alton-cctv-2026",
+ "final": {
+  "exact": "35/38",
+  "issuesFlagged": "19/19",
+  "issueAgreement": "38/38",
+  "falseAlarms": "0/19",
+  "manualUsed": 0
+ },
+ "wrong": [
+  "A03: expected missing, got partial",
+  "A19: expected missing, got partial",
+  "A35: expected conflict, got partial"
+ ],
+ "evidence": {
+  "responseQuotesFound": "41/41",
+  "onExpectedPage": "35/35",
+  "contradictionsBothSidesCited": "4/4"
+ },
+ "usage": {
+  "calls": 1,
+  "promptTokens": 8005,
+  "completionTokens": 8654,
+  "cachedTokens": 4797,
+  "costUsd": 0.0934
+ },
+ "engineMs": 46565
+}

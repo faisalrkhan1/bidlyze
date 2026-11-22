@@ -1,0 +1,31 @@
+{
+ "deployment": "dpl_GEejFxErGSqLXJ6FZp29PGs4pXSF",
+ "commit": "18f2661",
+ "date": "2026-11-21T17:42Z",
+ "extracted": 39,
+ "citations": {
+  "verified": 39
+ },
+ "matcherFound": "34/38",
+ "handReview": "36/38 in the requirement list (A01 merged into R2, A07 into R4); A37 only in evaluation criteria; A31 only in summary",
+ "onCorrectPage": "34/34 matched",
+ "extraNotInKey": "9, all genuine (site visit, ISO split, deadline, sealed pack, no marks, no lobbying, compliant tender, exceed minimums, email subject)",
+ "keyDates": "5/5",
+ "evaluationWeights": "4/4",
+ "clarifications": 15,
+ "dynamicFindings": 13,
+ "fixedChecklistRequired": 2,
+ "bidScore": "60 CONDITIONAL BID",
+ "usage": {
+  "calls": 5,
+  "promptTokens": 21858,
+  "completionTokens": 29064,
+  "cachedTokens": 0,
+  "costUsd": 0.3417
+ },
+ "durationMs": 69045,
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5",
+ "mode": "bench-readiness"
+}

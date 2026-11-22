@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { LogoMark } from "@/app/components/Logo";
+import { LogoFull } from "@/app/components/Logo";
 import LandingPricingCards from "@/app/components/LandingPricingCards";
+import SubmissionCheckLanding from "@/app/components/submission/SubmissionCheckLanding";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
 
 // Pre-launch flag — read once at build time so the banner/chip render
 // statically on the public landing page. To flip back to "live payments"
 // posture, set NEXT_PUBLIC_PAYMENTS_ENABLED=true in Vercel and redeploy.
 const PAYMENTS_LIVE = process.env.NEXT_PUBLIC_PAYMENTS_ENABLED === "true";
 
-export const metadata = {
+const TI_METADATA = {
   title: "Bidlyze",
   description:
     "Upload an RFI, RFQ, RFP or tender package and get a page-cited compliance matrix, a 20-point GCC disqualification check, clarification questions and a bid / no-bid recommendation.",
@@ -67,7 +69,21 @@ const METRICS = [
   { value: "Excel", label: "Compliance matrix export" },
 ];
 
+// With Submission Check switched on (previews now; production only after approval)
+// the public page presents that one product and its closed beta.
+const SC_METADATA = {
+  title: "Bidlyze: check a supplier proposal against a tender's requirements",
+  description: "Bidlyze lists the requirements in a tender, checks a supplier's proposal against each one and quotes both documents with page numbers, for your team to review. Closed beta.",
+  openGraph: { title: "Bidlyze Submission Check", description: "Find the gaps in a proposal before the buyer does.", type: "website", locale: "en_US", siteName: "Bidlyze" },
+};
+export const metadata = submissionCheckBetaClient() ? SC_METADATA : TI_METADATA;
+
 export default function LandingPage() {
+  if (submissionCheckBetaClient()) return <SubmissionCheckLanding />;
+  return <TenderIntelligenceLanding />;
+}
+
+function TenderIntelligenceLanding() {
   return (
     <div className="min-h-screen" style={{ background: "var(--bg-primary)", color: "var(--text-primary)" }}>
       {/* Pre-launch banner — auto-hidden when NEXT_PUBLIC_PAYMENTS_ENABLED=true */}
@@ -84,9 +100,8 @@ export default function LandingPage() {
       {/* Navigation */}
       <header className="sticky top-0 z-50 backdrop-blur-md" style={{ background: "var(--bg-primary-translucent)", borderBottom: "1px solid var(--border-primary)" }}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <LogoMark size={30} />
-            <span className="text-base font-semibold tracking-tight">Bidlyze</span>
+          <div className="flex items-center" style={{ color: "var(--ink)" }}>
+            <LogoFull size={30} />
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm" style={{ color: "var(--text-secondary)" }}>
             <a href="#features" className="hover:text-emerald-500 transition-colors">Features</a>
@@ -359,9 +374,8 @@ export default function LandingPage() {
       <footer style={{ borderTop: "1px solid var(--border-primary)" }}>
         <div className="max-w-6xl mx-auto px-6 py-10">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-              <LogoMark size={26} />
-              <span className="text-sm font-semibold">Bidlyze</span>
+            <div className="flex items-center" style={{ color: "var(--ink)" }}>
+              <LogoFull size={24} />
             </div>
             <div className="flex items-center gap-6 text-xs" style={{ color: "var(--text-muted)" }}>
               <a href="#pricing" className="hover:text-emerald-500 transition-colors">Pricing</a>

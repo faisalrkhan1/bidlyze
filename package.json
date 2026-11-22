@@ -7,32 +7,37 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import ./tests/helpers/register-alias.mjs --test \"lib/**/__tests__/*.test.mjs\" \"tests/**/*.test.mjs\""
+    "test": "node --import ./tests/helpers/register-alias.mjs --test \"lib/**/__tests__/*.test.mjs\" \"tests/**/*.test.mjs\"",
+    "test:ui": "playwright test -c tests/ui/playwright.config.mjs submission-check.spec.mjs"
   },
   "dependencies": {
     "@stripe/stripe-js": "^8.9.0",
     "@supabase/supabase-js": "^2.98.0",
     "docx": "^9.6.1",
-    "jspdf": "^4.2.0",
-    "jspdf-autotable": "^5.0.7",
+    "exceljs": "^4.4.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "mammoth": "^1.11.0",
     "marked": "^18.0.3",
-    "next": "16.1.6",
+    "next": "^16.4.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "resend": "^6.9.3",
+    "resend": "^6.39.0",
     "stripe": "^20.4.1",
-    "unpdf": "^1.4.0",
-    "xlsx": "^0.18.5"
+    "unpdf": "^1.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.6",
+    "eslint-config-next": "^16.4.6",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
   }
 }

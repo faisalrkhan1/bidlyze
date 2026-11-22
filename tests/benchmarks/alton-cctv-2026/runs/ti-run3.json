@@ -1,0 +1,28 @@
+{
+ "deployment": "dpl_BtcLjM2pUgmrP856Dr2XWm5FUKvy",
+ "commit": "f46e302",
+ "date": "2026-11-21T17:55Z",
+ "extracted": 39,
+ "citations": {
+  "verified": 39
+ },
+ "matcherFound": "36/38",
+ "handReview": "36/38 + A01 (in R2) and A07 (in R4) = 38/38 covered; A31 now extracted (R26); A37 only via R34 'supply time' mention",
+ "onCorrectPage": "36/36 matched",
+ "extraNotInKey": 7,
+ "keyDates": "5/5",
+ "evaluationWeights": "4/4",
+ "usage": {
+  "calls": 5,
+  "promptTokens": 21747,
+  "completionTokens": 28150,
+  "cachedTokens": 0,
+  "costUsd": 0.3323
+ },
+ "durationMs": 64112,
+ "fixture": "ti-run3.requirements.json",
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5",
+ "mode": "bench-readiness"
+}

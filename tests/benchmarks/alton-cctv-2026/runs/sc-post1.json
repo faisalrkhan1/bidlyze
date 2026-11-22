@@ -1,0 +1,37 @@
+{
+ "date": "2026-11-21T17:53Z",
+ "final": {
+  "exact": "36/38",
+  "issuesFlagged": "19/19",
+  "issueAgreement": "38/38",
+  "falseAlarms": "0/19"
+ },
+ "aiOnly": {
+  "exact": "36/38"
+ },
+ "wrong": [
+  "A03: expected missing, got partial",
+  "A35: expected conflict, got partial"
+ ],
+ "changedByCode": [],
+ "evidence": {
+  "responseQuotesFound": "47/47",
+  "onExpectedPage": "34/34",
+  "contradictionsBothSidesCited": "4/4"
+ },
+ "usage": {
+  "calls": 1,
+  "promptTokens": 7795,
+  "completionTokens": 9115,
+  "cachedTokens": 0,
+  "costUsd": 0.109
+ },
+ "engineMs": 48110,
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5",
+ "deployment": "dpl_BtcLjM2pUgmrP856Dr2XWm5FUKvy",
+ "commit": "f46e302",
+ "mode": "bench-submission",
+ "note": "after fixes F1-F6/F8"
+}

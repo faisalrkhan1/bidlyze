@@ -3,8 +3,26 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import ThemeToggle from "./ThemeToggle";
-import { LogoMark } from "./Logo";
+import { LogoFull } from "./Logo";
 import { FEATURES } from "@/lib/featureFlags";
+import { submissionCheckBetaClient } from "@/lib/submission/beta";
+import { supportMailto } from "@/lib/contact";
+
+const ICON = (d) => (
+  <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round" d={d} />
+  </svg>
+);
+
+// Submission Check product (on in previews; in production only with SUBMISSION_CHECK_BETA=on):
+// one workflow, four destinations. Tender Intelligence pages still work at their
+// addresses (older analyses open from History), they are just not in the menu.
+const PRODUCT_NAV = [
+  { label: "Home", href: "/submission-check", match: (p) => p === "/submission-check", icon: ICON("m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25") },
+  { label: "New check", href: "/submission-check/new", match: (p) => p === "/submission-check/new" || p === "/submission-check/demo" || /^\/submission-check\/[0-9a-f-]{36}$/i.test(p) || p.endsWith("/submission-check") && p.startsWith("/analysis/"), icon: ICON("M12 4.5v15m7.5-7.5h-15") },
+  { label: "History", href: "/submission-check/history", match: (p) => p === "/submission-check/history", icon: ICON("M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z") },
+  { label: "Account", href: "/account", match: (p) => p === "/account", icon: ICON("M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z") },
+];
 
 const NAV_ITEMS = [
   {
@@ -88,30 +106,32 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
         style={{ background: "var(--bg-sidebar)", borderRight: "1px solid var(--border-primary)" }}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2.5 px-5" style={{ borderBottom: "1px solid var(--border-primary)" }}>
-          <LogoMark size={30} />
-          <span className="text-base font-semibold tracking-tight">Bidlyze</span>
-          <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-md" style={{ background: "var(--accent-muted)", color: "var(--accent-text)" }}>
-            BETA
+        <div className="h-16 flex items-center gap-2.5 px-5" style={{ borderBottom: "1px solid var(--border-primary)", color: "var(--ink)" }}>
+          <LogoFull size={28} />
+          <span className="ml-auto text-[11px] font-medium px-1.5 py-0.5 rounded-md" style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}>
+            Beta
           </span>
         </div>
 
         {/* Nav Items */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.filter((item) => !item.requires || FEATURES[item.requires]).map((item) => {
-            const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
+          {(submissionCheckBetaClient() ? PRODUCT_NAV : NAV_ITEMS.filter((item) => !item.requires || FEATURES[item.requires])).map((item) => {
+            const isActive = item.match ? item.match(pathname || "") : pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
             return (
               <button
                 key={item.href}
                 onClick={() => { router.push(item.href); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-all duration-150 ${
+                className={`relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[13.5px] font-medium whitespace-nowrap transition-colors duration-150 ${
                   isActive ? "sidebar-active" : "sidebar-item"
                 }`}
+                aria-current={isActive ? "page" : undefined}
               >
+                {isActive && <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-emerald-500" aria-hidden="true" />}
                 <span className={isActive ? "text-emerald-500" : ""} style={!isActive ? { color: "var(--text-muted)" } : {}}>
                   {item.icon}
                 </span>
                 {item.label}
+
               </button>
             );
           })}
@@ -131,7 +151,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
             <div className="flex items-center gap-2">
               <ThemeToggle size="small" />
               <a
-                href="mailto:support@bidlyze.com"
+                href={supportMailto()}
                 className="py-1.5 px-2 rounded-lg text-xs font-medium transition-colors duration-200 flex items-center justify-center"
                 style={{ border: "1px solid var(--border-secondary)", color: "var(--text-secondary)" }}
                 onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
@@ -149,7 +169,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
                 onMouseEnter={(e) => e.currentTarget.style.background = "var(--bg-input)"}
                 onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
               >
-                Log Out
+                Log out
               </button>
             </div>
           </div>
@@ -165,7 +185,7 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-[240px] flex flex-col min-h-screen">
+      <div className="flex-1 min-w-0 lg:ml-[240px] flex flex-col min-h-screen">
         {/* Top Bar */}
         <header
           className="sticky top-0 z-20 h-14 flex items-center gap-4 px-4 sm:px-6 backdrop-blur-md"
@@ -216,9 +236,8 @@ export default function AppShell({ user, onLogout, children, breadcrumbs }) {
           )}
 
           {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 ml-auto mr-auto">
-            <LogoMark size={28} />
-            <span className="text-sm font-semibold">Bidlyze</span>
+          <div className="lg:hidden flex items-center ml-auto mr-auto" style={{ color: "var(--ink)" }}>
+            <LogoFull size={26} />
           </div>
 
           {/* Right side - mobile theme toggle */}

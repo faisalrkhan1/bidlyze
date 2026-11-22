@@ -1,0 +1,818 @@
+{
+ "success": true,
+ "checkedAt": "2026-11-22T08:00:00.000Z",
+ "tender": {
+  "analysisId": "11111111-1111-4111-8111-111111111111",
+  "name": "ECTA Smart Parking Sensors (fictional test tender)",
+  "fileName": "ECTA_test_tender.pdf",
+  "requirementsTotal": 18,
+  "cited": 18
+ },
+ "response": {
+  "filename": "ECTA_test_response.pdf",
+  "contentType": "application/pdf",
+  "sha256": "42a220f2ec40da54f8c90640b25442c99779a88177bedabaa9be07f373e86695",
+  "pages": 6,
+  "unit": "page",
+  "scannedPages": []
+ },
+ "items": [
+  {
+   "id": "Q01",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "We enclose an unconditional bid bond of 1% of the total bid value, valid for 150 days from the tender closing date.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    },
+    {
+     "type": "values",
+     "result": "tender: 2% · response: 1%"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: value: 1% instead of 2%.",
+   "requirement": "Submit an unconditional bid bond of 2% of the total bid value, valid 150 days",
+   "tender": {
+    "quote": "The bidder shall submit an unconditional bid bond of 2% of the total bid value",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Financial",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.2",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Bid bond / tender security"
+   },
+   "documentMention": null
+  },
+  {
+   "id": "Q02",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our offer remains valid for 90 days from the tender closing date.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    },
+    {
+     "type": "values",
+     "result": "tender: 120 days · response: 90 days"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: value: 90 days instead of 120.",
+   "requirement": "Offer valid for 120 days from the closing date",
+   "tender": {
+    "quote": "Offers shall remain valid for 120 days from the tender closing date.",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Technical",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.2",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q03",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "This bid is submitted through the Example e-Procurement Portal.",
+     "file": "R1",
+     "page": 1,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Submit through the Example e-Procurement Portal only",
+   "tender": {
+    "quote": "Bids shall be submitted through the Example e-Procurement Portal only.",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Administrative",
+   "mandatory": false,
+   "priority": "HIGH",
+   "sourceRef": "p.2",
+   "type": "submission",
+   "typeReason": "How, when or where to submit (or conduct during the tender). A proposal cannot prove it."
+  },
+  {
+   "id": "Q04",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Supplier registration | Registered on the Example e-Procurement Portal on 14 March 2025",
+     "file": "R1",
+     "page": 6,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Be registered on the Example e-Procurement Portal before the closing date",
+   "tender": {
+    "quote": "Only suppliers registered on the Example e-Procurement Portal before the closing date may submit a bid.",
+    "file": "F1",
+    "page": 2,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Financial",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.2",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q05",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our UAE trade licence No. 123456 covers ICT systems integration and is valid until March 2028.",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Hold a valid UAE trade licence covering ICT systems integration",
+   "tender": {
+    "quote": "The bidder shall hold a valid UAE trade licence covering ICT systems integration.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Technical",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q06",
+   "status": "missing",
+   "aiStatus": "missing",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: not mentioned.",
+   "requirement": "Submit a valid In-Country Value (ICV) certificate",
+   "tender": {
+    "quote": "Bidders must submit a valid In-Country Value (ICV) certificate.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Administrative",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "In-Country Value (ICV) certificate"
+   },
+   "documentMention": null
+  },
+  {
+   "id": "Q07",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "We provide two completion certificates for smart parking projects delivered in Dubai (2023) and Sharjah (2024)",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    },
+    {
+     "type": "quantity",
+     "result": "tender: three completion certificates · response: two completion certificates"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: two certificates instead of three.",
+   "requirement": "Provide at least three completion certificates for similar smart parking projects",
+   "tender": {
+    "quote": "The bidder shall provide at least three (3) completion certificates for similar smart parking projects",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Financial",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Completion certificates"
+   },
+   "documentMention": {
+    "page": 2,
+    "text": "1.2 We provide two completion certificates for smart parking projects delivered in Dubai (2023) and Sharjah (2024), see Annex 3."
+   }
+  },
+  {
+   "id": "Q08",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Audited financial statements for 2023, 2024 and 2025 are provided in Annex 4.",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [
+    "Not stated in the quoted text: three years — confirm it is in your response."
+   ],
+   "gap": "",
+   "requirement": "Submit audited financial statements for the last three years",
+   "tender": {
+    "quote": "Audited financial statements for the last three (3) years shall be submitted.",
+    "file": "F1",
+    "page": 3,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Technical",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.3",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Audited financial statements"
+   },
+   "documentMention": {
+    "page": 2,
+    "text": "1.3 Audited financial statements for 2023, 2024 and 2025 are provided in Annex 4."
+   }
+  },
+  {
+   "id": "Q09",
+   "status": "missing",
+   "aiStatus": "missing",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: requirement copied word for word, no commitment.",
+   "requirement": "All parking sensors have an IP68 rating",
+   "tender": {
+    "quote": "All parking sensors shall have an IP68 rating and a minimum battery life of 5 years.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Administrative",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q10",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our PS-200 sensors have a battery life of 3 years under typical traffic.",
+     "file": "R1",
+     "page": 3,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    },
+    {
+     "type": "values",
+     "result": "tender: 5 years · response: 3 years"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: value: 3 years instead of 5.",
+   "requirement": "Sensors have a minimum battery life of 5 years",
+   "tender": {
+    "quote": "All parking sensors shall have an IP68 rating and a minimum battery life of 5 years.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Financial",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q11",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "A Manufacturer Authorisation Letter from our distributor, Gulf Sensors Trading LLC, is attached in Annex 5.",
+     "file": "R1",
+     "page": 4,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: letter from a distributor, not the OEM.",
+   "requirement": "Manufacturer Authorisation Letter from the sensor OEM, addressed to the Authority",
+   "tender": {
+    "quote": "The bidder shall submit a Manufacturer Authorisation Letter (MAL) from the sensor OEM, addressed to the Authority.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Technical",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Manufacturer authorisation letter"
+   },
+   "documentMention": {
+    "page": 4,
+    "text": "3.3 A Manufacturer Authorisation Letter from our distributor, Gulf Sensors Trading LLC, is attached in Annex 5."
+   }
+  },
+  {
+   "id": "Q12",
+   "status": "conflict",
+   "aiStatus": "conflict",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "TDRA type approval for the radio units will be obtained within 60 days after delivery.",
+     "file": "R1",
+     "page": 3,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    },
+    {
+     "type": "timing",
+     "result": "tender: before delivery · response: after delivery"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: after delivery instead of before.",
+   "requirement": "TDRA type approval for all radio equipment before delivery",
+   "tender": {
+    "quote": "All radio equipment shall have TDRA type approval before delivery.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Administrative",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q13",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our system will integrate with the Authority's existing parking management platform through its REST interface.",
+     "file": "R1",
+     "page": 3,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Integrate with the Authority's existing parking management platform",
+   "tender": {
+    "quote": "The system shall integrate with the Authority's existing parking management platform.",
+    "file": "F1",
+    "page": 4,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Financial",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.4",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q14",
+   "status": "answered",
+   "aiStatus": "answered",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "Our project manager joined the Authority's compulsory site inspection on 10/12/2026; the attendance sheet is included in Annex 6.",
+     "file": "R1",
+     "page": 5,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "",
+   "requirement": "Attend the mandatory site visit on 10 December 2026",
+   "tender": {
+    "quote": "A mandatory site visit will be held on 10 December 2026 at 10:00.",
+    "file": "F1",
+    "page": 5,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Technical",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.5",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q15",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "All Annex B forms are signed by our authorised signatory, Mr. A. Rahman.",
+     "file": "R1",
+     "page": 5,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: signed but not stamped.",
+   "requirement": "All Annex B forms signed by the authorised signatory and stamped with the company seal",
+   "tender": {
+    "quote": "All forms in Annex B shall be signed by the authorised signatory and stamped with the company seal.",
+    "file": "F1",
+    "page": 6,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Administrative",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.6",
+   "type": "mandatory",
+   "typeReason": ""
+  },
+  {
+   "id": "Q16",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "4.2 Commercial forms are provided in English.",
+     "file": "R1",
+     "page": 5,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: English only.",
+   "requirement": "Commercial forms submitted in Arabic and English",
+   "tender": {
+    "quote": "Commercial forms shall be submitted in Arabic and English.",
+    "file": "F1",
+    "page": 6,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Financial",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.6",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Commercial forms"
+   },
+   "documentMention": {
+    "page": 5,
+    "text": "SECTION 4 - SUBMISSION FORMS 4.1 All Annex B forms are signed by our authorised signatory, Mr."
+   }
+  },
+  {
+   "id": "Q17",
+   "status": "missing",
+   "aiStatus": "missing",
+   "decidedBy": "ai",
+   "evidence": [],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "0/0 quote(s) found in the response"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: not mentioned.",
+   "requirement": "Submit a clause-by-clause compliance statement",
+   "tender": {
+    "quote": "The bidder shall submit a clause-by-clause compliance statement.",
+    "file": "F1",
+    "page": 6,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Technical",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.6",
+   "type": "mandatory",
+   "typeReason": "",
+   "document": {
+    "name": "Compliance statement"
+   },
+   "documentMention": null
+  },
+  {
+   "id": "Q18",
+   "status": "partial",
+   "aiStatus": "partial",
+   "decidedBy": "ai",
+   "evidence": [
+    {
+     "quote": "We hold a valid ISO 9001:2015 certificate, provided in Annex 7.",
+     "file": "R1",
+     "page": 2,
+     "status": "verified"
+    }
+   ],
+   "checks": [
+    {
+     "type": "evidence",
+     "result": "1/1 quote(s) found in the response"
+    },
+    {
+     "type": "standards",
+     "result": "not mentioned: ISO 27001"
+    }
+   ],
+   "flags": [],
+   "gap": "Fixture: ISO 9001 only, no ISO 27001.",
+   "requirement": "Hold valid ISO 9001 and ISO 27001 certificates",
+   "tender": {
+    "quote": "The bidder shall hold valid ISO 9001 and ISO 27001 certificates.",
+    "file": "F1",
+    "page": 8,
+    "status": "verified",
+    "fileName": "ECTA_test_tender.pdf",
+    "checkedBy": "analysis"
+   },
+   "category": "Administrative",
+   "mandatory": true,
+   "priority": "HIGH",
+   "sourceRef": "p.8",
+   "type": "mandatory",
+   "typeReason": ""
+  }
+ ],
+ "excluded": [],
+ "prep": {
+  "merged": [],
+  "narrowed": [],
+  "split": [],
+  "excluded": [],
+  "overLimit": 0
+ },
+ "summary": {
+  "total": 18,
+  "answered": 6,
+  "partial": 5,
+  "conflict": 4,
+  "missing": 3,
+  "manual": 0,
+  "unproven": 0,
+  "decidedByCode": 0
+ },
+ "meta": {
+  "model": "fixture (no AI)",
+  "durationMs": 6,
+  "failedBatches": [],
+  "truncatedBatches": [],
+  "skipped": [],
+  "aiCostUsd": 0
+ },
+ "truncated": false,
+ "legacy": false,
+ "documents": [
+  {
+   "id": "Q01",
+   "name": "Bid bond / tender security",
+   "state": "described",
+   "evidencePage": 4,
+   "mentionPage": null,
+   "mentionText": ""
+  },
+  {
+   "id": "Q06",
+   "name": "In-Country Value (ICV) certificate",
+   "state": "not_found",
+   "evidencePage": null,
+   "mentionPage": null,
+   "mentionText": ""
+  },
+  {
+   "id": "Q07",
+   "name": "Completion certificates",
+   "state": "described",
+   "evidencePage": 2,
+   "mentionPage": 2,
+   "mentionText": "1.2 We provide two completion certificates for smart parking projects delivered in Dubai (2023) and Sharjah (2024), see Annex 3."
+  },
+  {
+   "id": "Q08",
+   "name": "Audited financial statements",
+   "state": "described",
+   "evidencePage": 2,
+   "mentionPage": 2,
+   "mentionText": "1.3 Audited financial statements for 2023, 2024 and 2025 are provided in Annex 4."
+  },
+  {
+   "id": "Q11",
+   "name": "Manufacturer authorisation letter",
+   "state": "described",
+   "evidencePage": 4,
+   "mentionPage": 4,
+   "mentionText": "3.3 A Manufacturer Authorisation Letter from our distributor, Gulf Sensors Trading LLC, is attached in Annex 5."
+  },
+  {
+   "id": "Q16",
+   "name": "Commercial forms",
+   "state": "described",
+   "evidencePage": 5,
+   "mentionPage": 5,
+   "mentionText": "SECTION 4 - SUBMISSION FORMS 4.1 All Annex B forms are signed by our authorised signatory, Mr."
+  },
+  {
+   "id": "Q17",
+   "name": "Compliance statement",
+   "state": "not_found",
+   "evidencePage": null,
+   "mentionPage": null,
+   "mentionText": ""
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "note": "Exact quotes from tests/e2e/ECTA_test_response.pdf (same as tests/e2e/submission_offline.test.mjs REAL), used to build deterministic UI fixtures without AI.",
+ "quotes": {
+  "Q01": ["We enclose an unconditional bid bond of 1% of the total bid value, valid for 150 days from the tender closing date.", 4],
+  "Q02": ["Our offer remains valid for 90 days from the tender closing date.", 4],
+  "Q03": ["This bid is submitted through the Example e-Procurement Portal.", 1],
+  "Q04": ["Supplier registration | Registered on the Example e-Procurement Portal on 14 March 2025", 6],
+  "Q05": ["Our UAE trade licence No. 123456 covers ICT systems integration and is valid until March 2028.", 2],
+  "Q07": ["We provide two completion certificates for smart parking projects delivered in Dubai (2023) and Sharjah (2024)", 2],
+  "Q08": ["Audited financial statements for 2023, 2024 and 2025 are provided in Annex 4.", 2],
+  "Q10": ["Our PS-200 sensors have a battery life of 3 years under typical traffic.", 3],
+  "Q11": ["A Manufacturer Authorisation Letter from our distributor, Gulf Sensors Trading LLC, is attached in Annex 5.", 4],
+  "Q12": ["TDRA type approval for the radio units will be obtained within 60 days after delivery.", 3],
+  "Q13": ["Our system will integrate with the Authority's existing parking management platform through its REST interface.", 3],
+  "Q14": ["Our project manager joined the Authority's compulsory site inspection on 10/12/2026; the attendance sheet is included in Annex 6.", 5],
+  "Q15": ["All Annex B forms are signed by our authorised signatory, Mr. A. Rahman.", 5],
+  "Q16": ["4.2 Commercial forms are provided in English.", 5],
+  "Q18": ["We hold a valid ISO 9001:2015 certificate, provided in Annex 7.", 2]
+ }
+}

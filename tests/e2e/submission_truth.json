@@ -1,0 +1,172 @@
+{
+  "statuses": [
+    "answered",
+    "partial",
+    "missing",
+    "conflict"
+  ],
+  "requirements": [
+    {
+      "id": "Q01",
+      "requirement": "Submit an unconditional bid bond of 2% of the total bid value, valid 150 days",
+      "tenderQuote": "The bidder shall submit an unconditional bid bond of 2% of the total bid value",
+      "tenderPage": 2,
+      "expected": "conflict",
+      "responsePage": 4,
+      "trap": "value: 1% instead of 2%"
+    },
+    {
+      "id": "Q02",
+      "requirement": "Offer valid for 120 days from the closing date",
+      "tenderQuote": "Offers shall remain valid for 120 days from the tender closing date.",
+      "tenderPage": 2,
+      "expected": "conflict",
+      "responsePage": 4,
+      "trap": "value: 90 days instead of 120"
+    },
+    {
+      "id": "Q03",
+      "requirement": "Submit through the Example e-Procurement Portal only",
+      "tenderQuote": "Bids shall be submitted through the Example e-Procurement Portal only.",
+      "tenderPage": 2,
+      "expected": "answered",
+      "responsePage": 1,
+      "trap": null
+    },
+    {
+      "id": "Q04",
+      "requirement": "Be registered on the Example e-Procurement Portal before the closing date",
+      "tenderQuote": "Only suppliers registered on the Example e-Procurement Portal before the closing date may submit a bid.",
+      "tenderPage": 2,
+      "expected": "answered",
+      "responsePage": 6,
+      "trap": "answer only in an annex table"
+    },
+    {
+      "id": "Q05",
+      "requirement": "Hold a valid UAE trade licence covering ICT systems integration",
+      "tenderQuote": "The bidder shall hold a valid UAE trade licence covering ICT systems integration.",
+      "tenderPage": 3,
+      "expected": "answered",
+      "responsePage": 2,
+      "trap": null
+    },
+    {
+      "id": "Q06",
+      "requirement": "Submit a valid In-Country Value (ICV) certificate",
+      "tenderQuote": "Bidders must submit a valid In-Country Value (ICV) certificate.",
+      "tenderPage": 3,
+      "expected": "missing",
+      "responsePage": null,
+      "trap": "not mentioned"
+    },
+    {
+      "id": "Q07",
+      "requirement": "Provide at least three completion certificates for similar smart parking projects",
+      "tenderQuote": "The bidder shall provide at least three (3) completion certificates for similar smart parking projects",
+      "tenderPage": 3,
+      "expected": "partial",
+      "responsePage": 2,
+      "trap": "two certificates instead of three"
+    },
+    {
+      "id": "Q08",
+      "requirement": "Submit audited financial statements for the last three years",
+      "tenderQuote": "Audited financial statements for the last three (3) years shall be submitted.",
+      "tenderPage": 3,
+      "expected": "answered",
+      "responsePage": 2,
+      "trap": "years named (2023-2025), not '3 years'"
+    },
+    {
+      "id": "Q09",
+      "requirement": "All parking sensors have an IP68 rating",
+      "tenderQuote": "All parking sensors shall have an IP68 rating and a minimum battery life of 5 years.",
+      "tenderPage": 4,
+      "expected": "missing",
+      "responsePage": null,
+      "trap": "requirement copied word for word, no commitment"
+    },
+    {
+      "id": "Q10",
+      "requirement": "Sensors have a minimum battery life of 5 years",
+      "tenderQuote": "All parking sensors shall have an IP68 rating and a minimum battery life of 5 years.",
+      "tenderPage": 4,
+      "expected": "conflict",
+      "responsePage": 3,
+      "trap": "value: 3 years instead of 5"
+    },
+    {
+      "id": "Q11",
+      "requirement": "Manufacturer Authorisation Letter from the sensor OEM, addressed to the Authority",
+      "tenderQuote": "The bidder shall submit a Manufacturer Authorisation Letter (MAL) from the sensor OEM, addressed to the Authority.",
+      "tenderPage": 4,
+      "expected": "partial",
+      "responsePage": 4,
+      "trap": "letter from a distributor, not the OEM"
+    },
+    {
+      "id": "Q12",
+      "requirement": "TDRA type approval for all radio equipment before delivery",
+      "tenderQuote": "All radio equipment shall have TDRA type approval before delivery.",
+      "tenderPage": 4,
+      "expected": "conflict",
+      "responsePage": 3,
+      "trap": "after delivery instead of before"
+    },
+    {
+      "id": "Q13",
+      "requirement": "Integrate with the Authority's existing parking management platform",
+      "tenderQuote": "The system shall integrate with the Authority's existing parking management platform.",
+      "tenderPage": 4,
+      "expected": "answered",
+      "responsePage": 3,
+      "trap": null
+    },
+    {
+      "id": "Q14",
+      "requirement": "Attend the mandatory site visit on 10 December 2026",
+      "tenderQuote": "A mandatory site visit will be held on 10 December 2026 at 10:00.",
+      "tenderPage": 5,
+      "expected": "answered",
+      "responsePage": 5,
+      "trap": "different words (compulsory site inspection, 10/12/2026)"
+    },
+    {
+      "id": "Q15",
+      "requirement": "All Annex B forms signed by the authorised signatory and stamped with the company seal",
+      "tenderQuote": "All forms in Annex B shall be signed by the authorised signatory and stamped with the company seal.",
+      "tenderPage": 6,
+      "expected": "partial",
+      "responsePage": 5,
+      "trap": "signed but not stamped"
+    },
+    {
+      "id": "Q16",
+      "requirement": "Commercial forms submitted in Arabic and English",
+      "tenderQuote": "Commercial forms shall be submitted in Arabic and English.",
+      "tenderPage": 6,
+      "expected": "partial",
+      "responsePage": 5,
+      "trap": "English only"
+    },
+    {
+      "id": "Q17",
+      "requirement": "Submit a clause-by-clause compliance statement",
+      "tenderQuote": "The bidder shall submit a clause-by-clause compliance statement.",
+      "tenderPage": 6,
+      "expected": "missing",
+      "responsePage": null,
+      "trap": "not mentioned"
+    },
+    {
+      "id": "Q18",
+      "requirement": "Hold valid ISO 9001 and ISO 27001 certificates",
+      "tenderQuote": "The bidder shall hold valid ISO 9001 and ISO 27001 certificates.",
+      "tenderPage": 8,
+      "expected": "partial",
+      "responsePage": 2,
+      "trap": "ISO 9001 only, no ISO 27001"
+    }
+  ]
+}

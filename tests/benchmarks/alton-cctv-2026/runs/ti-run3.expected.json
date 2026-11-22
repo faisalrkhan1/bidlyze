@@ -1,0 +1,524 @@
+{
+ "note": "Expected status for each requirement Tender Intelligence extracted in ti-run3, derived mechanically from answer_key.json (merged items take the most serious status of their parts; submission-process, conduct and scoring-guidance items are 'manual'). Used to score the chained run.",
+ "requirements": [
+  {
+   "id": "R1",
+   "expected": "answered",
+   "trap": "A04:answered",
+   "responseEvidence": [
+    {
+     "quote": "The recording platform is licensed for 64 channels and the storage array has 40% spare capacity, which allows the system to grow over the next 5 to 10 years",
+     "page": 5
+    }
+   ],
+   "from": [
+    "A04"
+   ]
+  },
+  {
+   "id": "R2",
+   "expected": "partial",
+   "trap": "A01:answered; A02:partial; A03:missing",
+   "responseEvidence": [
+    {
+     "quote": "Harry Baker Pavilion, Jubilee Playing Fields 2 Building entrances and frontage Charles Read Pavilion, Jubilee Playing Fields 2 Building entrances and changing room access",
+     "page": 5
+    },
+    {
+     "quote": "Anstey Lane car park, in front of Energique 3 Vehicle entrance and parking bays",
+     "page": 5
+    }
+   ],
+   "from": [
+    "A01",
+    "A02",
+    "A03"
+   ]
+  },
+  {
+   "id": "R3",
+   "expected": "answered",
+   "trap": "A05:answered",
+   "responseEvidence": [
+    {
+     "quote": "Our maintenance agreement runs for three years, from 1 November 2026 to 31 October 2029.",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A05"
+   ]
+  },
+  {
+   "id": "R4",
+   "expected": "partial",
+   "trap": "A06:answered; A07:partial",
+   "responseEvidence": [
+    {
+     "quote": "We checked the field of view, image quality, power supplies and network links at each location and identified two supply issues",
+     "page": 4
+    },
+    {
+     "quote": "Camera positions have been checked on site to ensure that the field of view is not blocked by existing trees.",
+     "page": 4
+    }
+   ],
+   "from": [
+    "A06",
+    "A07"
+   ]
+  },
+  {
+   "id": "R5",
+   "expected": "manual",
+   "trap": "site visit recommended (process, optional)",
+   "from": []
+  },
+  {
+   "id": "R6",
+   "expected": "conflict",
+   "trap": "A08:answered; A09:conflict",
+   "responseEvidence": [
+    {
+     "quote": "At entry points and in the Market Square the cameras achieve the identify level of detail described in BS EN 62676-4, so recordings are of evidential quality for Hampshire Constabulary and the courts.",
+     "page": 4
+    },
+    {
+     "quote": "Hardware upgrades to retained cameras are excluded and can be quoted separately if required.",
+     "page": 4
+    }
+   ],
+   "from": [
+    "A08",
+    "A09"
+   ]
+  },
+  {
+   "id": "R7",
+   "expected": "conflict",
+   "trap": "A09:conflict",
+   "responseEvidence": [
+    {
+     "quote": "Hardware upgrades to retained cameras are excluded and can be quoted separately if required.",
+     "page": 4
+    }
+   ],
+   "from": [
+    "A09"
+   ]
+  },
+  {
+   "id": "R8",
+   "expected": "missing",
+   "trap": "A10:missing",
+   "responseEvidence": [],
+   "from": [
+    "A10"
+   ]
+  },
+  {
+   "id": "R9",
+   "expected": "conflict",
+   "trap": "A11:conflict",
+   "responseEvidence": [
+    {
+     "quote": "System handover and acceptance Week commencing 16 November 2026",
+     "page": 7
+    },
+    {
+     "quote": "We will deliver the upgraded system in time for the start of the maintenance contract on 1 November 2026",
+     "page": 2
+    }
+   ],
+   "from": [
+    "A11"
+   ]
+  },
+  {
+   "id": "R10",
+   "expected": "conflict",
+   "trap": "A12:conflict",
+   "responseEvidence": [
+    {
+     "quote": "We will provide classroom and on-site training for two nominated Council Officers",
+     "page": 7
+    },
+    {
+     "quote": "we will train three Council Officers so that the Council can apply for its public space surveillance licence",
+     "page": 2
+    }
+   ],
+   "from": [
+    "A12"
+   ]
+  },
+  {
+   "id": "R11",
+   "expected": "missing",
+   "trap": "A13:missing",
+   "responseEvidence": [],
+   "from": [
+    "A13"
+   ]
+  },
+  {
+   "id": "R12",
+   "expected": "conflict",
+   "trap": "A14:answered; A15:conflict",
+   "responseEvidence": [
+    {
+     "quote": "Our monitoring service checks every camera and recorder automatically every 15 minutes, 24 hours a day, and raises an alert to our service desk",
+     "page": 6
+    },
+    {
+     "quote": "An engineer will attend site and assess the fault within 48 hours of the report.",
+     "page": 6
+    }
+   ],
+   "from": [
+    "A14",
+    "A15"
+   ]
+  },
+  {
+   "id": "R13",
+   "expected": "answered",
+   "trap": "A16:answered",
+   "responseEvidence": [
+    {
+     "quote": "Faults are remedied within 72 hours of the report, seven days a week, including weekends and bank holidays.",
+     "page": 6
+    }
+   ],
+   "from": [
+    "A16"
+   ]
+  },
+  {
+   "id": "R14",
+   "expected": "conflict",
+   "trap": "A17:conflict; A18:answered",
+   "responseEvidence": [
+    {
+     "quote": "Recording retention 30 days at full resolution from all cameras",
+     "page": 10
+    },
+    {
+     "quote": "Recorders are configured to store at least 31 days of continuous recordings from every camera.",
+     "page": 6
+    },
+    {
+     "quote": "Nominated Council Officers will view live and recorded footage through a secure viewing client at the Town Hall, and Hampshire Constabulary will be given an evidence export account",
+     "page": 6
+    }
+   ],
+   "from": [
+    "A17",
+    "A18"
+   ]
+  },
+  {
+   "id": "R15",
+   "expected": "missing",
+   "trap": "A19:missing",
+   "responseEvidence": [
+    {
+     "quote": "CCTV retention policy: to be discussed with the Council at the mobilisation meeting.",
+     "page": 6
+    }
+   ],
+   "from": [
+    "A19"
+   ]
+  },
+  {
+   "id": "R16",
+   "expected": "partial",
+   "trap": "A20:partial",
+   "responseEvidence": [
+    {
+     "quote": "Anchor points and catenary wires are load tested at installation and at every annual service visit, using our in-house test procedure HVS-TP-07.",
+     "page": 8
+    }
+   ],
+   "from": [
+    "A20"
+   ]
+  },
+  {
+   "id": "R17",
+   "expected": "answered",
+   "trap": "A21:answered",
+   "responseEvidence": [
+    {
+     "quote": "All electrical components, wiring and connections are tested, and we issue an Electrical Installation Certificate to BS 7671 for every circuit we install or modify.",
+     "page": 8
+    }
+   ],
+   "from": [
+    "A21"
+   ]
+  },
+  {
+   "id": "R18",
+   "expected": "answered",
+   "trap": "A22:answered",
+   "responseEvidence": [
+    {
+     "quote": "We install and anchor all equipment to the manufacturer's instructions using load-rated brackets, so that every installation is safe and compliant with Health and Safety regulations.",
+     "page": 7
+    }
+   ],
+   "from": [
+    "A22"
+   ]
+  },
+  {
+   "id": "R19",
+   "expected": "answered",
+   "trap": "A23:answered",
+   "responseEvidence": [
+    {
+     "quote": "Our site teams work to task-specific Risk Assessments and Method Statements (RAMS), with barriers and traffic management around every work area, so that our workers and the public are protected at all times.",
+     "page": 7
+    }
+   ],
+   "from": [
+    "A23"
+   ]
+  },
+  {
+   "id": "R20",
+   "expected": "conflict",
+   "trap": "A24:answered; A25:conflict",
+   "responseEvidence": [
+    {
+     "quote": "We hold Public Liability insurance of £10,000,000 and Professional Indemnity insurance of £5,000,000.",
+     "page": 9
+    },
+    {
+     "quote": "We hold Public Liability insurance of £10,000,000 and Professional Indemnity insurance of £5,000,000.",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A24",
+    "A25"
+   ]
+  },
+  {
+   "id": "R21",
+   "expected": "answered",
+   "trap": "A26:answered",
+   "responseEvidence": [
+    {
+     "quote": "We supply all access equipment, including our own cherry pickers (mobile elevating work platforms), and our own vehicles to transport equipment.",
+     "page": 8
+    }
+   ],
+   "from": [
+    "A26"
+   ]
+  },
+  {
+   "id": "R22",
+   "expected": "conflict",
+   "trap": "A27:conflict",
+   "responseEvidence": [
+    {
+     "quote": "Call-outs to faults caused by vandalism, power failure or third-party damage are charged at £85 per hour plus parts.",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A27"
+   ]
+  },
+  {
+   "id": "R23",
+   "expected": "conflict",
+   "trap": "A28:conflict",
+   "responseEvidence": [
+    {
+     "quote": "Our price assumes that the existing High Street columns are structurally sound. Any remedial work to columns found during installation will be charged as a variation.",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A28"
+   ]
+  },
+  {
+   "id": "R24",
+   "expected": "partial",
+   "trap": "A29:partial",
+   "responseEvidence": [
+    {
+     "quote": "Our lead engineers hold the HERS certificate; copies are provided in Appendix B.",
+     "page": 8
+    },
+    {
+     "quote": "HERS certificates for our remaining four field engineers will follow on award.",
+     "page": 10
+    }
+   ],
+   "from": [
+    "A29"
+   ]
+  },
+  {
+   "id": "R25",
+   "expected": "answered",
+   "trap": "A30:answered",
+   "responseEvidence": [
+    {
+     "quote": "All site operatives hold IPAF PAL cards in categories 3a and 3b for operating cherry pickers and are trained in working at height.",
+     "page": 8
+    }
+   ],
+   "from": [
+    "A30"
+   ]
+  },
+  {
+   "id": "R26",
+   "expected": "answered",
+   "trap": "A31:answered",
+   "responseEvidence": [
+    {
+     "quote": "Our proposal covers all six locations in the contract: the four High Street camera positions, the High Street ANPR camera, the Market Square, the Public Gardens, Jubilee Playing Fields and Anstey Park.",
+     "page": 2
+    }
+   ],
+   "from": [
+    "A31"
+   ]
+  },
+  {
+   "id": "R27",
+   "expected": "answered",
+   "trap": "A32:answered",
+   "responseEvidence": [
+    {
+     "quote": "For Kings Pond car park and Holybourne Play Area, which have no electricity supply, we suggest solar-powered cameras with battery storage and 4G transmission.",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A32"
+   ]
+  },
+  {
+   "id": "R28",
+   "expected": "manual",
+   "trap": "submission deadline/delivery",
+   "from": []
+  },
+  {
+   "id": "R29",
+   "expected": "manual",
+   "trap": "sealed pack, no supplier markings",
+   "from": []
+  },
+  {
+   "id": "R30",
+   "expected": "answered",
+   "trap": "A33:answered",
+   "responseEvidence": [
+    {
+     "quote": "Our experience, our proposed approach to the works and our technical specification are set out in Sections 2 to 7 of this document.",
+     "page": 2
+    }
+   ],
+   "from": [
+    "A33"
+   ]
+  },
+  {
+   "id": "R31",
+   "expected": "conflict",
+   "trap": "A34:conflict",
+   "responseEvidence": [
+    {
+     "quote": "It covers the initial installation and annual maintenance for Years 1 and 2. Maintenance for Year 3 will be quoted at the first anniversary of the contract",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A34"
+   ]
+  },
+  {
+   "id": "R32",
+   "expected": "conflict",
+   "trap": "A35:conflict",
+   "responseEvidence": [
+    {
+     "quote": "Reference 2: Fenbridge Borough Council. Maintenance of 40 public space cameras from April 2021 to March 2024.",
+     "page": 3
+    }
+   ],
+   "from": [
+    "A35"
+   ]
+  },
+  {
+   "id": "R33",
+   "expected": "manual",
+   "trap": "no lobbying",
+   "from": []
+  },
+  {
+   "id": "R34",
+   "expected": "manual",
+   "trap": "'submit a compliant tender' (meta)",
+   "from": []
+  },
+  {
+   "id": "R35",
+   "expected": "answered",
+   "trap": "A36:answered",
+   "responseEvidence": [
+    {
+     "quote": "Daniel Okafor Project Director 18 years in public space CCTV; BTEC Level 4 in Security Systems",
+     "page": 3
+    }
+   ],
+   "from": [
+    "A36"
+   ]
+  },
+  {
+   "id": "R36",
+   "expected": "manual",
+   "trap": "scoring guidance",
+   "from": []
+  },
+  {
+   "id": "R37",
+   "expected": "manual",
+   "trap": "e-mail subject/address",
+   "from": []
+  },
+  {
+   "id": "R38",
+   "expected": "manual",
+   "trap": "postal address/deadline",
+   "from": []
+  },
+  {
+   "id": "R39",
+   "expected": "conflict",
+   "trap": "A38:conflict",
+   "responseEvidence": [
+    {
+     "quote": "Our offer is conditional on 50% of the installation price being paid with the order, before work starts; the balance is invoiced on handover.",
+     "page": 9
+    }
+   ],
+   "from": [
+    "A38"
+   ]
+  }
+ ]
+}

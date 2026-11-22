@@ -1,0 +1,17 @@
+{
+ "deployment": "dpl_GEejFxErGSqLXJ6FZp29PGs4pXSF",
+ "commit": "18f2661",
+ "date": "2026-11-21T17:45Z",
+ "result": "readiness completed (77061 ms, 39 reqs, 82/82 citations verified, $0.3209); the test client returned Bad Gateway before Submission Check finished (combined request too long for the client) \u2014 replaced by the fixture-based chained run",
+ "usage": {
+  "calls": 5,
+  "promptTokens": 21849,
+  "completionTokens": 30494,
+  "cachedTokens": 14624,
+  "costUsd": 0.3209
+ },
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5",
+ "mode": "bench-readiness"
+}

@@ -1,0 +1,24 @@
+{
+ "model": "anthropic/claude-sonnet-5.5",
+ "bench": "alton-cctv-2026",
+ "tenderSha256": "a530a1eaddb41cb36a78b5bdd268508ac9cf3f446d457c79151ed518193a14f5",
+ "mode": "submission (ECTA fictional known-answer test, regression)",
+ "deployment": "dpl_BtcLjM2pUgmrP856Dr2XWm5FUKvy",
+ "commit": "f46e302",
+ "date": "2026-11-21T17:53Z",
+ "final": {
+  "exact": "18/18",
+  "issuesFlagged": "12/12",
+  "falseAlarms": "0/6"
+ },
+ "evidence": {
+  "responseQuotesFound": "15/15",
+  "tenderQuotesVerified": "18/18"
+ },
+ "usage": {
+  "promptTokens": 3137,
+  "completionTokens": 1496,
+  "costUsd": 0.0221
+ },
+ "engineMs": 7523
+}

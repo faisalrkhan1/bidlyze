@@ -7,6 +7,7 @@ import { getSupabase } from "@/lib/supabase";
 import AppShell from "@/app/components/AppShell";
 import { FEATURES } from "@/lib/featureFlags";
 import { isDeletedAnalysis } from "@/lib/deleteTender";
+import { averageBidScore } from "@/lib/dashboardStats";
 
 const DEFAULT_LIMIT = 3;
 
@@ -18,8 +19,8 @@ const PLAN_LABELS = {
 };
 
 function ScoreBadge({ score }) {
-  if (score == null) return <span style={{ color: "var(--text-muted)" }}>--</span>;
-  const num = Number(score);
+  const num = score === null || score === undefined || score === "" ? NaN : Number(score);
+  if (!Number.isFinite(num)) return <span style={{ color: "var(--text-muted)" }}>--</span>;
   let color = "text-red-400";
   let bg = "bg-red-500/10";
   if (num >= 70) {
@@ -36,7 +37,7 @@ function ScoreBadge({ score }) {
   );
 }
 
-function StatCard({ label, value, icon, accentColor }) {
+function StatCard({ label, value, icon, accentColor, hint }) {
   const colorMap = {
     emerald: { bg: "bg-emerald-500/10", text: "text-emerald-500" },
     blue: { bg: "bg-blue-500/10", text: "text-blue-500" },
@@ -58,7 +59,8 @@ function StatCard({ label, value, icon, accentColor }) {
           {label}
         </span>
       </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
+      <p className="text-2xl font-bold tracking-tight" data-testid={`stat-${label.split(" ")[0].toLowerCase().replace(/[^a-z]/g, "")}`}>{value}</p>
+      {hint && <p className="text-[11px] mt-1" style={{ color: "var(--text-muted)" }}>{hint}</p>}
     </div>
   );
 }
@@ -218,12 +220,8 @@ export default function DashboardPage() {
       .eq("user_id", user.id)
       .not("bid_score", "is", null)
       .then(({ data }) => {
-        if (data && data.length > 0) {
-          const sum = data.reduce((acc, row) => acc + Number(row.bid_score), 0);
-          setAvgScore(Math.round(sum / data.length));
-        } else {
-          setAvgScore(0);
-        }
+        // null (shown as "--") when no analysis has a numeric score yet: never 0 or NaN.
+        setAvgScore(averageBidScore(data));
       });
   }, [user]);
 
@@ -347,6 +345,7 @@ export default function DashboardPage() {
           <StatCard
             label="Avg. Bid Score (0–100)"
             value={avgScore !== null ? avgScore : "--"}
+            hint={avgScore === null ? "No scored tenders yet" : undefined}
             accentColor="violet"
             icon={
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>

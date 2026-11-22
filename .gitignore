@@ -45,3 +45,10 @@ next-env.d.ts
 # session-local config and artifacts
 .claude/
 images/
+
+# Benchmark caches of third-party documents (not redistributed)
+tests/benchmarks/**/.cache/
+
+# Playwright
+test-results/
+playwright-report/
