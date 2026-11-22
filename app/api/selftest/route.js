@@ -166,11 +166,20 @@ export async function GET(request) {
           return it ? { ...it, id: k.id, viaTi: it.id } : { id: k.id, status: undefined, aiStatus: undefined, evidence: [] };
         }) };
         const groups = summarize(result.items, {}).byGroup;
+        const keyScore = scoreSubmission(key, mapped);
+        // The full run takes about 2 minutes, longer than some fetch proxies wait: also log a
+        // compact summary (public tender, fictional proposal; no customer data).
+        console.log(`[selftest:beta-flow] ${JSON.stringify({
+          tender: { reqs: tender.summary.requirementsTotal, cited: tender.summary.cited, checkable: tender.summary.checkable, notCheckable: tender.summary.notCheckable, ms: tenderMs, cost: tender.aiCostUsd, failed: tender.analysisData.meta?.failedPasses, truncated: tender.analysisData.meta?.truncatedPasses, keyCoverage: rs.summary },
+          check: { checked: result.items.length, groups, statuses: result.summary, quotesResponse: `${result.items.flatMap((i) => i.evidence).filter((e) => e.status !== "unverified").length}/${result.items.flatMap((i) => i.evidence).length}`, ms: result.meta.durationMs, cost: result.meta.aiCostUsd },
+          key: { exact: keyScore.final.exact, issuesFlagged: keyScore.final.issuesFlagged, falseAlarms: keyScore.final.falseAlarmCount, missed: keyScore.final.missedIssues, falseAlarmIds: keyScore.final.falseAlarms, evidence: keyScore.evidence },
+          totalMs: Date.now() - t0,
+        })}`);
         return NextResponse.json({
           ok: true, model: currentModel(), source: src.meta,
           tender: { ...tender.summary, ms: tenderMs, aiCostUsd: tender.aiCostUsd, passesRun: ["overview", "requirements"], passesSkipped: tender.analysisData.meta?.passesSkipped, failedPasses: tender.analysisData.meta?.failedPasses, truncatedPasses: tender.analysisData.meta?.truncatedPasses, keyCoverage: rs.summary },
           check: { requirementsChecked: result.items.length, excluded: result.excluded.length, groups, statuses: result.summary, documents: result.documents.map((d) => `${d.id} ${d.name}: ${d.state}`), quotes: { response: `${result.items.flatMap((i) => i.evidence).filter((e) => e.status !== "unverified").length}/${result.items.flatMap((i) => i.evidence).length}`, tender: `${result.items.filter((i) => i.tender && i.tender.status !== "unverified").length}/${result.items.filter((i) => i.tender).length}` }, ms: result.meta.durationMs, aiCostUsd: result.meta.aiCostUsd },
-          answerKey: scoreSubmission(key, mapped),
+          answerKey: keyScore,
           missedIssues: mapped.items.filter((i) => { const k = key.requirements.find((x) => x.id === i.id); return k && k.expected !== "answered" && (!i.status || i.status === "answered"); }).map((i) => `${i.id}: ${i.status || "not extracted"}`),
           falseAlarms: mapped.items.filter((i) => { const k = key.requirements.find((x) => x.id === i.id); return k && k.expected === "answered" && i.status && !["answered", "manual"].includes(i.status); }).map((i) => `${i.id} (${i.viaTi}): ${i.status} | ${i.gap}`),
           totalCostUsd: Math.round(((tender.aiCostUsd || 0) + (result.meta.aiCostUsd || 0)) * 10000) / 10000,
